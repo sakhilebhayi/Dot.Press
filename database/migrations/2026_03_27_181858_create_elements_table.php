@@ -11,6 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // The live database created this table under the earlier file name
+        // 2026_03_27_181855_create_elements_table (renamed to fix the migration
+        // ordering). Without this guard that database would try to create it
+        // a second time the first time it runs this file.
+        if (Schema::hasTable('elements')) {
+            return;
+        }
+
         Schema::create('elements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('slide_id')->constrained()->cascadeOnDelete();
