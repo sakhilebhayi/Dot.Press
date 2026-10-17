@@ -32,6 +32,10 @@ Run **Deploy to Production** with `confirm=deploy` (`gh workflow run deploy.yml 
 - Cron: one weekly scheduled command (the dependency-advisory scan) and one queued class. The deploy installs 2 lines through the same locked, verified crontab block as the other Dot apps, so the account's crontab grows by 2 the first time. Every deploy log prints `== crontab: 2 line(s) for # dot-press installed, M other line(s) preserved`; M must not shrink.
 - The smoke check requests `/`, `/login`, `/up`, the built CSS and a harmless `POST /up`, and fails the run if any is wrong or if a debug page is served.
 
+## Known limits
+
+- The JS build imports from `vendor/` (`resources/js/app.js` pulls in `tightenco/ziggy`), so CI and the deploy run `composer install --no-dev --no-scripts` on the runner before `npm run build`. Without it the build fails with `UNRESOLVED_IMPORT`.
+
 ## Not covered yet
 
 PHPStan is not in CI. There is no health document for the Dot.Brain guardian, no nightly backup and no scheduler probe for Projects; the other Dot apps have all three.

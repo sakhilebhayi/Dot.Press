@@ -58,6 +58,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # resources/js/app.js imports from vendor/ (tightenco/ziggy), so the
+      # JS build cannot run without Composer's packages (found by CI on the
+      # first run: UNRESOLVED_IMPORT '../../vendor/tightenco/ziggy').
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, intl, xml, fileinfo
+      - name: Install PHP packages the JS imports from vendor/
+        run: composer install --no-dev --no-scripts --no-interaction --prefer-dist --no-progress
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
