@@ -27,6 +27,17 @@ class SlideElementsUpdated implements ShouldBroadcast
         public readonly string $editedByName,
     ) {}
 
+    /**
+     * Production has no websocket server and runs BROADCAST_CONNECTION=null.
+     * Skip the event entirely then: otherwise every save would add a
+     * BroadcastEvent job to the database queue only for the worker to hand it
+     * to the null driver (and fail if the slide was deleted meanwhile).
+     */
+    public function broadcastWhen(): bool
+    {
+        return config('broadcasting.default') !== 'null';
+    }
+
     public function broadcastOn(): array
     {
         return [

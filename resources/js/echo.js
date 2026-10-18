@@ -5,10 +5,12 @@ window.Pusher = Pusher;
 
 // Reverb speaks the Pusher protocol, so laravel-echo's 'reverb' broadcaster
 // is really just its Pusher connector pointed at our own server. Only
-// initialize it when the keys are actually configured (BROADCAST_CONNECTION
-// defaults to "log" for local dev/CI -- see .env.example) so the app
-// doesn't try to open a websocket connection to nothing.
-if (import.meta.env.VITE_REVERB_APP_KEY) {
+// initialize it when the key AND host are configured at build time.
+// Production (shared cPanel host) has no websocket server and runs
+// BROADCAST_CONNECTION=null with no VITE_REVERB_* values, so Echo must not
+// exist there: constructing it would retry a websocket to a dead host on
+// every page. See .env.example.
+if (import.meta.env.VITE_REVERB_APP_KEY && import.meta.env.VITE_REVERB_HOST) {
     window.Echo = new Echo({
         broadcaster: 'reverb',
         key: import.meta.env.VITE_REVERB_APP_KEY,
