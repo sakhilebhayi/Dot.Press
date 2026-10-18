@@ -6,14 +6,16 @@ name: CI
 # What gates and what only informs:
 #   gates:   the PHP test suite, Pint (code style), the frontend build and a
 #            check that the build's manifest contains every entry the views ask
-#            for (the missing-manifest 500 that broke the Dot.Projects login pages on 2026-10-17).
-#   informs: composer and npm audit, and PHPStan. Making them blocking while
-#            they are red would turn every run red until they are cleared
-#            (Dot.Agents sat red for a month that way), so they warn instead.
-#            PHPStan (larastan, level 5) reports its findings as annotations and
-#            in the job summary; promote it into the gate once it is at zero.
-#            npm audit still reports the tailwindcss 3 build chain (fix needs
-#            the Tailwind 3 to 4 migration, an owner decision).
+#            for (the missing-manifest 500 that broke the Dot.Projects login pages on 2026-10-17),
+#            and the dependency audit (composer audit, npm audit --audit-level=high).
+#            Both audits are clean since the Tailwind 3 to 4 migration, so they
+#            block now: a new advisory turns the run red (and so blocks a
+#            deploy) until the dependency is updated.
+#   informs: PHPStan only. Making it blocking while it is red would turn every
+#            run red until it is cleared (Dot.Agents sat red for a month that
+#            way), so it warns instead. PHPStan (larastan, level 5) reports its
+#            findings as annotations and in the job summary; promote it into the
+#            gate once it is at zero.
 on:
   push:
     branches: [main]
@@ -156,10 +158,9 @@ jobs:
           exit 0
 
   audit:
-    name: Dependency audit (informational)
+    name: Dependency audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -168,23 +169,22 @@ jobs:
           tools: composer:v2
           coverage: none
       - name: Composer audit
-        continue-on-error: true
-        run: composer audit --no-interaction || echo "::warning::composer audit reports advisories (not blocking)"
+        run: composer audit --no-interaction
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: npm audit
-        continue-on-error: true
-        run: npm audit --audit-level=high || echo "::warning::npm audit reports high or critical advisories (not blocking)"
+        run: npm audit --audit-level=high
 
   gate:
     name: Quality gate (all checks must pass)
     runs-on: ubuntu-latest
-    needs: [tests, assets]
+    needs: [tests, assets, audit]
     if: always()
     steps:
-      - name: Require tests and assets to have passed
+      - name: Require tests, assets and the dependency audit to have passed
         run: |
           echo "tests:  ${{ needs.tests.result }}"
           echo "assets: ${{ needs.assets.result }}"
-          [ "${{ needs.tests.result }}" = "success" ] && [ "${{ needs.assets.result }}" = "success" ]
+          echo "audit:  ${{ needs.audit.result }}"
+          [ "${{ needs.tests.result }}" = "success" ] && [ "${{ needs.assets.result }}" = "success" ] && [ "${{ needs.audit.result }}" = "success" ]

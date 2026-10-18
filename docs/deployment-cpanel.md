@@ -4,7 +4,7 @@ Production is `https://pres.infodot.co.za`, on the shared cPanel host that also 
 
 | Workflow | Runs | What it does |
 |---|---|---|
-| `ci.yml` | every PR and push to `main`; called by `deploy.yml` | Pint, the PHP test suite, the frontend build and a check that the Vite manifest contains every entry the views use. One required check: **Quality gate**. PHPStan and the Composer and npm audits report as warnings only. |
+| `ci.yml` | every PR and push to `main`; called by `deploy.yml` | Pint, the PHP test suite, the frontend build and a check that the Vite manifest contains every entry the views use. One required check: **Quality gate**. The Composer and npm dependency audits are in the gate too (both clean); PHPStan reports as warnings only. |
 | `drift.yml` | manual, **read-only** | Compares every tracked file of `main` with the host's copy (sha256) and prints counts and paths. Run it before the takeover. |
 | `deploy.yml` | manual, `confirm=adopt` once, then `confirm=deploy` | See below. |
 | `server-logs.yml` | manual, read-only | Tails the newest Laravel log. |
