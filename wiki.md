@@ -27,7 +27,7 @@ This is a naming correction worth stating plainly: `InfoDot/config/ecosystem.php
 
 | Layer | Technology | Notes |
 |---|---|---|
-| Framework | Laravel 13, PHP 8.3+ | Standard app skeleton (Jetstream + Fortify for auth/teams) |
+| Framework | Laravel 13, PHP 8.4 | Standard app skeleton (Jetstream + Fortify for auth/teams) |
 | UI | **Inertia.js + Vue 3** — not Livewire | `config/jetstream.php` sets `'stack' => 'inertia'`; `livewire/livewire` is absent from `composer.json` and `composer.lock`. This is a real, deliberate difference from sibling platforms that use the Livewire stack — see §4 for a bug this caused. |
 | Canvas | Konva.js (`konva`, `vue-konva`) | Slide viewport, elements, drag/resize/transform |
 | Rich text | Tiptap 3 (`@tiptap/vue-3`, starter-kit, text-align, underline, color) | In-canvas text editing |

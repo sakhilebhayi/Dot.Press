@@ -8,7 +8,7 @@
 
 <br />
 
-![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php&logoColor=white) ![Inertia](https://img.shields.io/badge/Inertia.js%20%2B%20Vue%203-6E4AFF?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php&logoColor=white) ![Inertia](https://img.shields.io/badge/Inertia.js%20%2B%20Vue%203-6E4AFF?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
 
 <br /><br />
 
@@ -50,7 +50,7 @@ There is no team-based sharing on the presentation domain yet — `Project`/`Dec
 | Layer | Technology |
 |---|---|
 | Framework | Laravel 13 |
-| Language | PHP 8.3+ |
+| Language | PHP 8.4 |
 | Frontend | **Inertia.js + Vue 3** (not Livewire — `config/jetstream.php` sets the Inertia stack, and `livewire/livewire` is not a dependency of this app) |
 | Styling | Tailwind CSS 4 via `@tailwindcss/vite` (see [Tailwind CSS 4](#tailwind-css-4)) |
 | Canvas | Konva.js / vue-konva |
