@@ -32,9 +32,9 @@ SQLite, one file (`database/database.sqlite`), on the host as locally; there is 
 
 - A rollback copy of the app folder (without `vendor/`, `node_modules/`, logs and the build) is written to `~/dot-press-<mode>-<time>.tgz`; the newest three are kept. To restore: stop writes, `tar xzf` it over the app folder, `php artisan up`.
 - A failure after maintenance mode starts **leaves the site down** and says so, with the copy's name. A failure before it says the site is untouched.
-- `APP_DEBUG` is forced to `false` on every run, because with it on any error prints a ~840 KB debug page to every visitor. `APP_ENV=local` and an `http://` `APP_URL` are reported as warnings, not changed.
+- `APP_DEBUG` is forced to `false` on every run, because with it on any error prints a ~840 KB debug page to every visitor. `APP_ENV=local`, an `http://` `APP_URL` and settings this host cannot run (a `DB_CONNECTION` other than `sqlite`, `BROADCAST_CONNECTION` of `reverb`/`pusher`/`ably`, `QUEUE_CONNECTION` of `sync`/`redis`, `SESSION_DRIVER` or `CACHE_STORE` of `redis`) are reported as warnings, never changed. A stray `public/hot` (the Vite dev-server marker) is removed after the build swap.
 - Cron: one weekly scheduled command (the dependency-advisory scan) and one queued class. The deploy installs 2 lines through the same locked, verified crontab block as the other Dot apps, so the account's crontab grows by 2 the first time. Every deploy log prints `== crontab: 2 line(s) for # dot-press installed, M other line(s) preserved`; M must not shrink.
-- The smoke check requests `/`, `/login`, `/up`, the built CSS and a harmless `POST /up`, and fails the run if any is wrong or if a debug page is served.
+- The smoke check requests `/`, `/login`, `/up`, the built CSS and a harmless `POST /up`, and fails the run if any is wrong, if a debug page is served, or if `/` or `/login` reference a Vite dev server (`:5173`, `@vite/client`).
 
 ## Known limits
 
