@@ -24,6 +24,10 @@ Nothing in the repository says how the app folder on the host was put there, or 
 
 Run **Deploy to Production** with `confirm=deploy` (`gh workflow run deploy.yml -f confirm=deploy`). It runs the CI gate first.
 
+## Database
+
+SQLite, one file (`database/database.sqlite`), on the host as locally; there is no PostgreSQL or MySQL. Queue (`jobs`), cache (`cache`) and sessions (`sessions`) are tables in it. Web requests, cron's `queue:work` and `schedule:run` write to it at the same time, so `config/database.php` sets a 5 s `busy_timeout`, WAL journaling, `synchronous=NORMAL` and `IMMEDIATE` transactions. WAL keeps `database.sqlite-wal` and `-shm` beside the file; they belong to it, so restore or copy all three together (or use `press:backup-database`, which is consistent on its own).
+
 ## Safety nets
 
 - A rollback copy of the app folder (without `vendor/`, `node_modules/`, logs and the build) is written to `~/dot-press-<mode>-<time>.tgz`; the newest three are kept. To restore: stop writes, `tar xzf` it over the app folder, `php artisan up`.
@@ -38,7 +42,7 @@ Run **Deploy to Production** with `confirm=deploy` (`gh workflow run deploy.yml 
 
 ## Not covered yet
 
-PHPStan runs in CI as an informational job (it is not in the gate while it still reports findings). There is no health document for the Dot.Brain guardian, no nightly backup and no scheduler probe for Projects; the other Dot apps have all three.
+PHPStan runs in CI as an informational job (it is not in the gate while it still reports findings). Enrolling the platform in Dot.Brain (see Monitoring below) is a separate change in that repository.
 
 ## Monitoring (Dot.Brain guardian)
 

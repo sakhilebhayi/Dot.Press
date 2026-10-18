@@ -31,7 +31,7 @@ This is a naming correction worth stating plainly: `InfoDot/config/ecosystem.php
 | UI | **Inertia.js + Vue 3** — not Livewire | `config/jetstream.php` sets `'stack' => 'inertia'`; `livewire/livewire` is absent from `composer.json` and `composer.lock`. This is a real, deliberate difference from sibling platforms that use the Livewire stack — see §4 for a bug this caused. |
 | Canvas | Konva.js (`konva`, `vue-konva`) | Slide viewport, elements, drag/resize/transform |
 | Rich text | Tiptap 3 (`@tiptap/vue-3`, starter-kit, text-align, underline, color) | In-canvas text editing |
-| Database | PostgreSQL (assumed 16, matching ecosystem convention) | Shared instance across the ecosystem — `DB_DATABASE=infodot` confirmed in `.env.example` |
+| Database | SQLite (one file, `database/database.sqlite`; PostgreSQL and MySQL are not used in production) | Production is a single SQLite file on a shared cPanel host; queue, cache and sessions use the database driver. Earlier entries in the change log below describe the older PostgreSQL assumption. |
 | Auth | Laravel Sanctum + `App\Http\Controllers\Auth\EcosystemAuthController` | SSO handoff from the InfoDot hub (`/auth/ecosystem`) — matches the ecosystem contract exactly (see §5) |
 | AI | Anthropic Claude via `App\Services\Ai\ContentGenerator`, gated by `App\Services\Ai\SafetyGuard` | `AI_PROVIDER` defaults to `mock` in `.env.example` — an honest, working mock path exists for slide generation and text rewrite when no live key is present, matching the ecosystem convention of not presenting fake AI output as real |
 | Export | `barryvdh/laravel-dompdf` (PDF), `phpoffice/phppresentation` (PPTX) | Both wired to real controller actions, both authorization-checked, both rate-limited (`throttle:export`, 10/min) |
@@ -80,7 +80,7 @@ return redirect()->route('dashboard');
 
 Token lookup, scope check (`ecosystem:read`), expiry check, one-time consumption (`delete()` before login), then redirect to `dashboard` — consistent with the contract used elsewhere in the ecosystem. Route is registered at `GET /auth/ecosystem` → `ecosystem.auth`, outside the authenticated middleware group, as expected for an SSO landing endpoint.
 
-`config/database.php` defaults `DB_DATABASE` to `env('DB_DATABASE', 'laravel')` (the Laravel skeleton default — unremarkable, every connection array in this file has that fallback), but `.env.example` explicitly sets `DB_DATABASE=infodot`, matching the shared ecosystem database convention. `DB_CONNECTION=pgsql` is also set correctly in `.env.example`. This is consistent with how `Dot.Billing` and other siblings are configured.
+`config/database.php` defaults to the `sqlite` connection, with `DB_DATABASE` unset meaning `database/database.sqlite`, WAL journaling, a 5 s `busy_timeout`, `synchronous=NORMAL` and `IMMEDIATE` transactions so the web app, `queue:work` and `schedule:run` can share the file. `.env.example` sets `DB_CONNECTION=sqlite`. (The first audit of this repo assumed the ecosystem's shared PostgreSQL; that is not how Dot.Press runs.)
 
 The git log entry "fix: update routes/web.php imports and dashboard query" (commit `96c1e02`) is misleading in isolation — it did fix the imports, but the "dashboard query" it introduced still passed data to a nonexistent Blade view, so the route remained broken until this pass. The commit message describes intent, not verified outcome; see §9 on why that gap exists in this environment.
 
