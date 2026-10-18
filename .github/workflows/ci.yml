@@ -7,11 +7,13 @@ name: CI
 #   gates:   the PHP test suite, Pint (code style), the frontend build and a
 #            check that the build's manifest contains every entry the views ask
 #            for (the missing-manifest 500 that broke the Dot.Projects login pages on 2026-10-17).
-#   informs: composer and npm audit. Both report real advisories today; making
-#            them blocking would turn every run red until they are cleared
+#   informs: composer and npm audit, and PHPStan. Making them blocking while
+#            they are red would turn every run red until they are cleared
 #            (Dot.Agents sat red for a month that way), so they warn instead.
-# PHPStan is not run: the repo's tool wrapper swallows its output, so a red
-# result would carry no explanation. Add it once that is sorted.
+#            PHPStan (larastan, level 5) reports its findings as annotations and
+#            in the job summary; promote it into the gate once it is at zero.
+#            npm audit still reports the tailwindcss 3 build chain (fix needs
+#            the Tailwind 3 to 4 migration, an owner decision).
 on:
   push:
     branches: [main]
@@ -115,6 +117,43 @@ jobs:
               sys.exit(1)
           print('OK')
           PY
+
+  static-analysis:
+    name: PHPStan (informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, intl, sqlite3, pdo_sqlite, bcmath, gd, zip, xml, fileinfo
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # Findings are shown as annotations on the changed lines and counted in
+      # the run summary. Not in the gate yet: the baseline is not at zero.
+      - name: PHPStan
+        run: |
+          set +e
+          vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=github | tee phpstan.out
+          status=${PIPESTATUS[0]}
+          count=$(grep -c '^::error' phpstan.out)
+          echo "PHPStan: $count finding(s), exit $status" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::PHPStan reports $count finding(s) (not blocking; see annotations)"
+          fi
+          exit 0
 
   audit:
     name: Dependency audit (informational)
