@@ -126,7 +126,7 @@ function cancelRename() {
                     </div>
 
                     <!-- Decks list -->
-                    <div v-else class="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden divide-y divide-white/[0.06]">
+                    <div v-else class="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden [&>*+*]:border-t [&>*+*]:border-white/[0.06]">
                         <div
                             v-for="deck in project.decks"
                             :key="deck.id"

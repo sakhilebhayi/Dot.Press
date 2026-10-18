@@ -52,6 +52,7 @@ There is no team-based sharing on the presentation domain yet — `Project`/`Dec
 | Framework | Laravel 13 |
 | Language | PHP 8.3+ |
 | Frontend | **Inertia.js + Vue 3** (not Livewire — `config/jetstream.php` sets the Inertia stack, and `livewire/livewire` is not a dependency of this app) |
+| Styling | Tailwind CSS 4 via `@tailwindcss/vite` (see [Tailwind CSS 4](#tailwind-css-4)) |
 | Canvas | Konva.js / vue-konva |
 | Rich text | Tiptap 3 |
 | Database | PostgreSQL (shared across the ecosystem, `DB_DATABASE=infodot`) |
@@ -75,6 +76,17 @@ php artisan serve
 ```
 
 > **Ecosystem SSO:** Set `DB_*` env vars to the shared InfoDot PostgreSQL instance and `APP_URL=https://press.infodot.app`. Users authenticated through InfoDot gain access automatically via Sanctum handoff tokens.
+
+## Tailwind CSS 4
+
+Tailwind is v4, built by `@tailwindcss/vite` (`vite.config.js`). There is no `tailwind.config.js`, `postcss.config.js` or autoprefixer: everything that used to be config lives in `resources/css/app.css`.
+
+- `@import 'tailwindcss' source(none)` plus five `@source` lines (the old `content` globs, nothing wider: automatic detection would scan `app/`, `docs/` and `tests/`), and `@plugin` for forms and typography. `dark:` is still the visitor's `prefers-color-scheme`, as in v3 (no `darkMode` was configured), so no `@custom-variant dark` is declared.
+- **The migration's rule is no visual change.** Every v4 default that moved a pixel is put back, each with a comment in `app.css`: border colour (gray-200, not `currentColor`), pointer cursor on buttons, placeholder colour, `hover:` on touch screens, `ring` (3px blue-500/50), the `shadow`/`rounded`/`blur` scale renames and the `drop-shadow-lg` value, the transparent `outline-none`, the v3 `transition` property lists, sRGB gradient interpolation (v4 uses oklab), the `@tailwindcss/forms` focus rule beating plain `border-*` utilities (v4 moved the plugin into the base layer, under every utility), the browser's own spacing on `th`/`td`/`option`/`dialog`/the file button, `ltr:`/`rtl:` needing an explicit `dir`, the v3 `font-sans`/`font-mono` stacks (Figtree first; declared `@theme inline` because `Welcome.vue` and `AuthenticationCard.vue` define their own `--font-mono`), the v3 palette hex values (`resources/css/tailwind-v3-palette.css`; v4 moved to oklch) and the v3 colours of `prose`. Fix a difference in `app.css`, never by redesigning.
+- Markup that changed because v4 dropped or reinterpreted it (no visual change): `ring-opacity-5` -> `ring-black/5` (Dropdown), `bg-opacity-25` -> `bg-gray-200/25` (the Jetstream welcome stub), `lg:grid-cols-[280px,1fr]` -> `lg:grid-cols-[280px_1fr]` (the editor; v4 no longer turns the comma into a space), `sm:leading-10` / `sm:leading-none` next to `sm:text-4xl` / `sm:text-5xl` on the welcome headings (in v4 an explicit `leading-*` beats a responsive `text-*` size's line height; in v3 the responsive size won), and `divide-y divide-white/[0.06]` -> `[&>*+*]:border-t [&>*+*]:border-white/[0.06]` on the dashboard deck list (v4's `divide-*` draws the line under every row but the last instead of above every row but the first, which moves the first and last row by 1px).
+- Things v4 does differently that a view can trip over, not compensated: `space-x-*`/`space-y-*` and `divide-*` put the margin or border on every child but the LAST instead of every child but the first (a hidden last child leaves a trailing gap); `flex-shrink-*`/`flex-grow-*` are `shrink-*`/`grow-*`; `scale-*`, `translate-*` and `rotate-*` set their own properties, not `transform`; the important marker goes last; colours with an opacity modifier (`text-white/60`, `bg-black/10`) go through `color-mix()` in oklab, the same colour with up to 4/255 of channel rounding on a few antialiased pixels.
+- `@tailwindcss/typography` still pins a flagged `postcss-selector-parser`; `package.json` `overrides` pins it to ^7.1.6 so `npm audit --audit-level=moderate` is clean. Leave it until the plugin itself moves.
+- Browser floor: Chrome 111, Safari 16.4, Firefox 128 (cascade layers, `@property`, `color-mix`).
 
 ## Ecosystem
 
