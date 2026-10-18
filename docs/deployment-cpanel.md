@@ -4,7 +4,7 @@ Production is `https://pres.infodot.co.za`, on the shared cPanel host that also 
 
 | Workflow | Runs | What it does |
 |---|---|---|
-| `ci.yml` | every PR and push to `main`; called by `deploy.yml` | Pint, the PHP test suite, the frontend build and a check that the Vite manifest contains every entry the views use. One required check: **Quality gate**. Composer and npm audits report as warnings only. |
+| `ci.yml` | every PR and push to `main`; called by `deploy.yml` | Pint, the PHP test suite, the frontend build and a check that the Vite manifest contains every entry the views use. One required check: **Quality gate**. PHPStan and the Composer and npm audits report as warnings only. |
 | `drift.yml` | manual, **read-only** | Compares every tracked file of `main` with the host's copy (sha256) and prints counts and paths. Run it before the takeover. |
 | `deploy.yml` | manual, `confirm=adopt` once, then `confirm=deploy` | See below. |
 | `server-logs.yml` | manual, read-only | Tails the newest Laravel log. |
@@ -38,7 +38,7 @@ Run **Deploy to Production** with `confirm=deploy` (`gh workflow run deploy.yml 
 
 ## Not covered yet
 
-PHPStan is not in CI. There is no health document for the Dot.Brain guardian, no nightly backup and no scheduler probe for Projects; the other Dot apps have all three.
+PHPStan runs in CI as an informational job (it is not in the gate while it still reports findings). There is no health document for the Dot.Brain guardian, no nightly backup and no scheduler probe for Projects; the other Dot apps have all three.
 
 ## Monitoring (Dot.Brain guardian)
 
