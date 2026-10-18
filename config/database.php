@@ -17,7 +17,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'pgsql'),
+    'default' => env('DB_CONNECTION', 'sqlite'),
 
     /*
     |--------------------------------------------------------------------------
@@ -38,10 +38,18 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
-            'synchronous' => null,
-            'transaction_mode' => 'DEFERRED',
+            // Production is one SQLite file on a shared host that web
+            // requests, cron's queue:work and cron's schedule:run all write
+            // to. busy_timeout makes a second writer wait up to 5 s instead
+            // of failing at once with "database is locked"; WAL lets readers
+            // continue while a write is in progress (and NORMAL is the safe
+            // pairing for it); IMMEDIATE takes the write lock when a
+            // transaction begins, so a read-then-write transaction cannot hit
+            // a lock upgrade deadlock that busy_timeout cannot resolve.
+            'busy_timeout' => (int) env('DB_BUSY_TIMEOUT', 5000),
+            'journal_mode' => env('DB_JOURNAL_MODE', 'wal'),
+            'synchronous' => env('DB_SYNCHRONOUS', 'normal'),
+            'transaction_mode' => env('DB_TRANSACTION_MODE', 'IMMEDIATE'),
         ],
 
         'mysql' => [

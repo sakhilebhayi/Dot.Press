@@ -8,7 +8,7 @@
 
 <br />
 
-![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php&logoColor=white) ![Inertia](https://img.shields.io/badge/Inertia.js%20%2B%20Vue%203-6E4AFF?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php&logoColor=white) ![Inertia](https://img.shields.io/badge/Inertia.js%20%2B%20Vue%203-6E4AFF?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
 
 <br /><br />
 
@@ -50,12 +50,12 @@ There is no team-based sharing on the presentation domain yet — `Project`/`Dec
 | Layer | Technology |
 |---|---|
 | Framework | Laravel 13 |
-| Language | PHP 8.3+ |
+| Language | PHP 8.4 |
 | Frontend | **Inertia.js + Vue 3** (not Livewire — `config/jetstream.php` sets the Inertia stack, and `livewire/livewire` is not a dependency of this app) |
 | Styling | Tailwind CSS 4 via `@tailwindcss/vite` (see [Tailwind CSS 4](#tailwind-css-4)) |
 | Canvas | Konva.js / vue-konva |
 | Rich text | Tiptap 3 |
-| Database | PostgreSQL (shared across the ecosystem, `DB_DATABASE=infodot`) |
+| Database | SQLite, one file (`database/database.sqlite`), in production as well. Queue, cache and sessions use the database driver. The connection runs in WAL mode with a 5 s busy timeout (`config/database.php`) so web requests, `queue:work` and `schedule:run` can share the file. PostgreSQL and MySQL are not used in production and are not tested. |
 | Collaboration presence | Laravel's cache driver (heartbeat + TTL), not a websocket/broadcast service |
 | Auth | Laravel Sanctum + Jetstream (InfoDot SSO via `/auth/ecosystem`) |
 | AI | Anthropic Claude, direct integration with an `AI_PROVIDER=mock` fallback (`.env.example` default) |
@@ -71,11 +71,12 @@ cp .env.example .env
 composer install
 npm install && npm run build
 php artisan key:generate
+touch database/database.sqlite
 php artisan migrate
 php artisan serve
 ```
 
-> **Ecosystem SSO:** Set `DB_*` env vars to the shared InfoDot PostgreSQL instance and `APP_URL=https://press.infodot.app`. Users authenticated through InfoDot gain access automatically via Sanctum handoff tokens.
+> **Ecosystem SSO:** Set `APP_URL` to the public address (production: `https://pres.infodot.co.za`). Users authenticated through InfoDot gain access automatically via Sanctum handoff tokens. The database is this app's own SQLite file; it is not shared with other platforms.
 
 ## Tailwind CSS 4
 
@@ -90,7 +91,7 @@ Tailwind is v4, built by `@tailwindcss/vite` (`vite.config.js`). There is no `ta
 
 ## Ecosystem
 
-**Dot.Press** is one of **21 platforms** in the InfoDot ecosystem, connected via shared PostgreSQL and Sanctum SSO. Visit [InfoDot](https://github.com/sakhileb/InfoDot) to explore the full platform map.
+**Dot.Press** is one of **21 platforms** in the InfoDot ecosystem, connected via Sanctum SSO (each platform has its own database). Visit [InfoDot](https://github.com/sakhileb/InfoDot) to explore the full platform map.
 
 ## License
 
