@@ -120,7 +120,7 @@ onMounted(() => {
                         Canvas-first presentation tool
                     </p>
 
-                    <h1 class="font-display font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.08] tracking-tight text-[var(--paper)] mb-6">
+                    <h1 class="font-display font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.08] sm:leading-none tracking-tight text-[var(--paper)] mb-6">
                         Slides that look designed,<br>not defaulted.
                     </h1>
 
@@ -160,7 +160,7 @@ onMounted(() => {
             <div class="max-w-[1400px] mx-auto">
                 <div class="max-w-xl mb-16 reveal" data-reveal>
                     <p class="font-mono text-xs tracking-[0.18em] uppercase text-[var(--orange)] mb-4">What it does</p>
-                    <h2 class="font-display font-semibold text-3xl sm:text-4xl text-[var(--paper)] leading-tight">
+                    <h2 class="font-display font-semibold text-3xl sm:text-4xl text-[var(--paper)] leading-tight sm:leading-10">
                         Everything a deck needs, on one canvas
                     </h2>
                 </div>
@@ -181,7 +181,7 @@ onMounted(() => {
                 <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-12 lg:gap-20">
                     <div class="reveal" data-reveal>
                         <p class="font-mono text-xs tracking-[0.18em] uppercase text-[var(--orange)] mb-4">From idea to deck</p>
-                        <h2 class="font-display font-semibold text-3xl sm:text-4xl text-[var(--paper)] leading-tight mb-5">
+                        <h2 class="font-display font-semibold text-3xl sm:text-4xl text-[var(--paper)] leading-tight sm:leading-10 mb-5">
                             A project holds every deck you build
                         </h2>
                         <p class="text-[var(--mist)] leading-relaxed max-w-sm">
@@ -217,7 +217,7 @@ onMounted(() => {
             <div class="absolute inset-0" style="background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(240,195,58,0.08) 0%, transparent 65%);"></div>
 
             <div class="relative z-10 max-w-2xl mx-auto text-center reveal" data-reveal>
-                <h2 class="font-display font-semibold text-3xl sm:text-4xl text-[var(--paper)] leading-tight mb-5">
+                <h2 class="font-display font-semibold text-3xl sm:text-4xl text-[var(--paper)] leading-tight sm:leading-10 mb-5">
                     Go from idea to deck in minutes
                 </h2>
                 <p class="text-[var(--mist)] leading-relaxed mb-10 max-w-lg mx-auto">

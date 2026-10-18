@@ -1719,7 +1719,7 @@ onBeforeUnmount(() => {
 
         <div class="editor-page py-8">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="grid gap-6 lg:grid-cols-[280px,1fr]">
+                <div class="grid gap-6 lg:grid-cols-[280px_1fr]">
                     <aside class="editor-panel editor-sidebar rounded-2xl border border-white/10 bg-white/[0.03] p-4 shadow-2xl lg:sticky lg:top-24 lg:max-h-[calc(100vh-7.5rem)] lg:overflow-y-auto">
                         <p class="text-xs font-semibold uppercase tracking-wider text-white/40">Slides</p>
                         <div class="mt-3 space-y-2">
