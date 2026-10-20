@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Jetstream\Jetstream;
 
-Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+Route::match(['get', 'post'], '/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
+    ->withoutMiddleware(['Illuminate\Foundation\Http\Middleware\VerifyCsrfToken', 'Illuminate\Foundation\Http\Middleware\ValidateCsrfToken'])
     ->name('ecosystem.auth');
 
 Route::get('/', function () {
