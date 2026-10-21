@@ -3,10 +3,14 @@
 namespace App\Policies;
 
 use App\Models\Deck;
+use App\Models\Project;
 use App\Models\User;
+use App\Policies\Concerns\ChecksTeamPermissions;
 
 class DeckPolicy
 {
+    use ChecksTeamPermissions;
+
     /**
      * Determine whether the user can view any models.
      */
@@ -25,10 +29,17 @@ class DeckPolicy
 
     /**
      * Determine whether the user can create models.
+     *
+     * Class-level (no project) only says the user is real; creating a
+     * deck is authorised against the team that owns the project.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?Project $project = null): bool
     {
-        return $user->exists;
+        if ($project === null) {
+            return $user->exists;
+        }
+
+        return $this->mayCreateIn($user, $project->team);
     }
 
     /**
@@ -36,7 +47,7 @@ class DeckPolicy
      */
     public function update(User $user, Deck $deck): bool
     {
-        return $user->belongsToTeam($deck->project->team);
+        return $this->mayChangeIn($user, $deck->project->team);
     }
 
     /**
@@ -44,7 +55,7 @@ class DeckPolicy
      */
     public function delete(User $user, Deck $deck): bool
     {
-        return $user->belongsToTeam($deck->project->team);
+        return $this->mayChangeIn($user, $deck->project->team);
     }
 
     /**
@@ -52,7 +63,7 @@ class DeckPolicy
      */
     public function restore(User $user, Deck $deck): bool
     {
-        return $user->belongsToTeam($deck->project->team);
+        return $this->mayChangeIn($user, $deck->project->team);
     }
 
     /**
@@ -60,6 +71,6 @@ class DeckPolicy
      */
     public function forceDelete(User $user, Deck $deck): bool
     {
-        return $user->belongsToTeam($deck->project->team);
+        return $this->mayChangeIn($user, $deck->project->team);
     }
 }

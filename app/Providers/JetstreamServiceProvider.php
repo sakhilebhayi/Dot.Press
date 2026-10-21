@@ -57,5 +57,12 @@ class JetstreamServiceProvider extends ServiceProvider
             'create',
             'update',
         ])->description('Editor users have the ability to read, create, and update.');
+
+        // Read-only: may open, present and export what the team has made, and nothing else.
+        // Nothing here lists 'create' or 'update', which every write in the app is gated on
+        // (see App\Policies\Concerns\ChecksTeamPermissions).
+        Jetstream::role('viewer', 'Viewer', [
+            'read',
+        ])->description('Viewer users can open, present and export what the team has made, but cannot change anything.');
     }
 }

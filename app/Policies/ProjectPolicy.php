@@ -4,9 +4,12 @@ namespace App\Policies;
 
 use App\Models\Project;
 use App\Models\User;
+use App\Policies\Concerns\ChecksTeamPermissions;
 
 class ProjectPolicy
 {
+    use ChecksTeamPermissions;
+
     /**
      * Determine whether the user can view any models.
      */
@@ -25,10 +28,13 @@ class ProjectPolicy
 
     /**
      * Determine whether the user can create models.
+     *
+     * A project is created in the user's current team, so the role they hold
+     * there decides.
      */
     public function create(User $user): bool
     {
-        return $user->exists;
+        return $this->mayCreateIn($user, $user->currentTeam);
     }
 
     /**
@@ -36,7 +42,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->belongsToTeam($project->team);
+        return $this->mayChangeIn($user, $project->team);
     }
 
     /**
@@ -44,7 +50,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return $user->belongsToTeam($project->team);
+        return $this->mayChangeIn($user, $project->team);
     }
 
     /**
@@ -52,7 +58,7 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return $user->belongsToTeam($project->team);
+        return $this->mayChangeIn($user, $project->team);
     }
 
     /**
@@ -60,6 +66,6 @@ class ProjectPolicy
      */
     public function forceDelete(User $user, Project $project): bool
     {
-        return $user->belongsToTeam($project->team);
+        return $this->mayChangeIn($user, $project->team);
     }
 }

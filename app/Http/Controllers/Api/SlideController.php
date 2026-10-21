@@ -57,7 +57,7 @@ class SlideController extends Controller
         ]);
 
         $deck = Deck::with('project')->findOrFail($payload['deck_id']);
-        $this->authorize('view', $deck);
+        $this->authorize('create', [Slide::class, $deck]);
 
         $canvasState = $payload['canvas_state'] ?? ['elements' => []];
         $elements = $canvasState['elements'] ?? [];
