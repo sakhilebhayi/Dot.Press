@@ -165,6 +165,7 @@ function cancelRename() {
                             <!-- Actions -->
                             <div class="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition">
                                 <button
+                                    v-if="project.can_edit !== false"
                                     type="button"
                                     class="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 transition"
                                     title="Rename"
@@ -178,7 +179,7 @@ function cancelRename() {
                                     :href="route('editor.start', { deck_id: deck.id })"
                                     class="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 transition"
                                 >
-                                    Edit
+                                    {{ project.can_edit === false ? 'Open' : 'Edit' }}
                                 </Link>
                             </div>
                         </div>

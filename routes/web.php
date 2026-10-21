@@ -49,6 +49,9 @@ Route::middleware([
             ->latest('id')
             ->get();
 
+        // Courtesy for the UI only: the API enforces this on every write.
+        $projects->each(fn (Project $project) => $project->setAttribute('can_edit', auth()->user()->can('update', $project)));
+
         return Inertia::render('Dashboard', [
             'projects' => $projects,
         ]);

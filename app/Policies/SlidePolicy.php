@@ -2,11 +2,15 @@
 
 namespace App\Policies;
 
+use App\Models\Deck;
 use App\Models\Slide;
 use App\Models\User;
+use App\Policies\Concerns\ChecksTeamPermissions;
 
 class SlidePolicy
 {
+    use ChecksTeamPermissions;
+
     /**
      * Determine whether the user can view any models.
      */
@@ -25,10 +29,17 @@ class SlidePolicy
 
     /**
      * Determine whether the user can create models.
+     *
+     * Class-level (no deck) only says the user is real; creating a
+     * slide is authorised against the team that owns the deck.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?Deck $deck = null): bool
     {
-        return $user->exists;
+        if ($deck === null) {
+            return $user->exists;
+        }
+
+        return $this->mayCreateIn($user, $deck->project->team);
     }
 
     /**
@@ -36,7 +47,7 @@ class SlidePolicy
      */
     public function update(User $user, Slide $slide): bool
     {
-        return $user->belongsToTeam($slide->deck->project->team);
+        return $this->mayChangeIn($user, $slide->deck->project->team);
     }
 
     /**
@@ -44,7 +55,7 @@ class SlidePolicy
      */
     public function delete(User $user, Slide $slide): bool
     {
-        return $user->belongsToTeam($slide->deck->project->team);
+        return $this->mayChangeIn($user, $slide->deck->project->team);
     }
 
     /**
@@ -52,7 +63,7 @@ class SlidePolicy
      */
     public function restore(User $user, Slide $slide): bool
     {
-        return $user->belongsToTeam($slide->deck->project->team);
+        return $this->mayChangeIn($user, $slide->deck->project->team);
     }
 
     /**
@@ -60,6 +71,6 @@ class SlidePolicy
      */
     public function forceDelete(User $user, Slide $slide): bool
     {
-        return $user->belongsToTeam($slide->deck->project->team);
+        return $this->mayChangeIn($user, $slide->deck->project->team);
     }
 }

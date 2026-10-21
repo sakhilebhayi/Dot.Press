@@ -17,6 +17,10 @@ class SlideEditorController extends Controller
         $user = $request->user();
         $team = $user->currentTeam;
 
+        if (! $user->can('create', Project::class)) {
+            return $this->openExistingWorkspace($user->current_team_id);
+        }
+
         $project = Project::firstOrCreate(
             [
                 'team_id' => $team->id,
@@ -53,6 +57,22 @@ class SlideEditorController extends Controller
         return redirect()->route('editor.slides.show', [$deck, $slide]);
     }
 
+    /**
+     * Someone who may only read (a viewer) never creates the workspace, deck or
+     * first slide that start() would otherwise make: they are sent to the first
+     * slide that already exists, or told there is nothing to view yet.
+     */
+    private function openExistingWorkspace(?int $teamId): RedirectResponse
+    {
+        $project = $teamId ? Project::where('team_id', $teamId)->where('name', 'Dot.Press Workspace')->first() : null;
+        $deck = $project ? Deck::where('project_id', $project->id)->where('title', 'Main Deck')->first() : null;
+        $slide = $deck ? Slide::where('deck_id', $deck->id)->orderBy('sort_order')->first() : null;
+
+        abort_if($slide === null, 403, 'You can view presentations here but not create them, and this workspace has none yet.');
+
+        return redirect()->route('editor.slides.show', [$deck, $slide]);
+    }
+
     public function show(Deck $deck, Slide $slide): Response
     {
         $this->authorize('view', $deck);
@@ -66,6 +86,7 @@ class SlideEditorController extends Controller
         ]);
 
         return Inertia::render('Canvas/Editor', [
+            'canEdit' => request()->user()->can('update', $slide),
             'deck' => [
                 'id' => $deck->id,
                 'title' => $deck->title,

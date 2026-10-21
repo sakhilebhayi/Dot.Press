@@ -21,7 +21,8 @@ class AiController extends Controller
     public function generateSlide(Request $request, Deck $deck, ContentGenerator $generator, SafetyGuard $safetyGuard)
     {
         $deck->loadMissing('project');
-        $this->authorize('view', $deck);
+        // Both actions add slides to the deck, so they need the right to create there.
+        $this->authorize('create', [Slide::class, $deck]);
 
         if (($quotaResponse = $this->ensureQuota($request)) !== null) {
             return $quotaResponse;
@@ -130,7 +131,8 @@ class AiController extends Controller
     public function generateDeck(Request $request, Deck $deck, ContentGenerator $generator, SafetyGuard $safetyGuard)
     {
         $deck->loadMissing('project');
-        $this->authorize('view', $deck);
+        // Both actions add slides to the deck, so they need the right to create there.
+        $this->authorize('create', [Slide::class, $deck]);
 
         $maxSlides = (int) config('ai.limits.max_deck_slides', 12);
 
@@ -244,7 +246,8 @@ class AiController extends Controller
     public function rewriteText(Request $request, Slide $slide, ContentGenerator $generator, SafetyGuard $safetyGuard)
     {
         $slide->loadMissing('deck.project');
-        $this->authorize('view', $slide);
+        // Writes nothing itself, but it is an editing tool that spends the AI quota.
+        $this->authorize('update', $slide);
 
         if (($quotaResponse = $this->ensureQuota($request)) !== null) {
             return $quotaResponse;

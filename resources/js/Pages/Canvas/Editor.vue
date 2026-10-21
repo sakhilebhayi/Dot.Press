@@ -36,6 +36,12 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    // Read-only members (the viewer role) get the canvas to look at, not to change.
+    // This only hides and disables the controls; the API refuses their writes.
+    canEdit: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const stageRef = ref(null);
@@ -52,6 +58,10 @@ const deckTitle = ref(props.deck.title);
 const isRenamingDeck = ref(false);
 
 async function commitRenameDeck() {
+    if (!props.canEdit) {
+        return;
+    }
+
     isRenamingDeck.value = false;
     const newTitle = deckTitle.value.trim();
     if (!newTitle) { deckTitle.value = props.deck.title; return; }
@@ -64,6 +74,10 @@ async function commitRenameDeck() {
 }
 
 function startRenameDeck() {
+    if (!props.canEdit) {
+        return;
+    }
+
     isRenamingDeck.value = true;
     nextTick(() => {
         const el = document.querySelector('.deck-title-input');
@@ -427,6 +441,10 @@ const fetchProjectAssets = async () => {
 };
 
 const openImageUploadDialog = () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     imageUploadInputRef.value?.click();
 };
 
@@ -466,6 +484,10 @@ const onImageUploadChange = async (event) => {
 };
 
 const openVideoUploadDialog = () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     videoUploadInputRef.value?.click();
 };
 
@@ -769,6 +791,10 @@ const unsubscribeFromRealtimeUpdates = () => {
 };
 
 const generateSlideWithAi = async () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (!aiPrompt.value.trim()) {
         errorMessage.value = 'Enter a prompt before generating a slide.';
         return;
@@ -799,6 +825,10 @@ const generateSlideWithAi = async () => {
 };
 
 const rewriteSelectedTextWithAi = async () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (!selectedTextElement.value) {
         errorMessage.value = 'Select a text element first.';
         return;
@@ -855,6 +885,10 @@ const hydrateCanvasState = () => {
 };
 
 const commitHistory = () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     const snapshot = deepClone(elements.value);
     history.value = history.value.slice(0, historyIndex.value + 1);
     history.value.push(snapshot);
@@ -893,6 +927,10 @@ const syncTransformer = () => {
 };
 
 const addElement = (type) => {
+    if (!props.canEdit) {
+        return;
+    }
+
     const id = `el-${Math.random().toString(36).slice(2, 10)}`;
 
     const common = {
@@ -998,6 +1036,10 @@ const addElement = (type) => {
 };
 
 const updateElement = (id, patch) => {
+    if (!props.canEdit) {
+        return;
+    }
+
     elements.value = elements.value.map((element) => {
         if (element.id !== id) {
             return element;
@@ -1043,6 +1085,10 @@ const commitTextEditorBuffer = () => {
 };
 
 const startTextEditMode = async (id) => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (!isTextElementId(id)) {
         return;
     }
@@ -1168,6 +1214,10 @@ const applyEditorCommand = (command) => {
 };
 
 const removeSelected = () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (selectedIds.value.length === 0) {
         return;
     }
@@ -1217,6 +1267,10 @@ const sendBackward = () => {
 };
 
 const undo = () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (historyIndex.value <= 0) {
         return;
     }
@@ -1228,6 +1282,10 @@ const undo = () => {
 };
 
 const redo = () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (historyIndex.value >= history.value.length - 1) {
         return;
     }
@@ -1431,6 +1489,10 @@ const onStageMouseUp = () => {
 };
 
 const saveCanvas = async () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (isEditingText.value) {
         stopTextEditMode(true);
     }
@@ -1477,6 +1539,10 @@ const saveCanvas = async () => {
 };
 
 const createSlide = async () => {
+    if (!props.canEdit) {
+        return;
+    }
+
     if (isEditingText.value) {
         stopTextEditMode(true);
     }
@@ -1660,6 +1726,7 @@ onBeforeUnmount(() => {
                         <template v-else>
                             <h2 class="font-semibold text-xl text-white leading-tight">{{ deckTitle }} · {{ slideTitle }}</h2>
                             <button
+                                v-if="canEdit"
                                 type="button"
                                 title="Rename presentation"
                                 class="text-white/30 hover:text-amber-400 transition"
@@ -1692,6 +1759,7 @@ onBeforeUnmount(() => {
                         Export PPTX
                     </a>
                     <button
+                        v-if="canEdit"
                         class="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
                         type="button"
                         @click="undo"
@@ -1699,13 +1767,16 @@ onBeforeUnmount(() => {
                         Undo
                     </button>
                     <button
+                        v-if="canEdit"
                         class="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
                         type="button"
                         @click="redo"
                     >
                         Redo
                     </button>
+                    <span v-if="!canEdit" class="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/60">View only</span>
                     <button
+                        v-if="canEdit"
                         class="rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-amber-500/25 transition hover:brightness-110 disabled:opacity-60"
                         :disabled="isSaving"
                         type="button"
@@ -1735,6 +1806,7 @@ onBeforeUnmount(() => {
                         </div>
 
                         <button
+                            v-if="canEdit"
                             class="mt-4 w-full rounded-xl border border-dashed border-white/25 px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
                             type="button"
                             @click="createSlide"
@@ -1759,6 +1831,7 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
+                        <template v-if="canEdit">
                         <p class="mt-6 text-xs font-semibold uppercase tracking-wider text-white/40">Elements</p>
                         <div class="mt-3 grid grid-cols-2 gap-2">
                             <button class="editor-element-btn" type="button" @click="addElement('rect')">Rect</button>
@@ -1995,8 +2068,10 @@ onBeforeUnmount(() => {
                             <label class="mt-3 block text-xs text-white/60">Indentation</label>
                             <input v-model.number="indentValue" class="mt-1 w-full" type="range" min="0" max="80" step="2" @change="setIndent">
                         </div>
+                        </template>
 
-                        <p class="mt-4 text-xs text-white/40">Tip: Shift+click for multi-select. Drag on empty space for marquee select.</p>
+                        <p v-if="!canEdit" class="mt-6 text-xs text-white/50">You have view-only access to this deck. Ask an editor or administrator if something needs changing.</p>
+                        <p v-else class="mt-4 text-xs text-white/40">Tip: Shift+click for multi-select. Drag on empty space for marquee select.</p>
                         <p v-if="isDirty" class="mt-2 text-xs font-medium text-amber-300">Unsaved changes</p>
                         <p v-if="errorMessage" class="mt-2 text-xs font-medium text-red-300">{{ errorMessage }}</p>
                     </aside>
@@ -2029,7 +2104,7 @@ onBeforeUnmount(() => {
                                                 text: textRenderValue(element),
                                                 fontSize: element.fontSize ?? 32,
                                                 fill: element.fill ?? '#111827',
-                                                draggable: editingTextElementId !== element.id,
+                                                draggable: canEdit && editingTextElementId !== element.id,
                                                 rotation: element.rotation ?? 0,
                                                 fontStyle: element.fontStyle ?? 'normal',
                                                 lineHeight: element.lineHeight ?? 1.3,
@@ -2053,7 +2128,7 @@ onBeforeUnmount(() => {
                                                 x: element.x,
                                                 y: element.y,
                                                 rotation: element.rotation ?? 0,
-                                                draggable: true,
+                                                draggable: canEdit,
                                             }"
                                             @click="(event) => onElementClick(event, element.id)"
                                             @tap="(event) => onElementClick(event, element.id)"
@@ -2080,7 +2155,7 @@ onBeforeUnmount(() => {
                                                 x: element.x,
                                                 y: element.y,
                                                 rotation: element.rotation ?? 0,
-                                                draggable: true,
+                                                draggable: canEdit,
                                             }"
                                             @click="(event) => onElementClick(event, element.id)"
                                             @tap="(event) => onElementClick(event, element.id)"
@@ -2095,7 +2170,7 @@ onBeforeUnmount(() => {
                                         <v-group
                                             v-else-if="element.type === 'video'"
                                             :ref="(el) => setNodeRef(el, element.id)"
-                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: true }"
+                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: canEdit }"
                                             @click="(event) => onElementClick(event, element.id)"
                                             @tap="(event) => onElementClick(event, element.id)"
                                             @dragmove="(event) => onElementDragMove(event, element.id)"
@@ -2120,7 +2195,7 @@ onBeforeUnmount(() => {
                                                 verticalAlign: 'middle',
                                                 fontSize: element.fontSize ?? 72,
                                                 fill: element.fill ?? '#111827',
-                                                draggable: true,
+                                                draggable: canEdit,
                                                 rotation: element.rotation ?? 0,
                                                 opacity: element.opacity ?? 1,
                                                 shadowColor: element.shadowColor,
@@ -2145,7 +2220,7 @@ onBeforeUnmount(() => {
                                                 height: element.height,
                                                 ...elementVisualConfig(element, { fill: '#dbeafe', stroke: '#2563eb', strokeWidth: 2 }),
                                                 cornerRadius: element.radius ?? 8,
-                                                draggable: true,
+                                                draggable: canEdit,
                                                 rotation: element.rotation ?? 0,
                                             }"
                                             @click="(event) => onElementClick(event, element.id)"
@@ -2162,7 +2237,7 @@ onBeforeUnmount(() => {
                                                 id: element.id,
                                                 x: element.x,
                                                 y: element.y,
-                                                draggable: true,
+                                                draggable: canEdit,
                                                 rotation: element.rotation ?? 0,
                                             }"
                                             @click="(event) => onElementClick(event, element.id)"
@@ -2177,7 +2252,7 @@ onBeforeUnmount(() => {
                                         <v-group
                                             v-else-if="element.type === 'line'"
                                             :ref="(el) => setNodeRef(el, element.id)"
-                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: true }"
+                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: canEdit }"
                                             @click="(event) => onElementClick(event, element.id)"
                                             @tap="(event) => onElementClick(event, element.id)"
                                             @dragmove="(event) => onElementDragMove(event, element.id)"
@@ -2190,7 +2265,7 @@ onBeforeUnmount(() => {
                                         <v-group
                                             v-else-if="element.type === 'arrow'"
                                             :ref="(el) => setNodeRef(el, element.id)"
-                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: true }"
+                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: canEdit }"
                                             @click="(event) => onElementClick(event, element.id)"
                                             @tap="(event) => onElementClick(event, element.id)"
                                             @dragmove="(event) => onElementDragMove(event, element.id)"
@@ -2203,7 +2278,7 @@ onBeforeUnmount(() => {
                                         <v-group
                                             v-else-if="element.type === 'polygon'"
                                             :ref="(el) => setNodeRef(el, element.id)"
-                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: true }"
+                                            :config="{ id: element.id, x: element.x, y: element.y, rotation: element.rotation ?? 0, draggable: canEdit }"
                                             @click="(event) => onElementClick(event, element.id)"
                                             @tap="(event) => onElementClick(event, element.id)"
                                             @dragmove="(event) => onElementDragMove(event, element.id)"

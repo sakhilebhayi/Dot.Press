@@ -3,10 +3,14 @@
 namespace App\Policies;
 
 use App\Models\Asset;
+use App\Models\Project;
 use App\Models\User;
+use App\Policies\Concerns\ChecksTeamPermissions;
 
 class AssetPolicy
 {
+    use ChecksTeamPermissions;
+
     /**
      * Determine whether the user can view any models.
      */
@@ -25,10 +29,17 @@ class AssetPolicy
 
     /**
      * Determine whether the user can create models.
+     *
+     * Class-level (no project) only says the user is real; creating a
+     * asset is authorised against the team that owns the project.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?Project $project = null): bool
     {
-        return $user->exists;
+        if ($project === null) {
+            return $user->exists;
+        }
+
+        return $this->mayCreateIn($user, $project->team);
     }
 
     /**
@@ -36,7 +47,7 @@ class AssetPolicy
      */
     public function update(User $user, Asset $asset): bool
     {
-        return $user->belongsToTeam($asset->project->team);
+        return $this->mayChangeIn($user, $asset->project->team);
     }
 
     /**
@@ -44,7 +55,7 @@ class AssetPolicy
      */
     public function delete(User $user, Asset $asset): bool
     {
-        return $user->belongsToTeam($asset->project->team);
+        return $this->mayChangeIn($user, $asset->project->team);
     }
 
     /**
@@ -52,7 +63,7 @@ class AssetPolicy
      */
     public function restore(User $user, Asset $asset): bool
     {
-        return $user->belongsToTeam($asset->project->team);
+        return $this->mayChangeIn($user, $asset->project->team);
     }
 
     /**
@@ -60,6 +71,6 @@ class AssetPolicy
      */
     public function forceDelete(User $user, Asset $asset): bool
     {
-        return $user->belongsToTeam($asset->project->team);
+        return $this->mayChangeIn($user, $asset->project->team);
     }
 }
