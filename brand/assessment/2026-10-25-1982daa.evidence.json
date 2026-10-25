@@ -1,0 +1,130 @@
+{
+  "assessors": [],
+  "automated": [
+    {
+      "artifact_ref": "check:d1.copy_profile_language_lint:static-scan/d1.copy_profile_language_lint",
+      "check_id": "d1.copy_profile_language_lint",
+      "detail": "348 user-facing string(s) scanned against 6 banned phrase(s) of profile dot-ecosystem; 0 string(s) trip a banned phrase or an unsupported-claim pattern (claim hits are listed under d6.claim_lint).",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d10.error_pages:static-scan/d10.error_pages",
+      "check_id": "d10.error_pages",
+      "detail": "5 of 5 error statuses (403, 404, 419, 500, 503) have a custom page with a link or button. Laravel layout: resources/views/errors. Rendering with the right status needs a running app and is not measured.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d10.health_endpoint:bootstrap/app.php",
+      "check_id": "d10.health_endpoint",
+      "detail": "exists: yes (framework health route /up with no DiagnosingHealth listener (it answers 200 whenever the app boots)); answers: not measured (needs a running app); reports failure honestly: not seen. The share is out of three, so it cannot exceed 2/3 statically.",
+      "value": 0.3333
+    },
+    {
+      "artifact_ref": "check:d2.font_palette_deny_list:static-scan/d2.font_palette_deny_list",
+      "check_id": "d2.font_palette_deny_list",
+      "detail": "5 of 5 fonts/palette values are off the deny-list. Fonts found: Public Sans, Fraunces, Roboto Mono, DejaVu Sans, Material Symbols Rounded; the profile writes no hex colour in its prohibited list, so the palette was not evaluated. Matching is by name only.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d3.heading_structure:resources/js/Pages/Dashboard.vue",
+      "check_id": "d3.heading_structure",
+      "detail": "11 of 12 screens have exactly one <h1> and no skipped level; 13 layout(s) and page(s) that rely on a layout were left out because the outline is split between files. Headings rendered by components or inserted by scripts are not seen.",
+      "value": 0.9167
+    },
+    {
+      "artifact_ref": "check:d3.nav_depth:static-scan/d3.nav_depth",
+      "check_id": "d3.nav_depth",
+      "detail": "5 of 5 navigation links are within 3 level(s) (engine default bound; the profile declares none) across 3 <nav> landmark(s). Click paths through pages are not measured.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d4.reduced_motion:resources/css/app.css",
+      "check_id": "d4.reduced_motion",
+      "detail": "1 of 72 motion declarations are covered by prefers-reduced-motion (no global override); utility classes counted per element. Motion from JavaScript is not scanned.",
+      "value": 0.0139
+    },
+    {
+      "artifact_ref": "check:d5.dead_links:static-scan/d5.dead_links",
+      "check_id": "d5.dead_links",
+      "detail": "10 of 10 checkable internal links resolve; 18 link(s) could not be judged statically and are not counted; 5 link(s) sit inside a Route::has() guard for the route they name and are not counted either. 43 route(s) read from 4 file(s) in routes/ plus 2 page(s) the framework registers (Jetstream terms and privacy); package-provided routes (login, register, ...) are treated as unverifiable.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d5.route_inventory_vs_claims:README.md",
+      "check_id": "d5.route_inventory_vs_claims",
+      "detail": "4 of 5 claimed features share a keyword with 42 route, page or view name word(s). This is a keyword match against names, not a test that the feature works.",
+      "value": 0.8
+    },
+    {
+      "artifact_ref": "check:d5.stubs_placeholders:static-scan/d5.stubs_placeholders",
+      "check_id": "d5.stubs_placeholders",
+      "detail": "39 of 39 surfaces with static text are free of visible stub content. Surfaces whose text is all dynamic, and text produced by scripts, are not seen.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d6.privacy_terms_present:resources/js/Pages/PrivacyPolicy.vue",
+      "check_id": "d6.privacy_terms_present",
+      "detail": "2 of 6 conditions hold (privacy and terms: present, not a placeholder, linked from shared markup). \"Reachable from every public page\" is approximated by a link in a layout, footer or partial; content served from a database or a CMS is not seen.",
+      "value": 0.3333
+    },
+    {
+      "artifact_ref": "check:d8.focus_visible:resources/js/Components/Banner.vue",
+      "check_id": "d8.focus_visible",
+      "detail": "10 of 13 outline removals or positive tabindex uses are safe (replaced by a visible indicator); the rest are listed. Rendered focus order and indicator visibility are not measured.",
+      "value": 0.7692
+    },
+    {
+      "artifact_ref": "check:d8.labels_alt_lang:resources/js/Layouts/AppLayout.vue",
+      "check_id": "d8.labels_alt_lang",
+      "detail": "0/0 form fields labelled (reusable component files are skipped: their consumer supplies the label), 11/11 images with alt, 3/3 documents with lang; 0 element(s) with dynamic attributes and all components were skipped. Title, name, iframe, viewport and ARIA findings do not change this share.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d8.token_pair_contrast:resources/js/Components/AuthenticationCard.vue",
+      "check_id": "d8.token_pair_contrast",
+      "detail": "6 of 6 pair/theme combinations meet their threshold (4.5:1 text; 3:1 large text and focus indicators); themes evaluated: light; pair sources: usage 6; 10 combination(s) undetermined and not counted; 1 focus ring(s) of particular elements not measured because no background is declared behind them (the page ground is not assumed); translucent backgrounds are undetermined; panel backgrounds are tokens named bg/panel/surface/card/sunken.",
+      "value": 1
+    },
+    {
+      "artifact_ref": "check:d9.token_usage_vs_profile:resources/css/app.css",
+      "check_id": "d9.token_usage_vs_profile",
+      "detail": "300 of 745 values come from tokens: colour 300 token / 83 literal / 264 framework-default utility; spacing and type size 0 token / 98 literal; 42 font-family declaration(s) not counted. The profile cites no token source, so any declared custom property counts.",
+      "value": 0.4027
+    }
+  ],
+  "built_by": "claude-code",
+  "context": {
+    "assistive_technology_testing_possible": false
+  },
+  "evidence_version": "1.0.0",
+  "expert": [],
+  "findings": [],
+  "generated_at": "2026-10-25T20:00:00Z",
+  "input": {
+    "commit": "1982daada2ad460a97d68581dcd5c3cc5d11c03d",
+    "repo": "sakhilebhayi/Dot.Press"
+  },
+  "observed": [],
+  "x-provenance": {
+    "analysis_sha256": "80b74450745d9c70810bb1f0d40da8c3f1dfa1cf2c5099c372fa0a4bf0cf4d68",
+    "automated": {
+      "d1.copy_profile_language_lint": "check:d1.copy_profile_language_lint",
+      "d10.error_pages": "check:d10.error_pages",
+      "d10.health_endpoint": "check:d10.health_endpoint",
+      "d2.font_palette_deny_list": "check:d2.font_palette_deny_list",
+      "d3.heading_structure": "check:d3.heading_structure",
+      "d3.nav_depth": "check:d3.nav_depth",
+      "d4.reduced_motion": "check:d4.reduced_motion",
+      "d5.dead_links": "check:d5.dead_links",
+      "d5.route_inventory_vs_claims": "check:d5.route_inventory_vs_claims",
+      "d5.stubs_placeholders": "check:d5.stubs_placeholders",
+      "d6.privacy_terms_present": "check:d6.privacy_terms_present",
+      "d8.focus_visible": "check:d8.focus_visible",
+      "d8.labels_alt_lang": "check:d8.labels_alt_lang",
+      "d8.token_pair_contrast": "check:d8.token_pair_contrast",
+      "d9.token_usage_vs_profile": "check:d9.token_usage_vs_profile"
+    },
+    "profile": "dot-ecosystem@0.1.0",
+    "rubric": "bxqs@1.0.0"
+  }
+}

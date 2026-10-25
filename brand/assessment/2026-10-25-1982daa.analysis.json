@@ -1,0 +1,2390 @@
+{
+  "analysis_version": "1.0.0",
+  "checks": [
+    {
+      "dimension": "emotional_clarity_positioning",
+      "id": "d1.copy_profile_language_lint",
+      "status": "measured",
+      "title": "Copy against the profile's banned phrases and claims policy"
+    },
+    {
+      "dimension": "reliability_error_recovery",
+      "id": "d10.error_pages",
+      "status": "measured",
+      "title": "Designed error pages with a next step"
+    },
+    {
+      "dimension": "reliability_error_recovery",
+      "id": "d10.health_endpoint",
+      "status": "measured",
+      "title": "Health endpoint exists and shows a failure path (static)"
+    },
+    {
+      "dimension": "brand_distinctiveness",
+      "id": "d2.font_palette_deny_list",
+      "status": "measured",
+      "title": "Fonts and palette against the deny-list of generic defaults"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "id": "d3.field_counts",
+      "status": "not_measured",
+      "title": "Fields per form"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "id": "d3.heading_structure",
+      "status": "measured",
+      "title": "One h1 and no skipped heading levels per screen"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "id": "d3.nav_depth",
+      "status": "measured",
+      "title": "Navigation menu depth"
+    },
+    {
+      "dimension": "visual_interaction_craftsmanship",
+      "id": "d4.reduced_motion",
+      "status": "measured",
+      "title": "Animations and transitions respect prefers-reduced-motion (static)"
+    },
+    {
+      "dimension": "visual_interaction_craftsmanship",
+      "id": "d4.spacing_type_scale_conformance",
+      "status": "not_measured",
+      "title": "Spacing and type size on the declared scales"
+    },
+    {
+      "dimension": "functional_completeness",
+      "id": "d5.dead_links",
+      "status": "measured",
+      "title": "Internal links resolve"
+    },
+    {
+      "dimension": "functional_completeness",
+      "id": "d5.route_inventory_vs_claims",
+      "status": "measured",
+      "title": "Claimed features have a matching route"
+    },
+    {
+      "dimension": "functional_completeness",
+      "id": "d5.stubs_placeholders",
+      "status": "measured",
+      "title": "No stub or placeholder content on shipped surfaces"
+    },
+    {
+      "dimension": "trust_transparency",
+      "id": "d6.claim_lint",
+      "status": "not_measured",
+      "title": "Unsupported-claim lint over user-facing copy"
+    },
+    {
+      "dimension": "trust_transparency",
+      "id": "d6.honest_states",
+      "status": "not_measured",
+      "title": "Empty, error and unavailable state wording on list screens (presence only)"
+    },
+    {
+      "dimension": "trust_transparency",
+      "id": "d6.privacy_terms_present",
+      "status": "measured",
+      "title": "Privacy notice and terms present, real and linked"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "id": "d8.focus_visible",
+      "status": "measured",
+      "title": "Focus indicators not removed; no positive tabindex (static)"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "id": "d8.labels_alt_lang",
+      "status": "measured",
+      "title": "Labels, alternative text and language (static)"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "id": "d8.token_pair_contrast",
+      "status": "measured",
+      "title": "Token pair contrast (WCAG 2.2) on both themes"
+    },
+    {
+      "dimension": "cross_platform_consistency",
+      "id": "d9.token_usage_vs_profile",
+      "status": "measured",
+      "title": "Values drawn from design tokens rather than hard-coded"
+    }
+  ],
+  "conflicts": [],
+  "counts": {
+    "by_severity": {
+      "blocker": 0,
+      "info": 22,
+      "major": 8,
+      "minor": 82
+    },
+    "checks": 19,
+    "evidence": 15,
+    "findings": 112,
+    "not_measured": 22,
+    "redactions": 0
+  },
+  "coverage": {
+    "skipped": [
+      {
+        "path": ".git",
+        "reason": "vendored_or_generated_directory"
+      },
+      {
+        "path": "bootstrap/cache",
+        "reason": "vendored_or_generated_directory"
+      },
+      {
+        "path": "resources/views/vendor",
+        "reason": "vendored_or_generated_directory"
+      },
+      {
+        "path": "storage/framework",
+        "reason": "vendored_or_generated_directory"
+      }
+    ],
+    "skipped_total": 4
+  },
+  "engine_problems": [],
+  "engine_version": "0.3.0",
+  "evidence": [
+    {
+      "artifact_ref": "static-scan/d1.copy_profile_language_lint",
+      "check_id": "d1.copy_profile_language_lint",
+      "detail": "348 user-facing string(s) scanned against 6 banned phrase(s) of profile dot-ecosystem; 0 string(s) trip a banned phrase or an unsupported-claim pattern (claim hits are listed under d6.claim_lint).",
+      "origin": "check:d1.copy_profile_language_lint",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "static-scan/d10.error_pages",
+      "check_id": "d10.error_pages",
+      "detail": "5 of 5 error statuses (403, 404, 419, 500, 503) have a custom page with a link or button. Laravel layout: resources/views/errors. Rendering with the right status needs a running app and is not measured.",
+      "origin": "check:d10.error_pages",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "bootstrap/app.php",
+      "check_id": "d10.health_endpoint",
+      "detail": "exists: yes (framework health route /up with no DiagnosingHealth listener (it answers 200 whenever the app boots)); answers: not measured (needs a running app); reports failure honestly: not seen. The share is out of three, so it cannot exceed 2/3 statically.",
+      "origin": "check:d10.health_endpoint",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.3333
+    },
+    {
+      "artifact_ref": "static-scan/d2.font_palette_deny_list",
+      "check_id": "d2.font_palette_deny_list",
+      "detail": "5 of 5 fonts/palette values are off the deny-list. Fonts found: Public Sans, Fraunces, Roboto Mono, DejaVu Sans, Material Symbols Rounded; the profile writes no hex colour in its prohibited list, so the palette was not evaluated. Matching is by name only.",
+      "origin": "check:d2.font_palette_deny_list",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "resources/js/Pages/Dashboard.vue",
+      "check_id": "d3.heading_structure",
+      "detail": "11 of 12 screens have exactly one <h1> and no skipped level; 13 layout(s) and page(s) that rely on a layout were left out because the outline is split between files. Headings rendered by components or inserted by scripts are not seen.",
+      "origin": "check:d3.heading_structure",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.9167
+    },
+    {
+      "artifact_ref": "static-scan/d3.nav_depth",
+      "check_id": "d3.nav_depth",
+      "detail": "5 of 5 navigation links are within 3 level(s) (engine default bound; the profile declares none) across 3 <nav> landmark(s). Click paths through pages are not measured.",
+      "origin": "check:d3.nav_depth",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "resources/css/app.css",
+      "check_id": "d4.reduced_motion",
+      "detail": "1 of 72 motion declarations are covered by prefers-reduced-motion (no global override); utility classes counted per element. Motion from JavaScript is not scanned.",
+      "origin": "check:d4.reduced_motion",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.0139
+    },
+    {
+      "artifact_ref": "static-scan/d5.dead_links",
+      "check_id": "d5.dead_links",
+      "detail": "10 of 10 checkable internal links resolve; 18 link(s) could not be judged statically and are not counted; 5 link(s) sit inside a Route::has() guard for the route they name and are not counted either. 43 route(s) read from 4 file(s) in routes/ plus 2 page(s) the framework registers (Jetstream terms and privacy); package-provided routes (login, register, ...) are treated as unverifiable.",
+      "origin": "check:d5.dead_links",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "README.md",
+      "check_id": "d5.route_inventory_vs_claims",
+      "detail": "4 of 5 claimed features share a keyword with 42 route, page or view name word(s). This is a keyword match against names, not a test that the feature works.",
+      "origin": "check:d5.route_inventory_vs_claims",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.8
+    },
+    {
+      "artifact_ref": "static-scan/d5.stubs_placeholders",
+      "check_id": "d5.stubs_placeholders",
+      "detail": "39 of 39 surfaces with static text are free of visible stub content. Surfaces whose text is all dynamic, and text produced by scripts, are not seen.",
+      "origin": "check:d5.stubs_placeholders",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "resources/js/Pages/PrivacyPolicy.vue",
+      "check_id": "d6.privacy_terms_present",
+      "detail": "2 of 6 conditions hold (privacy and terms: present, not a placeholder, linked from shared markup). \"Reachable from every public page\" is approximated by a link in a layout, footer or partial; content served from a database or a CMS is not seen.",
+      "origin": "check:d6.privacy_terms_present",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.3333
+    },
+    {
+      "artifact_ref": "resources/js/Components/Banner.vue",
+      "check_id": "d8.focus_visible",
+      "detail": "10 of 13 outline removals or positive tabindex uses are safe (replaced by a visible indicator); the rest are listed. Rendered focus order and indicator visibility are not measured.",
+      "origin": "check:d8.focus_visible",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.7692
+    },
+    {
+      "artifact_ref": "resources/js/Layouts/AppLayout.vue",
+      "check_id": "d8.labels_alt_lang",
+      "detail": "0/0 form fields labelled (reusable component files are skipped: their consumer supplies the label), 11/11 images with alt, 3/3 documents with lang; 0 element(s) with dynamic attributes and all components were skipped. Title, name, iframe, viewport and ARIA findings do not change this share.",
+      "origin": "check:d8.labels_alt_lang",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "resources/js/Components/AuthenticationCard.vue",
+      "check_id": "d8.token_pair_contrast",
+      "detail": "6 of 6 pair/theme combinations meet their threshold (4.5:1 text; 3:1 large text and focus indicators); themes evaluated: light; pair sources: usage 6; 10 combination(s) undetermined and not counted; 1 focus ring(s) of particular elements not measured because no background is declared behind them (the page ground is not assumed); translucent backgrounds are undetermined; panel backgrounds are tokens named bg/panel/surface/card/sunken.",
+      "origin": "check:d8.token_pair_contrast",
+      "result": "pass",
+      "source_class": "automated_check",
+      "value": 1
+    },
+    {
+      "artifact_ref": "resources/css/app.css",
+      "check_id": "d9.token_usage_vs_profile",
+      "detail": "300 of 745 values come from tokens: colour 300 token / 83 literal / 264 framework-default utility; spacing and type size 0 token / 98 literal; 42 font-family declaration(s) not counted. The profile cites no token source, so any declared custom property counts.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "result": "partial",
+      "source_class": "automated_check",
+      "value": 0.4027
+    }
+  ],
+  "findings": [
+    {
+      "check_id": "d6.privacy_terms_present",
+      "dimension": "trust_transparency",
+      "fingerprint": "23e5d599b96c",
+      "fix_hint": "Write the real terms; if the text is rendered from the database, this finding is a false positive.",
+      "id": "d6.privacy_terms_present.23e5d599b96c",
+      "location": {
+        "file": "resources/js/Pages/TermsOfService.vue",
+        "line": 1
+      },
+      "message": "The terms page looks like a placeholder: 0 words of static text (fewer than 80).",
+      "origin": "check:d6.privacy_terms_present",
+      "severity": "major",
+      "source_id": "d6.privacy_terms_present.terms-placeholder.001"
+    },
+    {
+      "check_id": "d6.privacy_terms_present",
+      "dimension": "trust_transparency",
+      "fingerprint": "d6dcdf53d796",
+      "fix_hint": "Write the real privacy notice; if the text is rendered from the database, this finding is a false positive.",
+      "id": "d6.privacy_terms_present.d6dcdf53d796",
+      "location": {
+        "file": "resources/js/Pages/PrivacyPolicy.vue",
+        "line": 1
+      },
+      "message": "The privacy notice page looks like a placeholder: 0 words of static text (fewer than 80).",
+      "origin": "check:d6.privacy_terms_present",
+      "severity": "major",
+      "source_id": "d6.privacy_terms_present.privacy-placeholder.001"
+    },
+    {
+      "check_id": "d8.focus_visible",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "17a6c15f8f77",
+      "fix_hint": "Keep the default outline, or add a :focus-visible rule with a visible outline or box-shadow of at least 3:1 contrast.",
+      "id": "d8.focus_visible.17a6c15f8f77",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2419
+      },
+      "message": "The outline is removed for \":deep(.rich-text-prosemirror)\" and no box-shadow, border or :focus-visible rule replaces it (WCAG 2.4.7).",
+      "origin": "check:d8.focus_visible",
+      "severity": "major",
+      "source_id": "d8.focus_visible.focus-outline-removed.002",
+      "wcag_criterion": "2.4.7",
+      "wcag_level": "AA"
+    },
+    {
+      "check_id": "d8.focus_visible",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "361b14df7124",
+      "fix_hint": "Add focus-visible:ring-2 (or an outline) beside outline-none, or drop outline-none.",
+      "id": "d8.focus_visible.361b14df7124",
+      "location": {
+        "file": "resources/js/Components/Banner.vue",
+        "line": 39
+      },
+      "message": "A <button> removes the outline (outline-none) and its class list has no focus ring, shadow or border to replace it (WCAG 2.4.7).",
+      "origin": "check:d8.focus_visible",
+      "severity": "major",
+      "source_id": "d8.focus_visible.focus-outline-removed.001",
+      "wcag_criterion": "2.4.7",
+      "wcag_level": "AA"
+    },
+    {
+      "check_id": "d8.focus_visible",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "6ce2abc25753",
+      "fix_hint": "Add focus-visible:ring-2 (or an outline) beside outline-none, or drop outline-none.",
+      "id": "d8.focus_visible.6ce2abc25753",
+      "location": {
+        "file": "resources/js/Pages/Teams/Partials/TeamMemberManager.vue",
+        "line": 200
+      },
+      "message": "A <button> removes the outline (outline-none) and its class list has no focus ring, shadow or border to replace it (WCAG 2.4.7).",
+      "origin": "check:d8.focus_visible",
+      "severity": "major",
+      "source_id": "d8.focus_visible.focus-outline-removed.003",
+      "wcag_criterion": "2.4.7",
+      "wcag_level": "AA"
+    },
+    {
+      "check_id": "d8.labels_alt_lang",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "4f82df27546a",
+      "fix_hint": "Add visible text, or aria-label for an icon-only control.",
+      "id": "d8.labels_alt_lang.4f82df27546a",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 112
+      },
+      "message": "A button has no accessible name: no text, aria-label, title, or labelled image or icon inside (WCAG 4.1.2, 2.4.4).",
+      "origin": "check:d8.labels_alt_lang",
+      "severity": "major",
+      "source_id": "d8.labels_alt_lang.name-missing.001",
+      "wcag_criterion": "4.1.2",
+      "wcag_level": "A"
+    },
+    {
+      "check_id": "d8.labels_alt_lang",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "89090beecf73",
+      "fix_hint": "Add a title attribute that says what the frame contains.",
+      "id": "d8.labels_alt_lang.89090beecf73",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1995
+      },
+      "message": "An <iframe> has no title (WCAG 4.1.2, 2.4.1).",
+      "origin": "check:d8.labels_alt_lang",
+      "severity": "major",
+      "source_id": "d8.labels_alt_lang.iframe-title.001",
+      "wcag_criterion": "4.1.2",
+      "wcag_level": "A"
+    },
+    {
+      "check_id": "d8.labels_alt_lang",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "b1fc2ae2ef28",
+      "fix_hint": "Add a title attribute that says what the frame contains.",
+      "id": "d8.labels_alt_lang.b1fc2ae2ef28",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Presentation.vue",
+        "line": 302
+      },
+      "message": "An <iframe> has no title (WCAG 4.1.2, 2.4.1).",
+      "origin": "check:d8.labels_alt_lang",
+      "severity": "major",
+      "source_id": "d8.labels_alt_lang.iframe-title.002",
+      "wcag_criterion": "4.1.2",
+      "wcag_level": "A"
+    },
+    {
+      "check_id": "d10.health_endpoint",
+      "dimension": "reliability_error_recovery",
+      "fingerprint": "7676022d7f13",
+      "fix_hint": "Make the endpoint return a 503 when the database or another required dependency fails, so monitoring is told the truth.",
+      "id": "d10.health_endpoint.7676022d7f13",
+      "location": {
+        "file": "bootstrap/app.php",
+        "line": 16
+      },
+      "message": "The health endpoint (framework health route /up with no DiagnosingHealth listener (it answers 200 whenever the app boots)) shows no failure path: no 5xx status, exception handling or dependency probe was found in its handler.",
+      "origin": "check:d10.health_endpoint",
+      "severity": "minor",
+      "source_id": "d10.health_endpoint.health-failure-path-not-seen.001"
+    },
+    {
+      "check_id": "d3.heading_structure",
+      "dimension": "usability_cognitive_load",
+      "fingerprint": "7bc268af574f",
+      "fix_hint": "Use h2 here, or restructure the headings.",
+      "id": "d3.heading_structure.7bc268af574f",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 87
+      },
+      "message": "Heading level jumps from h1 to h3.",
+      "origin": "check:d3.heading_structure",
+      "severity": "minor",
+      "source_id": "d3.heading_structure.heading-skip.001",
+      "wcag_criterion": "1.3.1",
+      "wcag_level": "A"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "00715d245a82",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.00715d245a82",
+      "location": {
+        "file": "resources/js/Components/DropdownLink.vue",
+        "line": 12
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.003",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "00715d245a82.1",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.00715d245a82.1",
+      "location": {
+        "file": "resources/js/Components/DropdownLink.vue",
+        "line": 16
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.004",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "00715d245a82.2",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.00715d245a82.2",
+      "location": {
+        "file": "resources/js/Components/DropdownLink.vue",
+        "line": 20
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.005",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "0d65a4633a8e",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.0d65a4633a8e",
+      "location": {
+        "file": "resources/js/Components/Modal.vue",
+        "line": 82
+      },
+      "message": "Utility class \"transition-all\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.006",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "0d65a4633a8e.1",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.0d65a4633a8e.1",
+      "location": {
+        "file": "resources/js/Components/Modal.vue",
+        "line": 95
+      },
+      "message": "Utility class \"transition-all\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.007",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "17372c4b5bfd",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.17372c4b5bfd",
+      "location": {
+        "file": "resources/js/Components/SecondaryButton.vue",
+        "line": 11
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.009",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "324934d16856",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.324934d16856",
+      "location": {
+        "file": "resources/js/Components/Banner.vue",
+        "line": 39
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.001",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "535b019e416e",
+      "fix_hint": "Add one global @media (prefers-reduced-motion: reduce) rule that shortens transitions and animations, or per-selector overrides.",
+      "id": "d4.reduced_motion.535b019e416e",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 278
+      },
+      "message": "2 transition/animation declaration(s) have no prefers-reduced-motion override; first: \".press-page .press-btn\".",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-no-reduced-variant.003",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "5d31a8c02330",
+      "fix_hint": "Add one global @media (prefers-reduced-motion: reduce) rule that shortens transitions and animations, or per-selector overrides.",
+      "id": "d4.reduced_motion.5d31a8c02330",
+      "location": {
+        "file": "resources/css/app.css",
+        "line": 161
+      },
+      "message": "2 transition/animation declaration(s) have no prefers-reduced-motion override; first: \".transition\".",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-no-reduced-variant.001",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1728
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.021",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.1",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.1",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1743
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.022",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.10",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.10",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1882
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.031",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.11",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.11",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1902
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.032",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.12",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.12",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1910
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.033",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.13",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.13",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1929
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.034",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.14",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.14",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1947
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.035",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.15",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.15",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1955
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.036",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.16",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.16",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1975
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.037",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.17",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.17",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2007
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.038",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.18",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.18",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2028
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.039",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.19",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.19",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2042
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.040",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.2",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.2",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1749
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.023",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.20",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.20",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2043
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.041",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.21",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.21",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2044
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.042",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.22",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.22",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2051
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.043",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.23",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.23",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2054
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.044",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.24",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.24",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2055
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.045",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.25",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.25",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2056
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.046",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.3",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.3",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1755
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.024",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.4",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.4",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1761
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.025",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.5",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.5",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1769
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.026",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.6",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.6",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1778
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.027",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.7",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.7",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1797
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.028",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.8",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.8",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1808
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.029",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "67bfa48364af.9",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.67bfa48364af.9",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1858
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.030",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "95cda0b9e128",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.95cda0b9e128",
+      "location": {
+        "file": "resources/js/Components/DangerButton.vue",
+        "line": 11
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.002",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "b53f78e1b080",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.b53f78e1b080",
+      "location": {
+        "file": "resources/js/Components/PrimaryButton.vue",
+        "line": 11
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.008",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 37
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.010",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.1",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.1",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 44
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.011",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.10",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.10",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 144
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.020",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.2",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.2",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 56
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.012",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.3",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.3",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 91
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.013",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.4",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.4",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 95
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.014",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.5",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.5",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 101
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.015",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.6",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.6",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 112
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.016",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.7",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.7",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 129
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.017",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.8",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.8",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 130
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.018",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c4917f80fb9a.9",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c4917f80fb9a.9",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 142
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.019",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 70
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.054",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.1",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.1",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 75
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.055",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.10",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.10",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 247
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.064",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.2",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.2",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 78
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.056",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.3",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.3",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 132
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.057",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.4",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.4",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 135
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.058",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.5",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.5",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 169
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.059",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.6",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.6",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 228
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.060",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.7",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.7",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 231
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.061",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.8",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.8",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 245
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.062",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "c7bd2011c739.9",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.c7bd2011c739.9",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 246
+      },
+      "message": "Utility class \"transition-colors\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.063",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 65
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.047",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89.1",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89.1",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 91
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.048",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89.2",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89.2",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 123
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.049",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89.3",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89.3",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 130
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.050",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89.4",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89.4",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 166
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.051",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89.5",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89.5",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 167
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.052",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "eb453e513c89.6",
+      "fix_hint": "Add motion-reduce:transition-none / motion-reduce:animate-none, or a global reduced-motion rule.",
+      "id": "d4.reduced_motion.eb453e513c89.6",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 178
+      },
+      "message": "Utility class \"transition\" animates with no motion-reduce: variant and no global override.",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-utility-no-variant.053",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "fc07ddc27fc2",
+      "fix_hint": "Add one global @media (prefers-reduced-motion: reduce) rule that shortens transitions and animations, or per-selector overrides.",
+      "id": "d4.reduced_motion.fc07ddc27fc2",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2403
+      },
+      "message": "1 transition/animation declaration(s) have no prefers-reduced-motion override; first: \".editor-element-btn\".",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-no-reduced-variant.002",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "ffa1d3bc7ed6",
+      "fix_hint": "Add one global @media (prefers-reduced-motion: reduce) rule that shortens transitions and animations, or per-selector overrides.",
+      "id": "d4.reduced_motion.ffa1d3bc7ed6",
+      "location": {
+        "file": "resources/views/errors/_ecosystem-layout.blade.php",
+        "line": 87
+      },
+      "message": "2 transition/animation declaration(s) have no prefers-reduced-motion override; first: \".press\".",
+      "origin": "check:d4.reduced_motion",
+      "severity": "minor",
+      "source_id": "d4.reduced_motion.motion-no-reduced-variant.004",
+      "wcag_criterion": "2.3.3",
+      "wcag_level": "AAA"
+    },
+    {
+      "check_id": "d5.route_inventory_vs_claims",
+      "dimension": "functional_completeness",
+      "fingerprint": "2bf5280635dd",
+      "fix_hint": "Check that the feature is built and reachable; if it is not, remove it from the feature list. If it is, a route or page name that does not contain the keyword is a false positive.",
+      "id": "d5.route_inventory_vs_claims.2bf5280635dd",
+      "location": {
+        "file": "README.md",
+        "line": 31
+      },
+      "message": "The claimed feature \"Lightweight collaboration presence\" shares no keyword with any route, page or view name (lightweight, collaboration, presence).",
+      "origin": "check:d5.route_inventory_vs_claims",
+      "severity": "minor",
+      "source_id": "d5.route_inventory_vs_claims.claim-without-route.001"
+    },
+    {
+      "check_id": "d6.privacy_terms_present",
+      "dimension": "trust_transparency",
+      "fingerprint": "ae7b41303a86",
+      "fix_hint": "Link the terms from the footer so every public page reaches it.",
+      "id": "d6.privacy_terms_present.ae7b41303a86",
+      "location": {
+        "file": "resources/js/Pages/TermsOfService.vue",
+        "line": 1
+      },
+      "message": "No link to the terms was found in a layout, footer or shared partial.",
+      "origin": "check:d6.privacy_terms_present",
+      "severity": "minor",
+      "source_id": "d6.privacy_terms_present.terms-not-linked.001"
+    },
+    {
+      "check_id": "d6.privacy_terms_present",
+      "dimension": "trust_transparency",
+      "fingerprint": "f61f3a6245cf",
+      "fix_hint": "Link the privacy notice from the footer so every public page reaches it.",
+      "id": "d6.privacy_terms_present.f61f3a6245cf",
+      "location": {
+        "file": "resources/js/Pages/PrivacyPolicy.vue",
+        "line": 1
+      },
+      "message": "No link to the privacy notice was found in a layout, footer or shared partial.",
+      "origin": "check:d6.privacy_terms_present",
+      "severity": "minor",
+      "source_id": "d6.privacy_terms_present.privacy-not-linked.001"
+    },
+    {
+      "check_id": "d8.labels_alt_lang",
+      "dimension": "accessibility_inclusion",
+      "fingerprint": "1a92d518521f",
+      "fix_hint": "Add <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">.",
+      "id": "d8.labels_alt_lang.1a92d518521f",
+      "location": {
+        "file": "resources/views/exports/deck-pdf.blade.php",
+        "line": 2
+      },
+      "message": "No viewport meta tag: the page will not scale to small screens.",
+      "origin": "check:d8.labels_alt_lang",
+      "severity": "minor",
+      "source_id": "d8.labels_alt_lang.viewport-missing.001"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "73d5efc82857",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.73d5efc82857",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2387
+      },
+      "message": "18 hard-coded colour literal(s) against 16 token reference(s); first: rgba(251, 191, 36, 0.08).",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.006"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "8907568d1a5b",
+      "fix_hint": "Use one token for both, or make the difference deliberate and visible.",
+      "id": "d9.token_usage_vs_profile.8907568d1a5b",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 84
+      },
+      "message": "Colour literals #0f172a (resources/views/exports/deck-pdf.blade.php:7) and #14172a (resources/js/Layouts/AppLayout.vue:84) differ by at most 5/255 per channel.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.near-duplicate-colours.001"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "98207c977d7d",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.98207c977d7d",
+      "location": {
+        "file": "resources/js/Components/AuthenticationCard.vue",
+        "line": 70
+      },
+      "message": "11 hard-coded colour literal(s) against 20 token reference(s); first: rgba(240, 195, 58, 0.28).",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.004"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "abbd9eb0df94",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.abbd9eb0df94",
+      "location": {
+        "file": "resources/views/errors/_ecosystem-layout.blade.php",
+        "line": 83
+      },
+      "message": "7 hard-coded colour literal(s) against 12 token reference(s); first: #b8a692.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.014"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "b82251efaa52",
+      "fix_hint": "Use one token for both, or make the difference deliberate and visible.",
+      "id": "d9.token_usage_vs_profile.b82251efaa52",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2356
+      },
+      "message": "Colour literals #14172a (resources/js/Layouts/AppLayout.vue:84) and #111827 (resources/js/Pages/Canvas/Editor.vue:2356) differ by at most 3/255 per channel.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.near-duplicate-colours.004"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "ba7aa9260e49",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.ba7aa9260e49",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 286
+      },
+      "message": "17 hard-coded colour literal(s) against 45 token reference(s); first: rgba(245, 239, 228, 0.03).",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.007"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "ccb58db88898",
+      "fix_hint": "Use one token for both, or make the difference deliberate and visible.",
+      "id": "d9.token_usage_vs_profile.ccb58db88898",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2356
+      },
+      "message": "Colour literals #0f1323 (resources/js/Pages/Canvas/Editor.vue:2081) and #111827 (resources/js/Pages/Canvas/Editor.vue:2356) differ by at most 5/255 per channel.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.near-duplicate-colours.002"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "f51cbd749fbd",
+      "fix_hint": "Use one token for both, or make the difference deliberate and visible.",
+      "id": "d9.token_usage_vs_profile.f51cbd749fbd",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 2356
+      },
+      "message": "Colour literals #0f172a (resources/views/exports/deck-pdf.blade.php:7) and #111827 (resources/js/Pages/Canvas/Editor.vue:2356) differ by at most 3/255 per channel.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "minor",
+      "source_id": "d9.token_usage_vs_profile.near-duplicate-colours.003"
+    },
+    {
+      "check_id": "d3.field_counts",
+      "dimension": "usability_cognitive_load",
+      "fingerprint": "8c788c193dc2",
+      "fix_hint": "Supply what is missing, or accept that this check cannot judge this repository; it counts as zero in the score, visibly.",
+      "id": "d3.field_counts.8c788c193dc2",
+      "message": "Not measured: no <form> with fields was found in the templates.",
+      "origin": "check:d3.field_counts",
+      "severity": "info",
+      "source_id": "d3.field_counts.not-measured.001"
+    },
+    {
+      "check_id": "d4.spacing_type_scale_conformance",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "0a2ec7d2126e",
+      "fix_hint": "Supply what is missing, or accept that this check cannot judge this repository; it counts as zero in the score, visibly.",
+      "id": "d4.spacing_type_scale_conformance.0a2ec7d2126e",
+      "message": "Not measured: no spacing or type scale is declared (no --space-*, --spacing-*, --text-*, --font-size-* custom properties and no spacing/typography in DESIGN.md front matter), so there is nothing to conform to.",
+      "origin": "check:d4.spacing_type_scale_conformance",
+      "severity": "info",
+      "source_id": "d4.spacing_type_scale_conformance.not-measured.001"
+    },
+    {
+      "check_id": "d4.spacing_type_scale_conformance",
+      "dimension": "visual_interaction_craftsmanship",
+      "fingerprint": "a922a8383bd8",
+      "fix_hint": "Declare the scales as custom properties (--space-1.., --text-sm..) or in the DESIGN.md spacing and typography tables.",
+      "id": "d4.spacing_type_scale_conformance.a922a8383bd8",
+      "location": {
+        "file": "resources/css/app.css",
+        "line": 1
+      },
+      "message": "No spacing scale and no type scale are declared as tokens, so spacing and type size cannot be checked for consistency.",
+      "origin": "check:d4.spacing_type_scale_conformance",
+      "severity": "info",
+      "source_id": "d4.spacing_type_scale_conformance.no-scale-declared.001"
+    },
+    {
+      "check_id": "d6.claim_lint",
+      "dimension": "trust_transparency",
+      "fingerprint": "2c949d231d92",
+      "fix_hint": "Supply what is missing, or accept that this check cannot judge this repository; it counts as zero in the score, visibly.",
+      "id": "d6.claim_lint.2c949d231d92",
+      "message": "Not measured: 348 user-facing string(s) were scanned and none carries a claim or figure the patterns know, so there is no share to measure (this is not proof that the copy is accurate).",
+      "origin": "check:d6.claim_lint",
+      "severity": "info",
+      "source_id": "d6.claim_lint.not-measured.001"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "08d81a760033",
+      "fix_hint": "Say plainly what an empty, failed or unavailable list means and what to do next.",
+      "id": "d6.honest_states.08d81a760033",
+      "location": {
+        "file": "resources/views/exports/deck-pdf.blade.php",
+        "line": 1
+      },
+      "message": "List screen: no wording or branch for an empty list was found, and no error/unavailable wording.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.list-empty-state-absent.001"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "2f0686cf9a20",
+      "fix_hint": "Check by hand that the wording says what is true and shows no invented data.",
+      "id": "d6.honest_states.2f0686cf9a20",
+      "location": {
+        "file": "resources/js/Pages/Welcome.vue",
+        "line": 1
+      },
+      "message": "List screen: wording or a branch for an empty list is present. Whether it is true is not assessed.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.list-empty-state-present.005"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "44059ef00225",
+      "fix_hint": "Check by hand that the wording says what is true and shows no invented data.",
+      "id": "d6.honest_states.44059ef00225",
+      "location": {
+        "file": "resources/js/Pages/DependencyPatches/Index.vue",
+        "line": 1
+      },
+      "message": "List screen: wording or a branch for an empty list is present. Whether it is true is not assessed.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.list-empty-state-present.004"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "7633631bf18a",
+      "fix_hint": "Check by hand that the wording says what is true and shows no invented data.",
+      "id": "d6.honest_states.7633631bf18a",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Presentation.vue",
+        "line": 1
+      },
+      "message": "List screen: wording or a branch for an empty list is present. Whether it is true is not assessed.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.list-empty-state-present.002"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "b0231b97b443",
+      "fix_hint": "Supply what is missing, or accept that this check cannot judge this repository; it counts as zero in the score, visibly.",
+      "id": "d6.honest_states.b0231b97b443",
+      "message": "Not measured: 6 list screen(s) were inspected for empty/error wording; whether states are honest and show no invented data needs a person or a rendered page, so no share is produced.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.not-measured.001"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "d35d6efa6f01",
+      "fix_hint": "Check by hand that the wording says what is true and shows no invented data.",
+      "id": "d6.honest_states.d35d6efa6f01",
+      "location": {
+        "file": "resources/js/Pages/Canvas/Editor.vue",
+        "line": 1
+      },
+      "message": "List screen: wording or a branch for an empty list is present. Whether it is true is not assessed.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.list-empty-state-present.001"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "fingerprint": "eb4825069ee0",
+      "fix_hint": "Check by hand that the wording says what is true and shows no invented data.",
+      "id": "d6.honest_states.eb4825069ee0",
+      "location": {
+        "file": "resources/js/Pages/Dashboard.vue",
+        "line": 1
+      },
+      "message": "List screen: wording or a branch for an empty list is present. Whether it is true is not assessed.",
+      "origin": "check:d6.honest_states",
+      "severity": "info",
+      "source_id": "d6.honest_states.list-empty-state-present.003"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "01fb41b5c112",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.01fb41b5c112",
+      "location": {
+        "file": "resources/js/Components/ApplicationMark.vue",
+        "line": 3
+      },
+      "message": "2 hard-coded colour literal(s) against 0 token reference(s); first: #6875F5.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.003"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "05f596cdcb13",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.05f596cdcb13",
+      "location": {
+        "file": "resources/views/errors/403.blade.php",
+        "line": 4
+      },
+      "message": "3 hard-coded colour literal(s) against 3 token reference(s); first: #e2574c.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.008"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "822e219a8608",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.822e219a8608",
+      "location": {
+        "file": "resources/views/errors/404.blade.php",
+        "line": 4
+      },
+      "message": "3 hard-coded colour literal(s) against 3 token reference(s); first: #f0c33a.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.009"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "8617784d8000",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.8617784d8000",
+      "location": {
+        "file": "resources/views/exports/deck-pdf.blade.php",
+        "line": 7
+      },
+      "message": "4 hard-coded colour literal(s) against 0 token reference(s); first: #0f172a.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.015"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "91d2727c7f6c",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.91d2727c7f6c",
+      "location": {
+        "file": "resources/views/errors/419.blade.php",
+        "line": 4
+      },
+      "message": "2 hard-coded colour literal(s) against 2 token reference(s); first: #f5d573.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.010"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "9bb7ff2d0d4e",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.9bb7ff2d0d4e",
+      "location": {
+        "file": "resources/js/Layouts/AppLayout.vue",
+        "line": 23
+      },
+      "message": "4 hard-coded colour literal(s) against 4 token reference(s); first: #0c0f1a.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.005"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "9d3ff9b8ce22",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.9d3ff9b8ce22",
+      "location": {
+        "file": "resources/js/Components/ApplicationLogo.vue",
+        "line": 4
+      },
+      "message": "2 hard-coded colour literal(s) against 0 token reference(s); first: #6875F5.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.002"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "a019c61a37f7",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.a019c61a37f7",
+      "location": {
+        "file": "resources/views/errors/429.blade.php",
+        "line": 4
+      },
+      "message": "2 hard-coded colour literal(s) against 1 token reference(s); first: #f5d573.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.011"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "a0ebb020acbc",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.a0ebb020acbc",
+      "location": {
+        "file": "resources/views/errors/503.blade.php",
+        "line": 4
+      },
+      "message": "2 hard-coded colour literal(s) against 1 token reference(s); first: #f5d573.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.013"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "b07fad2ac053",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.b07fad2ac053",
+      "location": {
+        "file": "resources/css/app.css",
+        "line": 93
+      },
+      "message": "3 hard-coded colour literal(s) against 0 token reference(s); first: #e5e7eb.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.001"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "dimension": "cross_platform_consistency",
+      "fingerprint": "cbc807f4b983",
+      "fix_hint": "Declare the colour as a design token (a custom property) and reference it with var(--name).",
+      "id": "d9.token_usage_vs_profile.cbc807f4b983",
+      "location": {
+        "file": "resources/views/errors/500.blade.php",
+        "line": 4
+      },
+      "message": "3 hard-coded colour literal(s) against 2 token reference(s); first: #e2574c.",
+      "origin": "check:d9.token_usage_vs_profile",
+      "severity": "info",
+      "source_id": "d9.token_usage_vs_profile.hardcoded-colours.012"
+    }
+  ],
+  "input": {
+    "commit": "1982daada2ad460a97d68581dcd5c3cc5d11c03d",
+    "commit_source": "git",
+    "repo": "sakhilebhayi/Dot.Press"
+  },
+  "integrity": {
+    "sha256": "80b74450745d9c70810bb1f0d40da8c3f1dfa1cf2c5099c372fa0a4bf0cf4d68"
+  },
+  "not_measured": [
+    {
+      "check_id": "d1.product_md_consistency",
+      "dimension": "emotional_clarity_positioning",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d1.purpose_statement_present",
+      "dimension": "emotional_clarity_positioning",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d10.error_copy_lint",
+      "dimension": "reliability_error_recovery",
+      "reason": "no_check_registered"
+    },
+    {
+      "adapters": [
+        "tests"
+      ],
+      "check_id": "d10.error_path_tests",
+      "dimension": "reliability_error_recovery",
+      "reason": "no_report_supplied"
+    },
+    {
+      "adapters": [
+        "detector"
+      ],
+      "check_id": "d2.impeccable_detect_findings",
+      "dimension": "brand_distinctiveness",
+      "reason": "no_report_supplied"
+    },
+    {
+      "check_id": "d2.token_uniqueness",
+      "dimension": "brand_distinctiveness",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d3.field_counts",
+      "dimension": "usability_cognitive_load",
+      "reason": "check_not_measured"
+    },
+    {
+      "check_id": "d3.primary_action_per_screen",
+      "dimension": "usability_cognitive_load",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d3.task_flow_step_counts",
+      "dimension": "usability_cognitive_load",
+      "reason": "no_check_registered"
+    },
+    {
+      "adapters": [
+        "detector"
+      ],
+      "check_id": "d4.detector_clean",
+      "dimension": "visual_interaction_craftsmanship",
+      "reason": "no_report_supplied"
+    },
+    {
+      "check_id": "d4.responsive_overflow",
+      "dimension": "visual_interaction_craftsmanship",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d4.spacing_type_scale_conformance",
+      "dimension": "visual_interaction_craftsmanship",
+      "reason": "check_not_measured"
+    },
+    {
+      "adapters": [
+        "tests"
+      ],
+      "check_id": "d5.test_pass_counts",
+      "dimension": "functional_completeness",
+      "reason": "no_report_supplied"
+    },
+    {
+      "check_id": "d6.claim_lint",
+      "dimension": "trust_transparency",
+      "reason": "check_not_measured"
+    },
+    {
+      "check_id": "d6.consent_handling",
+      "dimension": "trust_transparency",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "dimension": "trust_transparency",
+      "reason": "check_not_measured"
+    },
+    {
+      "check_id": "d7.empty_state_guidance",
+      "dimension": "perceived_demonstrated_value",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d7.time_to_first_result",
+      "dimension": "perceived_demonstrated_value",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d7.value_above_fold",
+      "dimension": "perceived_demonstrated_value",
+      "reason": "no_check_registered"
+    },
+    {
+      "adapters": [
+        "axe",
+        "lighthouse"
+      ],
+      "check_id": "d8.axe_violations",
+      "dimension": "accessibility_inclusion",
+      "reason": "no_report_supplied"
+    },
+    {
+      "check_id": "d9.principle_diff",
+      "dimension": "cross_platform_consistency",
+      "reason": "no_check_registered"
+    },
+    {
+      "check_id": "d9.shared_components",
+      "dimension": "cross_platform_consistency",
+      "reason": "no_check_registered"
+    }
+  ],
+  "profile": {
+    "chain": [
+      "dot-ecosystem@0.1.0"
+    ],
+    "domain_overrides": [
+      {
+        "principle": "BXP-01",
+        "reason": "A calm or reassuring tone must never soften a safety, regulatory or loss-of-money alert. The alert wins.",
+        "yields_to": "domain_safety"
+      },
+      {
+        "principle": "BXP-03",
+        "reason": "Distinctive colour, type and motion yield to contrast, visible focus and reduced motion.",
+        "yields_to": "accessibility"
+      },
+      {
+        "principle": "BXP-05",
+        "reason": "Demonstrated value never overrides correctness: a polished wrong figure is worse than no figure.",
+        "yields_to": "functional_correctness"
+      },
+      {
+        "principle": "BXP-08",
+        "reason": "A faster first result must not skip identity verification, consent or security steps.",
+        "yields_to": "security"
+      }
+    ],
+    "effective_status": "draft",
+    "id": "dot-ecosystem",
+    "kind": "ecosystem",
+    "principle_refs": [
+      {
+        "non_negotiable": false,
+        "principle": "BXP-01",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": false,
+        "principle": "BXP-02",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-03",
+        "via": "behavioural_principle:own-functional-identity"
+      },
+      {
+        "non_negotiable": false,
+        "principle": "BXP-03",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-04",
+        "via": "behavioural_principle:error-recovery"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-04",
+        "via": "behavioural_principle:honest-states"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-04",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": false,
+        "principle": "BXP-05",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": false,
+        "principle": "BXP-06",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": false,
+        "principle": "BXP-07",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": false,
+        "principle": "BXP-08",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-09",
+        "via": "behavioural_principle:no-dark-patterns"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-09",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-10",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-11",
+        "via": "behavioural_principle:accessibility-baseline"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-11",
+        "via": "experience_standard"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-12",
+        "via": "behavioural_principle:consistent-naming"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-12",
+        "via": "behavioural_principle:token-interoperability"
+      },
+      {
+        "non_negotiable": true,
+        "principle": "BXP-12",
+        "via": "experience_standard"
+      }
+    ],
+    "sha256": "e21c37306843707affd13abbb1eca37c8b4102aafa79336411163dd88ca0dde0",
+    "source": "registry",
+    "version": "0.1.0"
+  },
+  "reports": {
+    "ingested": [],
+    "notes": [],
+    "skipped": [],
+    "superseded": []
+  },
+  "rubric": {
+    "id": "bxqs",
+    "sha256": "f5a4f8cb49b821bb41cb2ea3a5355089f87e60e6233cc6439a0f7ea680342bbd",
+    "version": "1.0.0"
+  },
+  "themes": [
+    "light",
+    "dark"
+  ]
+}
