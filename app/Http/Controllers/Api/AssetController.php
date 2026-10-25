@@ -70,7 +70,7 @@ class AssetController extends Controller
         ]);
 
         $project = Project::findOrFail($payload['project_id']);
-        $this->authorize('view', $project);
+        $this->authorize('create', [Asset::class, $project]);
 
         $disk = $this->resolveUploadDisk();
         $file = $request->file('file');

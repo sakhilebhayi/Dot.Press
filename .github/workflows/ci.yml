@@ -6,12 +6,18 @@ name: CI
 # What gates and what only informs:
 #   gates:   the PHP test suite, Pint (code style), the frontend build and a
 #            check that the build's manifest contains every entry the views ask
-#            for (the missing-manifest 500 that broke the Dot.Projects login pages on 2026-10-17).
-#   informs: composer and npm audit. Both report real advisories today; making
-#            them blocking would turn every run red until they are cleared
-#            (Dot.Agents sat red for a month that way), so they warn instead.
-# PHPStan is not run: the repo's tool wrapper swallows its output, so a red
-# result would carry no explanation. Add it once that is sorted.
+#            for (the missing-manifest 500 that broke the Dot.Projects login pages on 2026-10-17),
+#            and the dependency audit (composer audit, npm audit --audit-level=high).
+#            (`composer audit --locked`: the job installs nothing, and a bare
+#            `composer audit` fails with "No installed packages found".)
+#            Both audits are clean since the Tailwind 3 to 4 migration, so they
+#            block now: a new advisory turns the run red (and so blocks a
+#            deploy) until the dependency is updated.
+#   informs: PHPStan only. Making it blocking while it is red would turn every
+#            run red until it is cleared (Dot.Agents sat red for a month that
+#            way), so it warns instead. PHPStan (larastan, level 5) reports its
+#            findings as annotations and in the job summary; promote it into the
+#            gate once it is at zero.
 on:
   push:
     branches: [main]
@@ -116,11 +122,47 @@ jobs:
           print('OK')
           PY
 
-  audit:
-    name: Dependency audit (informational)
+  static-analysis:
+    name: PHPStan (informational)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, intl, sqlite3, pdo_sqlite, bcmath, gd, zip, xml, fileinfo
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # Findings are shown as annotations on the changed lines and counted in
+      # the run summary. Not in the gate yet: the baseline is not at zero.
+      - name: PHPStan
+        run: |
+          set +e
+          vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=github | tee phpstan.out
+          status=${PIPESTATUS[0]}
+          count=$(grep -c '^::error' phpstan.out)
+          echo "PHPStan: $count finding(s), exit $status" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::PHPStan reports $count finding(s) (not blocking; see annotations)"
+          fi
+          exit 0
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -129,23 +171,22 @@ jobs:
           tools: composer:v2
           coverage: none
       - name: Composer audit
-        continue-on-error: true
-        run: composer audit --no-interaction || echo "::warning::composer audit reports advisories (not blocking)"
+        run: composer audit --locked --no-interaction
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: npm audit
-        continue-on-error: true
-        run: npm audit --audit-level=high || echo "::warning::npm audit reports high or critical advisories (not blocking)"
+        run: npm audit --audit-level=high
 
   gate:
     name: Quality gate (all checks must pass)
     runs-on: ubuntu-latest
-    needs: [tests, assets]
+    needs: [tests, assets, audit]
     if: always()
     steps:
-      - name: Require tests and assets to have passed
+      - name: Require tests, assets and the dependency audit to have passed
         run: |
           echo "tests:  ${{ needs.tests.result }}"
           echo "assets: ${{ needs.assets.result }}"
-          [ "${{ needs.tests.result }}" = "success" ] && [ "${{ needs.assets.result }}" = "success" ]
+          echo "audit:  ${{ needs.audit.result }}"
+          [ "${{ needs.tests.result }}" = "success" ] && [ "${{ needs.assets.result }}" = "success" ] && [ "${{ needs.audit.result }}" = "success" ]

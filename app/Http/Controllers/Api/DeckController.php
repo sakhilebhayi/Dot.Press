@@ -50,7 +50,7 @@ class DeckController extends Controller
         ]);
 
         $project = Project::findOrFail($payload['project_id']);
-        $this->authorize('view', $project);
+        $this->authorize('create', [Deck::class, $project]);
 
         $deck = $project->decks()->create($payload);
 
