@@ -35,6 +35,7 @@
     "overrides": {
         "@tailwindcss/typography": {
             "postcss-selector-parser": "^7.1.6"
-        }
+        },
+        "happy-dom": "^21.0.4"
     }
 }
