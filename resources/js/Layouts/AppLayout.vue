@@ -111,6 +111,8 @@ const logout = () => {
                         <!-- Mobile hamburger -->
                         <button
                             class="sm:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition"
+                            aria-label="Toggle navigation menu"
+                            :aria-expanded="showingMobileMenu"
                             @click="showingMobileMenu = !showingMobileMenu"
                         >
                             <svg v-if="!showingMobileMenu" class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

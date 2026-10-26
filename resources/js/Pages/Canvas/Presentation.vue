@@ -301,6 +301,7 @@ onBeforeUnmount(() => {
                                 />
                                 <iframe
                                     v-else-if="element.videoUrl"
+                                    title="Embedded video"
                                     class="h-full w-full"
                                     :src="embedVideoUrl(element.videoUrl, element.videoType)"
                                     allow="autoplay; encrypted-media; picture-in-picture"
