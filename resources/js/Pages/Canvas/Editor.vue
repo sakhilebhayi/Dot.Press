@@ -1994,6 +1994,7 @@ onBeforeUnmount(() => {
                                 />
                                 <iframe
                                     v-else
+                                    title="Video preview"
                                     class="h-24 w-full rounded"
                                     :src="videoUrlValue"
                                     allowfullscreen
