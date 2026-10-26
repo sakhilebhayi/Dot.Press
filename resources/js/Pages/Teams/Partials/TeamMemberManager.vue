@@ -199,7 +199,7 @@ const displayableRole = (role) => {
                                 <!-- Cancel Team Invitation -->
                                 <button
                                     v-if="userPermissions.canRemoveTeamMembers"
-                                    class="cursor-pointer ms-6 text-sm text-red-500 focus:outline-none"
+                                    class="cursor-pointer ms-6 text-sm text-red-500 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                                     @click="cancelTeamInvitation(invitation)"
                                 >
                                     Cancel
