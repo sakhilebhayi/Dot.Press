@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\EcosystemAuthController;
+use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\DependencyPatchController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GuardianHealthController;
@@ -18,6 +19,13 @@ use Laravel\Jetstream\Jetstream;
 Route::post('/auth/ecosystem', [EcosystemAuthController::class, 'handle'])
     ->withoutMiddleware(['Illuminate\Foundation\Http\Middleware\PreventRequestForgery', 'Illuminate\Foundation\Http\Middleware\VerifyCsrfToken', 'Illuminate\Foundation\Http\Middleware\ValidateCsrfToken'])
     ->name('ecosystem.auth');
+
+// Content-Security-Policy violation reports. The browser posts these itself, so there is no form, no session and no
+// CSRF token: the whole web group (session, cookies, CSRF, Inertia) is dropped and the route is throttled instead.
+Route::post('/csp-report', CspReportController::class)
+    ->withoutMiddleware('web')
+    ->middleware('throttle:60,1,csp-report')
+    ->name('csp.report');
 
 // Links minted before the token moved into a POST body carried it in the URL. They are no longer honoured:
 // the visitor is sent to the normal sign-in page and the token in the URL is never read.
