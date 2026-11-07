@@ -1,0 +1,39 @@
+{
+    "env": {
+        "php": "8.5.9",
+        "memory_limit": "-1",
+        "opcache_cli": "0",
+        "sqlite": "3.53.4",
+        "journal_mode": "wal",
+        "xdebug": "off",
+        "date": "2026-11-07 17:29:53",
+        "bare_request_peak_mb": 37.17
+    },
+    "export": {
+        "pdf.100_slides.ms": 7561.53,
+        "pdf.100_slides.peak_mb": 98.01,
+        "pdf.100_slides.mb": 2.21,
+        "pdf.128M.10_slides": "1 s, 62 MB php peak, 109 MB rss",
+        "pdf.128M.25_slides": "2.2 s, 65 MB php peak, 112 MB rss",
+        "pdf.128M.50_slides": "4.1 s, 61 MB php peak, 116 MB rss",
+        "pdf.128M.100_slides": "10.1 s, 70 MB php peak, 121 MB rss",
+        "pdf.128M.150_slides": "13.6 s, 79 MB php peak, 132 MB rss",
+        "pdf.128M.200_slides": "23 s, 90 MB php peak, 136 MB rss",
+        "pdf.128M.300_slides": "REFUSED WITH A MESSAGE: refused up front: needs about 130 MB, 128 MB available",
+        "pdf.128M.first_failure_is_clean_message": "yes",
+        "pdf.128M.max_slides_survived": 200,
+        "pptx.100_slides.ms": 257.11,
+        "pptx.100_slides.peak_mb": 60.98,
+        "pptx.100_slides.mb": 1.31,
+        "pptx.128M.10_slides": "0 s, 41 MB php peak, 69 MB rss",
+        "pptx.128M.25_slides": "0.1 s, 45 MB php peak, 73 MB rss",
+        "pptx.128M.50_slides": "0.1 s, 50 MB php peak, 78 MB rss",
+        "pptx.128M.100_slides": "0.4 s, 61 MB php peak, 91 MB rss",
+        "pptx.128M.150_slides": "0.4 s, 72 MB php peak, 102 MB rss",
+        "pptx.128M.200_slides": "0.5 s, 83 MB php peak, 114 MB rss",
+        "pptx.128M.300_slides": "0.9 s, 105 MB php peak, 138 MB rss",
+        "pptx.128M.450_slides": "REFUSED WITH A MESSAGE: refused up front: needs about 153 MB, 128 MB available",
+        "pptx.128M.first_failure_is_clean_message": "yes",
+        "pptx.128M.max_slides_survived": 300
+    }
+}

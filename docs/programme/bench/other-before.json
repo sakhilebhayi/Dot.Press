@@ -1,0 +1,187 @@
+{
+ "engine": {
+  "10": {
+   "document_json_mb": 0.13,
+   "createDoc.ms": 0.45,
+   "heap_after_createDoc_mb": 0.38,
+   "applyOps.single_el_set.ms": 0,
+   "applyOps.drag_30.ms": 0.03,
+   "applyOps.add_200_elements.ms": 0.39,
+   "applyOps.slide_add.ms": 0,
+   "applyOps.slide_move.ms": 0,
+   "500_ops.early_ms_per_op": 0.01,
+   "500_ops.late_ms_per_op": 0,
+   "500_ops.undo_stack_size": 200,
+   "500_ops.heap_growth_mb": 0.32,
+   "500_ops.undo_all.ms": 2.17,
+   "500_ops.undo_steps_available": 200
+  },
+  "100": {
+   "document_json_mb": 1.26,
+   "createDoc.ms": 2.92,
+   "heap_after_createDoc_mb": 2.37,
+   "applyOps.single_el_set.ms": 0,
+   "applyOps.drag_30.ms": 0.02,
+   "applyOps.add_200_elements.ms": 0.44,
+   "applyOps.slide_add.ms": 0,
+   "applyOps.slide_move.ms": 0.01,
+   "500_ops.early_ms_per_op": 0.01,
+   "500_ops.late_ms_per_op": 0,
+   "500_ops.undo_stack_size": 200,
+   "500_ops.heap_growth_mb": 0.26,
+   "500_ops.undo_all.ms": 1.27,
+   "500_ops.undo_steps_available": 200
+  },
+  "300": {
+   "document_json_mb": 3.8,
+   "createDoc.ms": 8.01,
+   "heap_after_createDoc_mb": 7.1,
+   "applyOps.single_el_set.ms": 0,
+   "applyOps.drag_30.ms": 0.02,
+   "applyOps.add_200_elements.ms": 0.65,
+   "applyOps.slide_add.ms": 0.01,
+   "applyOps.slide_move.ms": 0.1,
+   "500_ops.early_ms_per_op": 0,
+   "500_ops.late_ms_per_op": 0,
+   "500_ops.undo_stack_size": 200,
+   "500_ops.heap_growth_mb": 0.2,
+   "500_ops.undo_all.ms": 2.02,
+   "500_ops.undo_steps_available": 200
+  },
+  "sync_polling": {
+   "focused_tab.requests_per_minute": 20,
+   "hidden_tab.requests_per_minute": 4
+  }
+ },
+ "bundles": {
+  "Pages/Press/Audience.vue": {
+   "js_upfront_kb": 496.9,
+   "js_upfront_gzip_kb": 175.66,
+   "js_upfront_brotli_kb": 152.78,
+   "css_upfront_gzip_kb": 14.31,
+   "js_chunks_upfront": 8
+  },
+  "Pages/Press/Editor.vue": {
+   "js_upfront_kb": 1258.59,
+   "js_upfront_gzip_kb": 422.88,
+   "js_upfront_brotli_kb": 353.72,
+   "css_upfront_gzip_kb": 37.46,
+   "js_chunks_upfront": 13,
+   "js_lazy_gzip_kb": 164.05,
+   "js_lazy_chunks": 8
+  },
+  "Pages/Press/Library.vue": {
+   "js_upfront_kb": 546.47,
+   "js_upfront_gzip_kb": 194.73,
+   "js_upfront_brotli_kb": 169.76,
+   "css_upfront_gzip_kb": 19.48,
+   "js_chunks_upfront": 10
+  },
+  "Pages/Press/Player.vue": {
+   "js_upfront_kb": 505.66,
+   "js_upfront_gzip_kb": 178.75,
+   "js_upfront_brotli_kb": 155.61,
+   "css_upfront_gzip_kb": 14.31,
+   "js_chunks_upfront": 9
+  },
+  "Pages/Press/Presenter.vue": {
+   "js_upfront_kb": 512.04,
+   "js_upfront_gzip_kb": 181.1,
+   "js_upfront_brotli_kb": 157.65,
+   "css_upfront_gzip_kb": 15.85,
+   "js_chunks_upfront": 10
+  },
+  "Pages/Press/Print.vue": {
+   "js_upfront_kb": 480.92,
+   "js_upfront_gzip_kb": 169.71,
+   "js_upfront_brotli_kb": 147.35,
+   "css_upfront_gzip_kb": 16.01,
+   "js_chunks_upfront": 5
+  },
+  "Pages/Press/Remote.vue": {
+   "js_upfront_kb": 307,
+   "js_upfront_gzip_kb": 105.58,
+   "js_upfront_brotli_kb": 91.69,
+   "css_upfront_gzip_kb": 13.54,
+   "js_chunks_upfront": 5
+  },
+  "Pages/Press/Shared.vue": {
+   "js_upfront_kb": 507.17,
+   "js_upfront_gzip_kb": 179.43,
+   "js_upfront_brotli_kb": 156.2,
+   "css_upfront_gzip_kb": 14.31,
+   "js_chunks_upfront": 9
+  },
+  "Pages/Welcome.vue": {
+   "js_upfront_kb": 375.05,
+   "js_upfront_gzip_kb": 129.15,
+   "js_upfront_brotli_kb": 112.34,
+   "css_upfront_gzip_kb": 17.56,
+   "js_chunks_upfront": 7,
+   "js_lazy_gzip_kb": 60.07,
+   "js_lazy_chunks": 1
+  },
+  "app.js": {
+   "js_upfront_kb": 298.47,
+   "js_upfront_gzip_kb": 101.42,
+   "js_upfront_brotli_kb": 88.12,
+   "css_upfront_gzip_kb": 10.07,
+   "js_chunks_upfront": 1
+  },
+  "offline_player": {
+   "js_kb": 250.21,
+   "js_gzip_kb": 92.57,
+   "css_gzip_kb": 3.86
+  },
+  "fonts": {
+   "interface_fonts_total_kb": 98.66,
+   "interface_font_files": 4,
+   "slide_fonts_total_kb": 1440.38,
+   "slide_font_files": 48,
+   "slide_fonts_have_unicode_range_subsets": "yes",
+   "largest_slide_font": "inter-italic-100-900-latin-ext.woff2 90 KB"
+  }
+ },
+ "http_old_20_editors": {
+  "request_cost": {
+   "get_document_10_slides.p50_ms": 10.92,
+   "get_document_10_slides.p95_ms": 15.07,
+   "get_document_10_slides.bytes": 133818,
+   "get_document_100_slides.p50_ms": 23.17,
+   "get_document_100_slides.p95_ms": 26.43,
+   "get_document_100_slides.bytes": 1490798,
+   "get_document_300_slides.p50_ms": 43.75,
+   "get_document_300_slides.p95_ms": 48.01,
+   "get_document_300_slides.bytes": 3982087,
+   "post_presence.p50_ms": 9.09,
+   "post_presence.p95_ms": 10.01,
+   "post_presence.bytes": 23,
+   "get_changes_nothing_new.p50_ms": 8.49,
+   "get_changes_nothing_new.p95_ms": 8.98,
+   "get_changes_nothing_new.bytes": 37,
+   "post_ops_single_el_set.p50_ms": 13.5,
+   "post_ops_single_el_set.p95_ms": 15.16,
+   "post_ops_single_el_set.bytes": 68,
+   "get_editor_page_html.p50_ms": 12.63,
+   "get_editor_page_html.p95_ms": 12.93,
+   "get_editor_page_html.bytes": 49974,
+   "get_document_100_slides.content_encoding": "gzip"
+  },
+  "load": {
+   "20_editors_0_writing_old.seconds": 30,
+   "20_editors_0_writing_old.requests_total": 398,
+   "20_editors_0_writing_old.requests_per_minute_per_editor": 39.8,
+   "20_editors_0_writing_old.requests_per_second_all": 13.27,
+   "20_editors_0_writing_old.presence": 199,
+   "20_editors_0_writing_old.changes": 199,
+   "20_editors_0_writing_old.ops": 0,
+   "20_editors_0_writing_old.latency_p50_ms": 18.78,
+   "20_editors_0_writing_old.latency_p95_ms": 27.58,
+   "20_editors_0_writing_old.latency_max_ms": 57.41,
+   "20_editors_0_writing_old.errors_5xx_or_4xx": 0,
+   "20_editors_0_writing_old.throttled_429": 0,
+   "20_editors_0_writing_old.server_cpu_seconds": 6.66,
+   "20_editors_0_writing_old.server_cpu_core_fraction": 0.22
+  }
+ }
+}

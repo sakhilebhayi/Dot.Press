@@ -1,0 +1,142 @@
+{
+ "bundles": {
+  "Pages/Press/Audience.vue": {
+   "js_upfront_kb": 497.66,
+   "js_upfront_gzip_kb": 176.2,
+   "js_upfront_brotli_kb": 155.29,
+   "css_upfront_gzip_kb": 16.95,
+   "js_chunks_upfront": 10
+  },
+  "Pages/Press/Deferred.vue": {
+   "js_upfront_kb": 303.46,
+   "js_upfront_gzip_kb": 103.93,
+   "js_upfront_brotli_kb": 92.36,
+   "css_upfront_gzip_kb": 16.33,
+   "js_chunks_upfront": 4,
+   "js_lazy_gzip_kb": 160.18,
+   "js_lazy_chunks": 8
+  },
+  "Pages/Press/Editor.vue": {
+   "js_upfront_kb": 973.61,
+   "js_upfront_gzip_kb": 335.53,
+   "js_upfront_brotli_kb": 289.48,
+   "css_upfront_gzip_kb": 33.16,
+   "js_chunks_upfront": 21,
+   "js_lazy_gzip_kb": 148.07,
+   "js_lazy_chunks": 22
+  },
+  "Pages/Press/Library.vue": {
+   "js_upfront_kb": 547.36,
+   "js_upfront_gzip_kb": 195.32,
+   "js_upfront_brotli_kb": 172.35,
+   "css_upfront_gzip_kb": 22.12,
+   "js_chunks_upfront": 12
+  },
+  "Pages/Press/Player.vue": {
+   "js_upfront_kb": 506.39,
+   "js_upfront_gzip_kb": 179.28,
+   "js_upfront_brotli_kb": 158.1,
+   "css_upfront_gzip_kb": 16.95,
+   "js_chunks_upfront": 11
+  },
+  "Pages/Press/Presenter.vue": {
+   "js_upfront_kb": 512.76,
+   "js_upfront_gzip_kb": 181.62,
+   "js_upfront_brotli_kb": 160.14,
+   "css_upfront_gzip_kb": 18.49,
+   "js_chunks_upfront": 12
+  },
+  "Pages/Press/Print.vue": {
+   "js_upfront_kb": 481.64,
+   "js_upfront_gzip_kb": 170.23,
+   "js_upfront_brotli_kb": 149.84,
+   "css_upfront_gzip_kb": 18.64,
+   "js_chunks_upfront": 7
+  },
+  "Pages/Press/Remote.vue": {
+   "js_upfront_kb": 307.68,
+   "js_upfront_gzip_kb": 106.1,
+   "js_upfront_brotli_kb": 94.17,
+   "css_upfront_gzip_kb": 16.18,
+   "js_chunks_upfront": 7
+  },
+  "Pages/Press/Shared.vue": {
+   "js_upfront_kb": 507.44,
+   "js_upfront_gzip_kb": 179.81,
+   "js_upfront_brotli_kb": 158.56,
+   "css_upfront_gzip_kb": 16.95,
+   "js_chunks_upfront": 11
+  },
+  "Pages/Welcome.vue": {
+   "js_upfront_kb": 375.78,
+   "js_upfront_gzip_kb": 129.7,
+   "js_upfront_brotli_kb": 114.83,
+   "css_upfront_gzip_kb": 20.2,
+   "js_chunks_upfront": 9,
+   "js_lazy_gzip_kb": 60.07,
+   "js_lazy_chunks": 1
+  },
+  "app.js": {
+   "js_upfront_kb": 299.14,
+   "js_upfront_gzip_kb": 101.94,
+   "js_upfront_brotli_kb": 90.59,
+   "css_upfront_gzip_kb": 12.7,
+   "js_chunks_upfront": 3
+  },
+  "offline_player": {
+   "js_kb": 250.21,
+   "js_gzip_kb": 92.57,
+   "css_gzip_kb": 3.86
+  },
+  "fonts": {
+   "interface_fonts_total_kb": 98.66,
+   "interface_font_files": 4,
+   "slide_fonts_total_kb": 1440.38,
+   "slide_font_files": 48,
+   "slide_fonts_have_unicode_range_subsets": "yes",
+   "largest_slide_font": "inter-italic-100-900-latin-ext.woff2 90 KB"
+  }
+ },
+ "http_new_20_editors": {
+  "request_cost": {
+   "get_document_10_slides.p50_ms": 11.18,
+   "get_document_10_slides.p95_ms": 14.9,
+   "get_document_10_slides.bytes": 133818,
+   "get_document_100_slides.p50_ms": 23.17,
+   "get_document_100_slides.p95_ms": 26.24,
+   "get_document_100_slides.bytes": 1490798,
+   "get_document_300_slides.p50_ms": 44.19,
+   "get_document_300_slides.p95_ms": 48.54,
+   "get_document_300_slides.bytes": 3982087,
+   "post_presence.p50_ms": 9.17,
+   "post_presence.p95_ms": 10.12,
+   "post_presence.bytes": 3617,
+   "get_changes_nothing_new.p50_ms": 8.26,
+   "get_changes_nothing_new.p95_ms": 8.81,
+   "get_changes_nothing_new.bytes": 37,
+   "post_ops_single_el_set.p50_ms": 13.55,
+   "post_ops_single_el_set.p95_ms": 14.95,
+   "post_ops_single_el_set.bytes": 68,
+   "get_editor_page_html.p50_ms": 12.26,
+   "get_editor_page_html.p95_ms": 12.49,
+   "get_editor_page_html.bytes": 49974,
+   "get_document_100_slides.content_encoding": "gzip"
+  },
+  "load": {
+   "20_editors_0_writing_new.seconds": 30,
+   "20_editors_0_writing_new.requests_total": 199,
+   "20_editors_0_writing_new.requests_per_minute_per_editor": 19.9,
+   "20_editors_0_writing_new.requests_per_second_all": 6.63,
+   "20_editors_0_writing_new.presence": 199,
+   "20_editors_0_writing_new.changes": 0,
+   "20_editors_0_writing_new.ops": 0,
+   "20_editors_0_writing_new.latency_p50_ms": 19.78,
+   "20_editors_0_writing_new.latency_p95_ms": 28.73,
+   "20_editors_0_writing_new.latency_max_ms": 32.15,
+   "20_editors_0_writing_new.errors_5xx_or_4xx": 0,
+   "20_editors_0_writing_new.throttled_429": 0,
+   "20_editors_0_writing_new.server_cpu_seconds": 3.62,
+   "20_editors_0_writing_new.server_cpu_core_fraction": 0.12
+  }
+ }
+}
