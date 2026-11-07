@@ -145,21 +145,23 @@ class ViewerWriteProtectionTest extends TestCase
 
     public function test_slide_writes(): void
     {
-        $canvas = ['canvas_state' => ['elements' => [['id' => 'el-1', 'type' => 'rect', 'x' => 1, 'y' => 1]]]];
+        $op = fn (string $key) => ['client' => 'tab-1', 'key' => $key, 'ops' => [
+            ['op' => 'el.add', 'slide' => $this->slide->id, 'el' => ['id' => 'el-1', 'type' => 'shape', 'x' => 1, 'y' => 1, 'w' => 10, 'h' => 10]],
+            ['op' => 'slide.add', 'tid' => 'n1', 'slide' => ['title' => 'Nope']],
+        ]];
 
-        $this->actingAs($this->viewer)->postJson('/api/slides', ['deck_id' => $this->deck->id, 'title' => 'Nope'])->assertForbidden();
-        $this->actingAs($this->viewer)->putJson('/api/slides/'.$this->slide->id, $canvas)->assertForbidden();
-        $this->actingAs($this->viewer)->patchJson('/api/slides/'.$this->slide->id, ['title' => 'Nope'])->assertForbidden();
-        $this->actingAs($this->viewer)->deleteJson('/api/slides/'.$this->slide->id)->assertForbidden();
+        $this->actingAs($this->viewer)->postJson('/api/decks/'.$this->deck->id.'/ops', $op('viewer-1'))->assertForbidden();
+        // Slides are read-only resources now: every write verb is gone.
+        $this->actingAs($this->viewer)->postJson('/api/slides', ['deck_id' => $this->deck->id, 'title' => 'Nope'])->assertNotFound();
+        $this->actingAs($this->viewer)->putJson('/api/slides/'.$this->slide->id, ['title' => 'Nope'])->assertStatus(405);
+        $this->actingAs($this->viewer)->deleteJson('/api/slides/'.$this->slide->id)->assertStatus(405);
         $this->assertDatabaseMissing('slides', ['title' => 'Nope']);
-        $this->assertSame(0, $this->slide->fresh()->elements()->count());
+        $this->assertSame([], $this->slide->fresh()->els ?? []);
 
         foreach ([$this->editor, $this->admin] as $writer) {
-            $this->actingAs($writer)->postJson('/api/slides', ['deck_id' => $this->deck->id, 'title' => 'Ok'])->assertCreated();
-            $this->actingAs($writer)->putJson('/api/slides/'.$this->slide->id, $canvas)->assertOk();
+            $this->actingAs($writer)->postJson('/api/decks/'.$this->deck->id.'/ops', $op('writer-'.$writer->id))->assertOk();
         }
-
-        $this->actingAs($this->editor)->deleteJson('/api/slides/'.$this->newSlide()->id)->assertNoContent();
+        $this->assertDatabaseHas('slides', ['title' => 'Nope']);
     }
 
     // ---- assets ---------------------------------------------------------
@@ -282,10 +284,11 @@ class ViewerWriteProtectionTest extends TestCase
         $this->getJson('/api/projects/'.$this->project->id)->assertOk();
         $this->getJson('/api/decks')->assertOk();
         $this->getJson('/api/decks/'.$this->deck->id)->assertOk();
-        $this->getJson('/api/slides?deck_id='.$this->deck->id)->assertOk();
         $this->getJson('/api/slides/'.$this->slide->id)->assertOk();
-        $this->getJson('/api/collab/slides/'.$this->slide->id.'/participants')->assertOk();
-        $this->postJson('/api/collab/slides/'.$this->slide->id.'/heartbeat', ['cursor' => ['x' => 1, 'y' => 1]])->assertOk();
+        $this->getJson('/api/decks/'.$this->deck->id.'/document')->assertOk();
+        $this->getJson('/api/decks/'.$this->deck->id.'/changes')->assertOk();
+        $this->getJson('/api/decks/'.$this->deck->id.'/versions')->assertOk();
+        $this->postJson('/api/decks/'.$this->deck->id.'/presence', ['client' => 'tab-v', 'cursor' => ['x' => 1, 'y' => 1]])->assertOk();
         $this->get(route('dashboard'))->assertOk();
         $this->get(route('presentation.slides.show', [$this->deck, $this->slide]))->assertOk();
         $this->get(route('export.decks.pdf', [$this->deck]))->assertSuccessful();
@@ -339,6 +342,7 @@ class ViewerWriteProtectionTest extends TestCase
     {
         $outsider = User::factory()->withPersonalTeam()->create();
 
-        $this->actingAs($outsider)->putJson('/api/slides/'.$this->slide->id, ['title' => 'Nope'])->assertNotFound();
+        $this->actingAs($outsider)->getJson('/api/slides/'.$this->slide->id)->assertNotFound();
+        $this->actingAs($outsider)->postJson('/api/decks/'.$this->deck->id.'/ops', ['client' => 'c', 'key' => 'k', 'ops' => [['op' => 'deck.set', 'title' => 'Nope']]])->assertNotFound();
     }
 }

@@ -1,18 +1,12 @@
 <?php
 
-use App\Broadcasting\SlideChannelAuthorizer;
-use Illuminate\Support\Facades\Broadcast;
-
 /*
 |--------------------------------------------------------------------------
 | Broadcast Channels
 |--------------------------------------------------------------------------
 |
-| A slide's private channel carries live canvas edits between everyone
-| who has it open -- authorization mirrors SlidePolicy::view (team
-| membership on the slide's deck/project). See SlideChannelAuthorizer for
-| the actual check and why it's factored out into its own class.
+| Dot.Press has no websocket host. Editors share changes through the operations
+| log (GET /api/decks/{deck}/changes) and presence through POST
+| /api/decks/{deck}/presence, so no broadcast channel is registered.
 |
 */
-
-Broadcast::channel('slide.{slideId}', fn ($user, int $slideId) => SlideChannelAuthorizer::authorize($user, $slideId));

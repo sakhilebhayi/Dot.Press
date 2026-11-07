@@ -3,14 +3,16 @@
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\BrandKitController;
-use App\Http\Controllers\Api\CollaborationController;
 use App\Http\Controllers\Api\DeckActivityController;
 use App\Http\Controllers\Api\DeckCommentController;
 use App\Http\Controllers\Api\DeckController;
+use App\Http\Controllers\Api\DeckDocumentController;
 use App\Http\Controllers\Api\DeckPeopleController;
 use App\Http\Controllers\Api\DeckReviewController;
 use App\Http\Controllers\Api\DeckShareController;
+use App\Http\Controllers\Api\DeckVersionController;
 use App\Http\Controllers\Api\LayoutController;
+use App\Http\Controllers\Api\PresenceController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SlideController;
 use App\Http\Controllers\Api\ThemeController;
@@ -24,7 +26,23 @@ Route::get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('decks', DeckController::class);
-    Route::apiResource('slides', SlideController::class);
+    Route::post('decks/{deck}/duplicate', [DeckController::class, 'duplicate']);
+    Route::post('decks/{deck}/unarchive', [DeckController::class, 'unarchive']);
+    Route::post('decks/{deck}/favourite', [DeckController::class, 'favourite'])->middleware('throttle:press-read');
+    Route::post('decks/{deck}/touch', [DeckController::class, 'touch'])->middleware('throttle:press-read');
+
+    // The presentation document: read it, change it with operations, follow what others changed.
+    Route::get('decks/{deck}/document', [DeckDocumentController::class, 'show'])->middleware('throttle:press-read');
+    Route::post('decks/{deck}/ops', [DeckDocumentController::class, 'ops'])->middleware('throttle:press-ops');
+    Route::get('decks/{deck}/changes', [DeckDocumentController::class, 'changes'])->middleware('throttle:press-changes');
+    Route::post('decks/{deck}/presence', [PresenceController::class, 'store'])->middleware('throttle:press-presence');
+
+    Route::get('decks/{deck}/versions', [DeckVersionController::class, 'index'])->middleware('throttle:press-read');
+    Route::post('decks/{deck}/versions', [DeckVersionController::class, 'store'])->middleware('throttle:press-read');
+    Route::get('decks/{deck}/versions/{version}', [DeckVersionController::class, 'show'])->whereNumber('version')->middleware('throttle:press-read');
+    Route::post('decks/{deck}/versions/{version}/restore', [DeckVersionController::class, 'restore'])->whereNumber('version')->middleware('throttle:press-read');
+
+    Route::get('slides/{slide}', [SlideController::class, 'show'])->name('slides.show');
     // Asset library (R-40). The signed routes stream the stored file with Range support.
     Route::apiResource('assets', AssetController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
     Route::get('assets/{asset}/usage', [AssetController::class, 'usage'])->name('assets.usage');
@@ -73,10 +91,5 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('decks/{deck}/generate-slide', [AiController::class, 'generateSlide']);
         Route::post('decks/{deck}/generate-deck', [AiController::class, 'generateDeck']);
         Route::post('slides/{slide}/rewrite-text', [AiController::class, 'rewriteText']);
-    });
-
-    Route::prefix('collab')->middleware('throttle:collab')->group(function (): void {
-        Route::post('slides/{slide}/heartbeat', [CollaborationController::class, 'heartbeat']);
-        Route::get('slides/{slide}/participants', [CollaborationController::class, 'participants']);
     });
 });
