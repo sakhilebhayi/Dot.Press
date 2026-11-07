@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\Press\Assets\AssetLimits;
 use App\Services\Press\Import\ImportedDeckBuilder;
 use App\Services\Press\Import\ImportException;
 use App\Services\Press\Import\PptxImporter;
@@ -30,7 +31,7 @@ class DeckImportController extends Controller
         @set_time_limit(120);
         // Up to 150 MB of pictures are held in memory while a file is read; the default limit of a shared host (128 MB)
         // would end the request in a fatal error with no message. Exports raise it the same way.
-        $limit = \App\Services\Press\Assets\AssetLimits::iniBytes((string) ini_get('memory_limit'));
+        $limit = AssetLimits::iniBytes((string) ini_get('memory_limit'));
         if ($limit > 0 && $limit < 512 * 1048576) {
             @ini_set('memory_limit', '512M');
         }

@@ -3,6 +3,8 @@
 namespace Tests\Feature\Press\Security;
 
 use App\Models\Slide;
+use App\Services\Press\VersionService;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\DB;
 use Tests\Feature\Press\AccessTestCase;
 
@@ -88,9 +90,9 @@ class OpsAmplificationTest extends AccessTestCase
 
     public function test_a_deck_keeps_at_most_two_hundred_named_versions(): void
     {
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $this->withoutMiddleware(ThrottleRequests::class);
         for ($i = 0; $i < 200; $i++) {
-            \App\Services\Press\VersionService::snapshot($this->deck, $this->editor, 'manual', "v{$i}");
+            VersionService::snapshot($this->deck, $this->editor, 'manual', "v{$i}");
         }
 
         $this->actingAs($this->editor)->postJson("/api/decks/{$this->deck->id}/versions", ['label' => 'one more'])
