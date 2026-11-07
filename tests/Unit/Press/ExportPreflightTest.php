@@ -130,6 +130,24 @@ class ExportPreflightTest extends TestCase
         $this->assertSame('native', $pptx['f/a'], 'the PPTX only names the font');
     }
 
+    public function test_scripts_the_pdf_fonts_cannot_draw_are_called_out_for_pdf_only(): void
+    {
+        $text = fn (string $t) => ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => $t]]]]];
+        $doc = PressSampleDeck::doc();
+        $doc['slides'] = [['id' => 'c', 'title' => 'c', 'els' => [
+            ['id' => 'a', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'doc' => $text('Hello 中文')],
+            ['id' => 'b', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'doc' => $text('Ça va très bien, Ελληνικά, Русский ✓')],
+            ['id' => 't', 'type' => 'table', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'rows' => [[['t' => '日本語']]]],
+        ]]];
+
+        $pdf = $this->levels(ExportPreflight::analyze($doc, 'pdf'));
+
+        $this->assertSame('approximated', $pdf['c/a']);
+        $this->assertSame('native', $pdf['c/b'], 'Latin, Greek and Cyrillic print');
+        $this->assertSame('approximated', $pdf['c/t']);
+        $this->assertSame('native', $this->levels(ExportPreflight::analyze($doc, 'pptx'))['c/a']);
+    }
+
     public function test_every_element_has_a_level_and_a_reason_unless_native(): void
     {
         foreach (['pdf', 'pptx'] as $format) {

@@ -141,6 +141,22 @@ final class ExportPreflight
         return ['id' => $id, 'type' => $type, 'level' => $level, 'reason' => $reason];
     }
 
+    /** Whether the text of an element holds scripts that none of the PDF fonts can draw. */
+    private static function hasUnprintableScript(array $el): bool
+    {
+        $text = TextDoc::plain(is_array($el['doc'] ?? null) ? $el['doc'] : null);
+        if (($el['type'] ?? null) === 'table') {
+            $text = '';
+            foreach ((array) ($el['rows'] ?? []) as $row) {
+                foreach ((array) $row as $cell) {
+                    $text .= is_array($cell) ? Els::str($cell['t'] ?? null) : '';
+                }
+            }
+        }
+
+        return $text !== '' && preg_match('/[\x{0900}-\x{0DFF}\x{0E00}-\x{0EFF}\x{1100}-\x{11FF}\x{2E80}-\x{9FFF}\x{AC00}-\x{D7AF}\x{F900}-\x{FAFF}\x{1F000}-\x{1FAFF}]/u', $text) === 1;
+    }
+
     /** The first font family of an element that the PDF export does not bundle, or null. */
     private static function unknownFont(array $el, Theme $theme): ?string
     {
@@ -192,6 +208,9 @@ final class ExportPreflight
             $unknown = self::unknownFont($el, $theme);
             if ($unknown !== null) {
                 return ['approximated', 'The font "'.$unknown.'" is not one of the fonts bundled for PDF export, so Public Sans is used instead.'];
+            }
+            if (self::hasUnprintableScript($el)) {
+                return ['approximated', 'Some characters (for example Chinese, Japanese, Korean, Indic scripts or emoji) are not in the fonts bundled for PDF export and will not print.'];
             }
         }
         switch ($type) {

@@ -183,3 +183,21 @@ s2 = prs.slides.add_slide(prs.slide_layouts[6])
 add_transition(s2, '<p:transition xmlns:p="%s" spd="med"><p:checker dir="horz"/></p:transition>' % NS['p'])
 prs.save(os.path.join(HERE, 'python_pptx_unsupported.pptx'))
 print('wrote python_pptx_unsupported.pptx')
+
+# ---------------------------------------------------------------------------------------------------------------
+# A third file: a freeform (custom geometry) shape with text, a red triangle outline with a blue stroke.
+# ---------------------------------------------------------------------------------------------------------------
+prs = Presentation()
+prs.slide_width = Emu(12192000)
+prs.slide_height = Emu(6858000)
+s = prs.slides.add_slide(prs.slide_layouts[6])
+fb = s.shapes.build_freeform(0, 0, scale=1.0)
+fb.add_line_segments([(Inches(2), 0), (Inches(1), Inches(1.5))], close=True)
+tri = fb.convert_to_shape(Inches(1), Inches(1))
+tri.fill.solid()
+tri.fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+tri.line.color.rgb = RGBColor(0x00, 0x00, 0xFF)
+tri.line.width = Pt(4)
+tri.text_frame.text = 'Inside the freeform'
+prs.save(os.path.join(HERE, 'python_pptx_freeform.pptx'))
+print('wrote python_pptx_freeform.pptx')

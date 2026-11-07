@@ -227,6 +227,61 @@ class ImportPptxTest extends TestCase
         $this->assertContains('rect', $kinds);
     }
 
+    public function test_a_freeform_becomes_a_picture_of_its_outline_with_its_text_on_top(): void
+    {
+        $r = PptxImporter::import($this->fixture('python_pptx_freeform.pptx'));
+        $els = $r->slides[0]['els'];
+
+        $this->assertSame(['image', 'text'], array_column($els, 'type'));
+        $this->assertSame([96.0, 96.0, 192.0, 144.0], [(float) $els[0]['x'], (float) $els[0]['y'], (float) $els[0]['w'], (float) $els[0]['h']]);
+        $this->assertSame('Inside the freeform', TextDoc::plain($els[1]['doc']));
+        $this->assertArrayNotHasKey('fill', $els[1], 'the text box on top is transparent');
+        $png = $r->media[$els[0]['src']['import']];
+        $this->assertSame('image/png', $png['mime']);
+        $im = imagecreatefromstring($png['bytes']);
+        $w = imagesx($im);
+        $h = imagesy($im);
+        $centre = imagecolorat($im, (int) ($w / 2), (int) ($h * 0.3));
+        $this->assertSame(0, ($centre >> 24) & 127, 'inside the triangle is opaque');
+        $this->assertSame([255, 0, 0], [($centre >> 16) & 255, ($centre >> 8) & 255, $centre & 255]);
+        $this->assertSame(127, (imagecolorat($im, 4, $h - 4) >> 24) & 127, 'below the left corner of the triangle is empty');
+        $this->assertNotEmpty(array_filter($r->report, fn ($x) => str_contains($x['message'], 'picture of its outline')));
+    }
+
+    public function test_smartart_is_imported_as_the_shapes_of_its_cached_drawing(): void
+    {
+        $ns = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+        $slide = '<p:sld '.$ns.'><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>'
+            .'<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="4" name="Process"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr><p:xfrm><a:off x="952500" y="1905000"/><a:ext cx="4762500" cy="1905000"/></p:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/diagram"/></a:graphic></p:graphicFrame>'
+            .'</p:spTree></p:cSld></p:sld>';
+        $dsp = '<dsp:drawing xmlns:dsp="http://schemas.microsoft.com/office/drawing/2008/diagram" '.$ns.'><dsp:spTree><dsp:nvGrpSpPr><dsp:cNvPr id="0" name=""/><dsp:cNvGrpSpPr/></dsp:nvGrpSpPr><dsp:grpSpPr/>'
+            .'<dsp:sp modelId="{1}"><dsp:nvSpPr><dsp:cNvPr id="0" name=""/><dsp:cNvSpPr/></dsp:nvSpPr><dsp:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1905000" cy="1905000"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="4F81BD"/></a:solidFill></dsp:spPr><dsp:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="2000"/><a:t>Plan</a:t></a:r></a:p></dsp:txBody></dsp:sp>'
+            .'<dsp:sp modelId="{2}"><dsp:nvSpPr><dsp:cNvPr id="0" name=""/><dsp:cNvSpPr/></dsp:nvSpPr><dsp:spPr><a:xfrm><a:off x="2857500" y="0"/><a:ext cx="1905000" cy="1905000"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="C0504D"/></a:solidFill></dsp:spPr><dsp:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="2000"/><a:t>Do</a:t></a:r></a:p></dsp:txBody></dsp:sp>'
+            .'</dsp:spTree></dsp:drawing>';
+        $pptx = tempnam(sys_get_temp_dir(), 'sa').'.pptx';
+        $z = new \ZipArchive;
+        $z->open($pptx, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $z->addFromString('_rels/.rels', '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>');
+        $z->addFromString('ppt/presentation.xml', '<p:presentation '.$ns.'><p:sldIdLst><p:sldId id="256" r:id="rId2"/></p:sldIdLst><p:sldSz cx="12192000" cy="6858000"/></p:presentation>');
+        $z->addFromString('ppt/_rels/presentation.xml.rels', '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/></Relationships>');
+        $z->addFromString('ppt/slides/slide1.xml', $slide);
+        $z->addFromString('ppt/slides/_rels/slide1.xml.rels', '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId5" Type="http://schemas.microsoft.com/office/2007/relationships/diagramDrawing" Target="../diagrams/drawing1.xml"/></Relationships>');
+        $z->addFromString('ppt/diagrams/drawing1.xml', $dsp);
+        $z->close();
+
+        $r = PptxImporter::import($pptx);
+        @unlink($pptx);
+
+        $els = $r->slides[0]['els'];
+        $this->assertCount(2, $els);
+        $this->assertSame('Plan', TextDoc::plain($els[0]['doc']));
+        $this->assertSame([100.0, 200.0, 200.0, 200.0], [(float) $els[0]['x'], (float) $els[0]['y'], (float) $els[0]['w'], (float) $els[0]['h']], 'offset by the position of the frame');
+        $this->assertSame([400.0, 200.0], [(float) $els[1]['x'], (float) $els[1]['y']]);
+        $this->assertSame('#4f81bd', $els[0]['fill']);
+        $this->assertSame($els[0]['group'], $els[1]['group']);
+        $this->assertNotEmpty(array_filter($r->report, fn ($x) => str_contains($x['message'], 'cached drawing')));
+    }
+
     public function test_every_imported_element_is_marked_and_has_a_valid_unique_id(): void
     {
         $r = $this->basic();

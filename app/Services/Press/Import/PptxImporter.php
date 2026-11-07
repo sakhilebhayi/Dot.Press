@@ -1017,8 +1017,8 @@ final class PptxImporter
             $xf['h'] = $xf['h'] / ShapeGeometry::CALLOUT_BODY;
         }
         $pl = $this->place($m, $xf['x'], $xf['y'], $xf['w'], $xf['h'], $xf['rot'], $xf['fh'], $xf['fv']);
-        if ($geom === null && Xml::child($spPr, 'custGeom') !== null) {
-            $this->rep(null, 'approximated', 'The freeform shape "'.mb_substr($elName, 0, 60).'" was imported as a rectangle.');
+        $cust = $geom === null ? Xml::child($spPr, 'custGeom') : null;
+        if ($cust !== null) {
             $prst = 'rect';
         } elseif ($prst === null && $ph !== null) {
             $prst = 'rect';
@@ -1113,6 +1113,15 @@ final class PptxImporter
         }
         $stroke = $line !== null && ! ($line['none'] ?? false) && $line['stroke'] !== null ? $line : null;
 
+        // A freeform becomes a picture of its outline; any text in it stays a text box on top.
+        if ($cust !== null) {
+            $drawn = $this->freeform($cust, $nv, $pl, $fill, $stroke, $decoration, $label, $group, $elName);
+            if ($drawn) {
+                $fillValue = null;
+                $stroke = null;
+            }
+        }
+
         // An empty placeholder is a prompt, not content.
         if ($ph !== null && ! $hasText && $fillValue === null && $stroke === null) {
             return;
@@ -1178,6 +1187,68 @@ final class PptxImporter
         }
         $this->attachLink($el, $nv);
         $this->push($el, $group);
+    }
+
+    /**
+     * @param  array<string, mixed>  $pl
+     * @param  array{mode: string, value: mixed}|null  $fill
+     * @param  array<string, mixed>|null  $stroke
+     */
+    private function freeform(DOMElement $cust, ?DOMElement $nv, array $pl, ?array $fill, ?array $stroke, bool $decoration, string $label, ?string $group, string $elName): bool
+    {
+        $fillSpec = $fill !== null && in_array($fill['mode'], ['solid', 'grad'], true) ? $fill['value'] : null;
+        if (is_array($fillSpec)) {
+            $fillSpec = $fillSpec['stops'][0][1] ?? null;
+        }
+        [$fillHex, $fillAlpha] = $this->hexOf(is_string($fillSpec) ? $fillSpec : null);
+        [$strokeHex, $strokeAlpha] = $this->hexOf($stroke['stroke'] ?? null);
+        $png = FreeformRasterizer::render($cust, (float) $pl['w'], (float) $pl['h'], $fillHex, $fillAlpha, $strokeHex, $strokeAlpha, (float) ($stroke['sw'] ?? 0));
+        if ($png === null) {
+            $this->rep(null, 'approximated', 'The freeform shape "'.mb_substr($elName, 0, 60).'" has nothing to draw and was left out.');
+
+            return true;
+        }
+        if ($this->mediaBytes + strlen($png) > 150 * 1048576) {
+            $this->rep(null, 'unsupported', 'The freeform shape "'.mb_substr($elName, 0, 60).'" was left out because the pictures are too large.');
+
+            return true;
+        }
+        $key = 'freeform:'.$this->slideNo.':'.($this->seq + 1);
+        $this->mediaBytes += strlen($png);
+        $this->media[$key] = ['name' => 'freeform-'.$this->slideNo.'-'.($this->seq + 1).'.png', 'mime' => 'image/png', 'size' => strlen($png), 'bytes' => $png];
+        $el = $this->common($nv ?? $cust, 'image', $pl, $decoration, $label);
+        $el['src'] = ['import' => $key];
+        $el['fit'] = 'fill';
+        $el['mask'] = 'none';
+        if (! empty($pl['flipH'])) {
+            $el['flipH'] = true;
+        }
+        if (! empty($pl['flipV'])) {
+            $el['flipV'] = true;
+        }
+        $this->push($el, $group);
+        $this->rep(null, 'approximated', 'The freeform shape "'.mb_substr($elName, 0, 60).'" was imported as a picture of its outline.');
+
+        return true;
+    }
+
+    /** A spec colour as six hex digits (with "#") and its alpha. @return array{0: ?string, 1: float} */
+    private function hexOf(?string $spec): array
+    {
+        if ($spec === null || $spec === '') {
+            return [null, 1.0];
+        }
+        if (str_starts_with($spec, '@')) {
+            $slot = array_search($spec, ['dk1' => '@ink', 'lt1' => '@bg', 'dk2' => '@muted', 'lt2' => '@surface', 'accent1' => '@accent', 'accent2' => '@accent2', 'accent3' => '@chart3', 'accent4' => '@chart4', 'accent5' => '@chart5', 'accent6' => '@chart6'], true);
+            $hex = $slot !== false ? ($this->theme['scheme'][$slot] ?? null) : null;
+
+            return [$hex !== null ? '#'.strtolower($hex) : null, 1.0];
+        }
+        if (preg_match('/^#([0-9a-f]{6})([0-9a-f]{2})?$/i', $spec, $m)) {
+            return ['#'.strtolower($m[1]), isset($m[2]) ? hexdec($m[2]) / 255 : 1.0];
+        }
+
+        return [null, 1.0];
     }
 
     private function roundRadius(?DOMElement $geom, array $pl): float
@@ -1546,7 +1617,7 @@ final class PptxImporter
             return;
         }
         if (str_contains($uri, '/diagram')) {
-            $this->rep(null, 'unsupported', 'The SmartArt graphic "'.$name.'" was not imported.');
+            $this->smartArt($name, $xf, $m, $group);
 
             return;
         }
@@ -1556,6 +1627,35 @@ final class PptxImporter
             return;
         }
         $this->rep(null, 'unsupported', 'The object "'.$name.'" ('.mb_substr($uri, -30).') was not imported.');
+    }
+
+    /**
+     * SmartArt keeps a cached drawing of itself next to its data. The shapes of that drawing are imported as ordinary
+     * shapes (editable, grouped); the SmartArt layout itself cannot be carried over.
+     *
+     * @param  array<string, mixed>  $xf
+     * @param  array{0: float, 1: float, 2: float, 3: float, 4: float, 5: float}  $m
+     */
+    private function smartArt(string $name, array $xf, array $m, ?string $group): void
+    {
+        $drawing = null;
+        foreach ($this->ctx['rels'] as $r) {
+            if (str_ends_with($r['type'], '/diagramDrawing')) {
+                $drawing = $this->dom($r['target']);
+            }
+        }
+        $tree = $drawing !== null ? Xml::find($drawing->documentElement, 'spTree') : null;
+        if ($tree === null) {
+            $this->rep(null, 'unsupported', 'The SmartArt graphic "'.$name.'" has no cached drawing and was not imported.');
+
+            return;
+        }
+        $before = count($this->els);
+        $gid = $group ?? 'g'.(++$this->groupSeq);
+        // The cached shapes are positioned relative to the top left of the graphic frame.
+        $shift = $this->mul($m, [1.0, 0.0, 0.0, 1.0, $xf['x'], $xf['y']]);
+        $this->walkTree($tree, $shift, $gid, false);
+        $this->rep(null, 'approximated', 'The SmartArt graphic "'.$name.'" was imported as the shapes of its cached drawing ('.(count($this->els) - $before).' elements); the SmartArt layout is not kept.');
     }
 
     /** @param array<string, mixed> $pl */
