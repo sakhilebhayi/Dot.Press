@@ -471,6 +471,9 @@
 .es-pop-actions button.es-primary { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
 .es-pop-actions button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
+/* a Spine row under a dragged element: amber means here */
+.es-drop-row { outline: 2px solid var(--amber); outline-offset: -2px; border-radius: var(--r-2); }
+
 /* ---- previews of video and audio ----------------------------------------------------------------------- */
 .es-media { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; pointer-events: auto; background: #0b0f14; }
 .es-media video, .es-media audio { width: 100%; height: 100%; display: block; }

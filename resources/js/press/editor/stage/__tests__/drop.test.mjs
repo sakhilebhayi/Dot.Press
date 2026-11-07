@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  classifyFile, fileProblem, fitInside, placeMedia, replaceTarget, replacePatch, assetToElementProps, uploadMessage, toAssetEntry,
+  relativeIfSameOrigin, classifyFile, fileProblem, fitInside, placeMedia, replaceTarget, replacePatch, assetToElementProps, uploadMessage, toAssetEntry,
 } from '../lib/drop.js';
 import { S, T, R } from '../../core/__tests__/helpers.mjs';
 
@@ -62,6 +62,13 @@ test('asset payloads become element props and library entries', () => {
   assert.equal(e.url, 'https://x/w');
   assert.equal(e.w, 800);
   assert.equal(e.mime, 'image/png');
+});
+
+test('same origin asset URLs become paths and others are left alone', () => {
+  assert.equal(relativeIfSameOrigin('http://127.0.0.1:8847/api/assets/1/file?sig=x', 'http://127.0.0.1:8847'), '/api/assets/1/file?sig=x');
+  assert.equal(relativeIfSameOrigin('https://cdn.example.com/a.png', 'http://127.0.0.1:8847'), 'https://cdn.example.com/a.png');
+  assert.equal(relativeIfSameOrigin('http://127.0.0.1:88470/x', 'http://127.0.0.1:8847'), 'http://127.0.0.1:88470/x', 'a longer host is not the same origin');
+  assert.equal(toAssetEntry({ id: 1, url: 'http://a.test/x' }, 'http://a.test').url, '/x');
 });
 
 test('upload errors become plain sentences', () => {

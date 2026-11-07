@@ -74,6 +74,14 @@ export function useGestures(env) {
   function resetLive() { live.value = EMPTY_LIVE; }
 
   // ---- helpers ------------------------------------------------------------------------------------
+  let dropRow = null;
+  function markDropRow(row) {
+    if (dropRow === row) return;
+    dropRow?.classList.remove('es-drop-row');
+    dropRow = row;
+    dropRow?.classList.add('es-drop-row');
+  }
+
   function nodesOf() { return viewRef.value?.nodes?.() || new Map(); }
 
   function writeTransform(node, x, y, rot) {
@@ -142,6 +150,7 @@ export function useGestures(env) {
   }
 
   function clearGesture() {
+    markDropRow(null);
     g = null;
     clearTimeout(longTimer);
     preview.value = null;
@@ -438,10 +447,14 @@ export function useGestures(env) {
     }
     // dragging out of the stage toward the Spine: let the shell highlight the row under the pointer
     let over = null;
+    let row = null;
     if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
       const hit = document.elementFromPoint(e.clientX, e.clientY);
-      over = hit?.closest?.('[data-spine-slide]')?.getAttribute('data-spine-slide') || null;
+      // a Spine row: marked data-spine-slide="<id>", or the shell's own rows (data-row with data-id)
+      row = hit?.closest?.('[data-spine-slide], [data-row][data-id]') || null;
+      over = row ? (row.getAttribute('data-spine-slide') || row.getAttribute('data-id')) : null;
     }
+    markDropRow(row);
     if (ui.dragging) {
       ui.dragging.x = e.clientX;
       ui.dragging.y = e.clientY;

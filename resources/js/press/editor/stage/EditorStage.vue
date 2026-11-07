@@ -21,10 +21,11 @@
 //                                      replacePicture, pickFiles, addFiles, announce}; also the exposed API of the component
 //   ui.zoomValue                      the effective zoom as a number (ui.zoom may be 'fit'); ui.panX/panY follow the store
 //   editor.setCursor(x, y)            the pointer in slide units (null when it leaves), for the presence heartbeat
-//   ui.dragging                       {kind: 'elements', ids, x, y, copy, overSlide} while elements are dragged. Rows of the Spine
-//                                     carry data-spine-slide="<slide id>"; releasing over one dispatches a cancelable DOM event
-//                                     `press:drop-elements` {detail: {ids, slideId, copy, from}} on the stage; when nobody calls
-//                                     preventDefault the stage moves (el.move) or copies (el.add) the elements itself
+//   ui.dragging                       {kind: 'elements', ids, x, y, copy, overSlide} while elements are dragged. A Spine row is any
+//                                     element with data-spine-slide="<slide id>" or the shell's own [data-row][data-id]; it gets the
+//                                     class es-drop-row (amber outline) while an element hovers it. Releasing over one dispatches a
+//                                     cancelable DOM event `press:drop-elements` {detail: {ids, slideId, copy, from}} on the stage;
+//                                     when nobody calls preventDefault the stage moves (el.move) or copies (el.add) itself
 //   ui.userGuides                     [{orient: 'v'|'h', pos}] guides pulled from the rulers (kept per deck in localStorage)
 //
 // Decisions: a drag writes `transform` on the dragged wrappers and the store only once, on release, with a unique undo key (one
@@ -485,7 +486,7 @@ function runCommand(cmd, args, e) {
 
 let nudgeTimer = 0;
 function onKeyDown(e) {
-    kbd.value = true;
+    if (e.key === 'Tab') kbd.value = true;
     if (isEditable(e.target)) {
         if (e.key === 'Escape' && e.target.closest?.('[data-es-ui]') && !e.target.closest('.ProseMirror')) {
             barRef.value?.close?.();

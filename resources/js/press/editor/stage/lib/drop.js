@@ -9,7 +9,8 @@
  *   replacePatch(el, srcRef)              patch that swaps the source and keeps frame, crop, mask and adjustments
  *   assetToElementProps(kind, asset)      {src, natural}
  *   uploadMessage(err)                    a sentence for a failed upload (HTTP 422 text, 413, network)
- *   toAssetEntry(asset)                   the `editor.assets` map entry for an uploaded asset payload
+ *   toAssetEntry(asset, origin?)          the `editor.assets` map entry for an uploaded asset payload (same origin URLs made relative)
+ *   relativeIfSameOrigin(url, origin)
  *   nameOf(file)                          a safe display name
  */
 import { hitOrder } from './hit.js';
@@ -86,10 +87,16 @@ export function assetToElementProps(kind, asset) {
   return { src: ref, natural: w && h ? { w, h } : null, kind };
 }
 
-export function toAssetEntry(asset) {
+/** A same origin absolute URL becomes a path, so the renderer's rule (https or relative) also holds on a plain http dev host. */
+export function relativeIfSameOrigin(url, origin) {
+  if (typeof url !== 'string' || !origin) return url;
+  return url.startsWith(`${origin}/`) ? url.slice(origin.length) : url;
+}
+
+export function toAssetEntry(asset, origin = null) {
   return {
-    url: asset.web || asset.url || asset.delivery_url,
-    thumb: asset.thumb || asset.url,
+    url: relativeIfSameOrigin(asset.web || asset.url || asset.delivery_url, origin),
+    thumb: relativeIfSameOrigin(asset.thumb || asset.url, origin),
     w: asset.width ?? null,
     h: asset.height ?? null,
     mime: asset.mime || asset.mime_type || '',

@@ -59,7 +59,7 @@ export function useUploads({
     }
 
     function register(asset) {
-        const entry = toAssetEntry(asset);
+        const entry = toAssetEntry(asset, typeof location !== 'undefined' ? location.origin : null);
         if (typeof editor.registerAsset === 'function') { editor.registerAsset(asset.id, entry); return; }
         const map = U(editor.assets);
         if (map && typeof map === 'object') map[asset.id] = entry;
