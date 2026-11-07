@@ -24,97 +24,62 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create account — Dot.Press" />
+    <Head title="Create an account" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <h1 class="font-display font-semibold text-2xl mb-1">Create your account</h1>
-        <p class="text-sm mb-6 text-gray-600">
-            Already have an account?
-            <Link :href="route('login')" class="text-indigo-600">Sign in</Link>
+        <h1 class="gs-title">Create an account</h1>
+        <p class="gs-lead">
+            Most accounts are created by signing in through InfoDot. Use this form only if you were told to.
         </p>
 
-        <form @submit.prevent="submit">
+        <form class="gs-form" @submit.prevent="submit">
             <div>
                 <InputLabel for="name" value="Name" />
-                <TextInput
-                    id="name"
-                    v-model="form.name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
-                <InputError class="mt-2" :message="form.errors.name" />
+                <TextInput id="name" v-model="form.name" type="text" name="name" required autofocus autocomplete="name" :aria-invalid="form.errors.name ? 'true' : undefined" />
+                <InputError :message="form.errors.name" />
             </div>
 
-            <div class="mt-4">
+            <div>
                 <InputLabel for="email" value="Email" />
-                <TextInput
-                    id="email"
-                    v-model="form.email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    required
-                    autocomplete="username"
-                />
-                <InputError class="mt-2" :message="form.errors.email" />
+                <TextInput id="email" v-model="form.email" type="email" name="email" required autocomplete="username" inputmode="email" :aria-invalid="form.errors.email ? 'true' : undefined" />
+                <InputError :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
+            <div>
                 <InputLabel for="password" value="Password" />
-                <TextInput
-                    id="password"
-                    v-model="form.password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    required
-                    autocomplete="new-password"
-                />
-                <InputError class="mt-2" :message="form.errors.password" />
+                <TextInput id="password" v-model="form.password" type="password" name="password" required autocomplete="new-password" :aria-invalid="form.errors.password ? 'true' : undefined" />
+                <InputError :message="form.errors.password" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
-                <TextInput
-                    id="password_confirmation"
-                    v-model="form.password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    required
-                    autocomplete="new-password"
-                />
-                <InputError class="mt-2" :message="form.errors.password_confirmation" />
+            <div>
+                <InputLabel for="password_confirmation" value="Confirm password" />
+                <TextInput id="password_confirmation" v-model="form.password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" :aria-invalid="form.errors.password_confirmation ? 'true' : undefined" />
+                <InputError :message="form.errors.password_confirmation" />
             </div>
 
-            <div v-if="$page.props.jetstream.hasTermsAndPrivacyPolicyFeature" class="mt-4">
-                <InputLabel for="terms">
-                    <div class="flex items-center">
-                        <Checkbox id="terms" v-model:checked="form.terms" name="terms" required />
-
-                        <div class="ms-2">
-                            I agree to the
-                            <a target="_blank" :href="route('terms.show')" class="underline text-sm text-gray-600">Terms of Service</a>
-                            and
-                            <a target="_blank" :href="route('policy.show')" class="underline text-sm text-gray-600">Privacy Policy</a>
-                        </div>
-                    </div>
-                </InputLabel>
-                <InputError class="mt-2" :message="form.errors.terms" />
+            <div v-if="$page.props.jetstream.hasTermsAndPrivacyPolicyFeature">
+                <label class="pr-check">
+                    <Checkbox id="terms" v-model:checked="form.terms" name="terms" required />
+                    <span>
+                        I agree to the
+                        <a target="_blank" :href="route('terms.show')" class="pr-textlink">Terms</a>
+                        and the
+                        <a target="_blank" :href="route('policy.show')" class="pr-textlink">Privacy policy</a>
+                    </span>
+                </label>
+                <InputError :message="form.errors.terms" />
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <Link :href="route('login')" class="underline text-sm text-gray-600">
-                    Already registered?
-                </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Register
+            <div class="gs-foot" style="margin-top: 0;">
+                <PrimaryButton :disabled="form.processing">
+                    Create account
                 </PrimaryButton>
+
+                <Link :href="route('login')" class="pr-textlink">Already have an account?</Link>
             </div>
         </form>
     </AuthenticationCard>

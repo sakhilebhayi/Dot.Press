@@ -78,17 +78,16 @@ const clearPhotoFileInput = () => {
 <template>
     <FormSection @submitted="updateProfileInformation">
         <template #title>
-            Profile Information
+            Profile information
         </template>
 
         <template #description>
-            Update your account's profile information and email address.
+            Your name and the email address Dot.Press uses for your account.
         </template>
 
         <template #form>
             <!-- Profile Photo -->
-            <div v-if="$page.props.jetstream.managesProfilePhotos" class="col-span-6 sm:col-span-4">
-                <!-- Profile Photo File Input -->
+            <div v-if="$page.props.jetstream.managesProfilePhotos">
                 <input
                     id="photo"
                     ref="photoInput"
@@ -99,12 +98,10 @@ const clearPhotoFileInput = () => {
 
                 <InputLabel for="photo" value="Photo" />
 
-                <!-- Current Profile Photo -->
                 <div v-show="! photoPreview" class="mt-2">
                     <img :src="user.profile_photo_url" :alt="user.name" class="rounded-full size-20 object-cover">
                 </div>
 
-                <!-- New Profile Photo Preview -->
                 <div v-show="photoPreview" class="mt-2">
                     <span
                         class="block rounded-full size-20 bg-cover bg-no-repeat bg-center"
@@ -113,7 +110,7 @@ const clearPhotoFileInput = () => {
                 </div>
 
                 <SecondaryButton class="mt-2 me-2" type="button" @click.prevent="selectNewPhoto">
-                    Select A New Photo
+                    Select a new photo
                 </SecondaryButton>
 
                 <SecondaryButton
@@ -122,67 +119,68 @@ const clearPhotoFileInput = () => {
                     class="mt-2"
                     @click.prevent="deletePhoto"
                 >
-                    Remove Photo
+                    Remove photo
                 </SecondaryButton>
 
-                <InputError :message="form.errors.photo" class="mt-2" />
+                <InputError :message="form.errors.photo" />
             </div>
 
-            <!-- Name -->
-            <div class="col-span-6 sm:col-span-4">
+            <div>
                 <InputLabel for="name" value="Name" />
                 <TextInput
                     id="name"
                     v-model="form.name"
                     type="text"
-                    class="mt-1 block w-full"
+                    name="name"
                     required
                     autocomplete="name"
+                    :aria-invalid="form.errors.name ? 'true' : undefined"
                 />
-                <InputError :message="form.errors.name" class="mt-2" />
+                <InputError :message="form.errors.name" />
             </div>
 
-            <!-- Email -->
-            <div class="col-span-6 sm:col-span-4">
+            <div>
                 <InputLabel for="email" value="Email" />
                 <TextInput
                     id="email"
                     v-model="form.email"
                     type="email"
-                    class="mt-1 block w-full"
+                    name="email"
                     required
                     autocomplete="username"
+                    inputmode="email"
+                    :aria-invalid="form.errors.email ? 'true' : undefined"
                 />
-                <InputError :message="form.errors.email" class="mt-2" />
+                <InputError :message="form.errors.email" />
 
                 <div v-if="$page.props.jetstream.hasEmailVerification && user.email_verified_at === null">
-                    <p class="text-sm mt-2">
-                        Your email address is unverified.
+                    <p class="pr-hint">
+                        This email address is not verified.
 
                         <Link
                             :href="route('verification.send')"
                             method="post"
                             as="button"
-                            class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            class="pr-textlink"
                             @click.prevent="sendEmailVerification"
                         >
-                            Click here to re-send the verification email.
+                            Send the verification email again
                         </Link>
                     </p>
 
-                    <div v-show="verificationLinkSent" class="mt-2 font-medium text-sm text-green-600">
-                        A new verification link has been sent to your email address.
-                    </div>
+                    <p v-show="verificationLinkSent" class="ac-msg" role="status">
+                        A new verification link is on its way.
+                    </p>
                 </div>
             </div>
         </template>
 
         <template #actions>
-            <ActionMessage :on="form.recentlySuccessful" class="me-3">
+            <ActionMessage :on="form.recentlySuccessful">
                 Saved.
             </ActionMessage>
 
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+            <PrimaryButton :disabled="form.processing">
                 Save
             </PrimaryButton>
         </template>

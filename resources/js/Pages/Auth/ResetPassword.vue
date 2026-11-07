@@ -27,59 +27,64 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Reset Password" />
+    <Head title="Choose a new password" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <h1 class="font-display font-semibold text-2xl mb-6">Choose a new password</h1>
+        <h1 class="gs-title">Choose a new password</h1>
+        <p class="gs-lead">Use a long one that you do not use anywhere else.</p>
 
-        <form @submit.prevent="submit">
+        <form class="gs-form" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" value="Email" />
                 <TextInput
                     id="email"
                     v-model="form.email"
                     type="email"
-                    class="mt-1 block w-full"
+                    name="email"
                     required
-                    autofocus
                     autocomplete="username"
+                    inputmode="email"
+                    :aria-invalid="form.errors.email ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <div>
+                <InputLabel for="password" value="New password" />
                 <TextInput
                     id="password"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="password"
                     required
+                    autofocus
                     autocomplete="new-password"
+                    :aria-invalid="form.errors.password ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError :message="form.errors.password" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+            <div>
+                <InputLabel for="password_confirmation" value="Confirm new password" />
                 <TextInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="password_confirmation"
                     required
                     autocomplete="new-password"
+                    :aria-invalid="form.errors.password_confirmation ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                <InputError :message="form.errors.password_confirmation" />
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Reset Password
+            <div class="gs-foot" style="margin-top: 0;">
+                <PrimaryButton :disabled="form.processing">
+                    Save new password
                 </PrimaryButton>
             </div>
         </form>
