@@ -205,6 +205,8 @@ class VersionService
             $locked->rev = (int) $locked->rev + 1;
             $locked->save();
 
+            $this->settleStatusAfterRestore($locked, $version);
+
             $change = DeckChange::create([
                 'deck_id' => $locked->id,
                 'user_id' => $user?->id,
@@ -218,6 +220,22 @@ class VersionService
 
             return ['seq' => $change->id, 'deck_rev' => $locked->rev, 'safety_version' => $safety->id];
         });
+    }
+
+    /**
+     * An approval belongs to exact content (DeckHash). After a restore the deck is approved again when, and only when,
+     * the version restored is an approved one and the deck now hashes to exactly what was approved. Any other restore
+     * leaves an approved deck to drop back to draft like every other change.
+     */
+    private function settleStatusAfterRestore(Deck $deck, DeckVersion $version): void
+    {
+        Reviews::refreshStatus($deck);
+
+        if ($version->kind !== 'approved' || $version->hash !== DeckHash::compute($deck)) {
+            return;
+        }
+
+        $deck->forceFill(['status' => 'approved', 'approved_hash' => $version->hash, 'approved_at' => $version->created_at])->save();
     }
 
     private function prune(Deck $deck): void

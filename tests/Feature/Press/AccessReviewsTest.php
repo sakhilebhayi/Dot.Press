@@ -3,6 +3,7 @@
 namespace Tests\Feature\Press;
 
 use App\Models\DeckReview;
+use App\Models\DeckVersion;
 use App\Models\User;
 use App\Notifications\ReviewDecided;
 use App\Notifications\ReviewRequested;
@@ -263,5 +264,58 @@ class AccessReviewsTest extends AccessTestCase
         $this->decide($review, $this->reviewerA, 'changes_requested', 'Fix it');
         $this->assertSame('review.decided', $this->owner->notifications()->first()->data['kind']);
         $this->assertSame('changes_requested', $this->owner->notifications()->first()->data['decision']);
+    }
+
+    // ---- restoring versions and the Approved status ------------------------------------------------------------
+
+    private function approveDeck(): DeckVersion
+    {
+        $this->request([$this->reviewerA->id]);
+        $this->decide(DeckReview::first(), $this->reviewerA)->assertOk()->assertJsonPath('status', 'approved');
+
+        return DeckVersion::where('deck_id', $this->deck->id)->where('kind', 'approved')->latest('id')->firstOrFail();
+    }
+
+    public function test_restoring_the_approved_version_makes_the_deck_approved_again(): void
+    {
+        $approved = $this->approveDeck();
+
+        $this->edit();
+        Reviews::refreshStatus($this->deck->refresh());
+        $this->assertSame('draft', $this->deck->refresh()->status);
+
+        $this->actingAs($this->owner)->postJson("/api/decks/{$this->deck->id}/versions/{$approved->id}/restore")->assertOk();
+
+        $deck = $this->deck->refresh();
+        $this->assertSame('approved', $deck->status);
+        $this->assertSame($approved->hash, $deck->approved_hash);
+        $this->assertSame($approved->hash, DeckHash::compute($deck));
+        $this->actingAs($this->owner)->getJson($this->url())->assertJsonPath('status', 'approved')->assertJsonPath('approved_current', true);
+    }
+
+    public function test_restoring_a_version_that_was_not_approved_does_not_approve_and_drops_an_approved_deck(): void
+    {
+        $manual = $this->actingAs($this->owner)->postJson("/api/decks/{$this->deck->id}/versions", ['label' => 'Early draft'])->assertCreated()->json('id');
+        $this->edit();
+        $this->approveDeck();
+        $this->assertSame('approved', $this->deck->refresh()->status);
+
+        $this->actingAs($this->owner)->postJson("/api/decks/{$this->deck->id}/versions/{$manual}/restore")->assertOk();
+
+        $this->assertSame('draft', $this->deck->refresh()->status, 'an approved deck whose content moved on goes back to draft');
+        $this->actingAs($this->owner)->getJson($this->url())->assertJsonPath('status', 'changed_since_approval');
+    }
+
+    public function test_an_approved_snapshot_whose_content_no_longer_matches_its_hash_is_not_trusted(): void
+    {
+        $approved = $this->approveDeck();
+        $this->edit();
+        Reviews::refreshStatus($this->deck->refresh());
+        // The stored hash and the stored content disagree (for example an older hash algorithm): never claim Approved.
+        $approved->forceFill(['hash' => str_repeat('0', 64)])->save();
+
+        $this->actingAs($this->owner)->postJson("/api/decks/{$this->deck->id}/versions/{$approved->id}/restore")->assertOk();
+
+        $this->assertSame('draft', $this->deck->refresh()->status);
     }
 }

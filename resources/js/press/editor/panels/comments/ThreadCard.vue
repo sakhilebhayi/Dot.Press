@@ -71,7 +71,7 @@ function toggleResolved() { return run(props.thread.id, () => props.actions.reso
 
 const initials = (n) => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
 const when = (c) => timeAgo(c.created_at, props.now);
-const edited = (c) => c.updated_at && c.created_at && Date.parse(c.updated_at) - Date.parse(c.created_at) > 2000;
+const edited = (c) => !!c.edited_at;
 const headLabel = computed(() => `${props.thread.author.name}: ${plainText(props.thread.body).slice(0, 80)}`);
 </script>
 

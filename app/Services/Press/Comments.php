@@ -75,7 +75,7 @@ class Comments
         [$cleanBody, $mentionIds] = self::parseMentions($deck, $body);
         $fresh = array_values(array_diff($mentionIds, $comment->mentions ?? []));
 
-        $comment->forceFill(['body' => $cleanBody, 'mentions' => $mentionIds])->save();
+        $comment->forceFill(['body' => $cleanBody, 'mentions' => $mentionIds] + ($cleanBody !== $comment->body ? ['edited_at' => now()] : []))->save();
 
         self::notifyMentions($deck, $comment, $editor, $fresh);
 
@@ -160,6 +160,7 @@ class Comments
             'resolved_by' => $c->resolved_by ? ['id' => $c->resolved_by, 'name' => $users->get($c->resolved_by)?->name] : null,
             'created_at' => optional($c->created_at)->toIso8601String(),
             'updated_at' => optional($c->updated_at)->toIso8601String(),
+            'edited_at' => optional($c->edited_at)->toIso8601String(),
             'can_edit' => $c->user_id === $viewer->id,
             'can_delete' => $c->user_id === $viewer->id || $canManage,
         ];

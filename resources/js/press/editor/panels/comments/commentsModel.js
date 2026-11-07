@@ -247,6 +247,7 @@ export function tempComment({ tmp, body, me, target = {}, parent = null, now = D
     resolved_by: null,
     created_at: iso,
     updated_at: iso,
+    edited_at: null,
     can_edit: false,
     can_delete: false,
     pending: true,

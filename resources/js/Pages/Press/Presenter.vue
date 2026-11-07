@@ -317,6 +317,15 @@ function onKey(e) {
 function onKeyUp(e) {
     if (e.key && e.key.toLowerCase() === 'l') setLaser(false);
 }
+// When the focused control disappears (a slide change inside the console), focus falls to <body>; the document hears the keys then.
+function onDocKey(e) {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    onKey(e);
+}
+function onDocKeyUp(e) {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    onKeyUp(e);
+}
 function clearJump() {
     numbers.clear();
     jumpText.value = '';
@@ -361,6 +370,8 @@ onMounted(() => {
     onTick();
     root.value?.focus();
     window.addEventListener('beforeunload', onUnload);
+    document.addEventListener('keydown', onDocKey);
+    document.addEventListener('keyup', onDocKeyUp);
 });
 function onUnload() {
     bc?.send({ t: 'bye', from: 'presenter' });
@@ -376,6 +387,8 @@ onBeforeUnmount(() => {
     clearInterval(heartbeat);
     clearInterval(watchWin);
     window.removeEventListener('beforeunload', onUnload);
+    document.removeEventListener('keydown', onDocKey);
+    document.removeEventListener('keyup', onDocKeyUp);
     bc?.close();
 });
 </script>

@@ -170,6 +170,16 @@ function onKey(e) {
 function onKeyUp(e) {
     if (e.key && e.key.toLowerCase() === 'l') setLaser(false);
 }
+// A focused control inside the slide (a video's native controls, a link) disappears with the slide, and focus falls to
+// <body>, where the root's own key handler never hears the arrows again. While nothing has focus the document hears them.
+function onDocKey(e) {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    onKey(e);
+}
+function onDocKeyUp(e) {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    onKeyUp(e);
+}
 function clearJump() {
     numbers.clear();
     jumpText.value = '';
@@ -386,6 +396,8 @@ onMounted(() => {
     root.value?.focus({ preventScroll: true });
     wake();
     document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('keydown', onDocKey);
+    document.addEventListener('keyup', onDocKeyUp);
     window.addEventListener('pointermove', trackPointer, { passive: true });
     if (window.matchMedia?.('(orientation: portrait) and (max-width: 640px)').matches && !pref('press.rotate.seen', null)) {
         flash('Rotate your phone for a larger slide');
@@ -402,6 +414,8 @@ onBeforeUnmount(() => {
     clearTimeout(hideTimer);
     clearTimeout(holdTimer);
     document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('keydown', onDocKey);
+    document.removeEventListener('keyup', onDocKeyUp);
     window.removeEventListener('pointermove', trackPointer);
 });
 

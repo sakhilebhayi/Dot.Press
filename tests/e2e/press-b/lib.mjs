@@ -153,3 +153,23 @@ export function summary(name) {
     console.log(`\n${name}: ${results.length - bad.length} passed, ${bad.length} failed`);
     if (bad.length) { console.log(bad.map((b) => ' - ' + b.msg).join('\n')); process.exitCode = 1; }
 }
+
+/** Open an inspector panel from the More actions menu (works with nothing selected). */
+export async function openFromMore(page, label) {
+    await page.getByRole('button', { name: 'More actions' }).click();
+    await page.getByRole('menuitem', { name: label, exact: true }).click();
+}
+
+/** A person in a different team, created in the database (accounts are normally made by the InfoDot sign in). */
+export function makeUser(name, email) {
+    return phpJson(`$u = App\\Models\\User::where('email', '${email}')->first() ?: App\\Models\\User::factory()->withPersonalTeam()->create(['name' => '${name}', 'email' => '${email}', 'password' => Illuminate\\Support\\Facades\\Hash::make('password')]); echo json_encode(['id' => $u->id]);`).id;
+}
+
+/** Click an element drawn on the editor stage by its element id (the stage draws over the real nodes, so use the pointer). */
+export async function clickEl(page, eid, { dx = 10, dy = 10, double = false } = {}) {
+    const bb = await page.locator(`.es-viewport [data-eid="${eid}"]`).first().boundingBox();
+    if (!bb) throw new Error('element not on the stage: ' + eid);
+    const x = bb.x + Math.min(dx, bb.width / 2), y = bb.y + Math.min(dy, bb.height / 2);
+    if (double) await page.mouse.dblclick(x, y); else await page.mouse.click(x, y);
+    return bb;
+}
