@@ -72,6 +72,21 @@ class DocumentSanitizerTest extends TestCase
         $this->assertSame("One\n\nTwo", $this->san->plainText($doc));
     }
 
+    public function test_theme_ids_accept_the_ids_the_theme_api_hands_out(): void
+    {
+        foreach (['slate', 'night-briefing', 'custom:12', 'brand-kit:3'] as $id) {
+            $this->assertSame($id, $this->san->theme(['id' => $id, 'name' => 'X'])['id']);
+        }
+        foreach (['custom:', ':1', 'custom:a', 'a:1:2', 'x y', 'custom:12/../'] as $bad) {
+            try {
+                $this->san->theme(['id' => $bad]);
+                $this->fail('accepted '.$bad);
+            } catch (InvalidDocument) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
     public function test_themes_fall_back_to_the_default_for_missing_tokens(): void
     {
         $theme = $this->san->theme(['c' => ['accent' => '#010203', 'chart' => ['#111111']], 't' => ['hw' => 5000], 's' => ['radius' => -4]]);

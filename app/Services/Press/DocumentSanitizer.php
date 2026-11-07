@@ -500,8 +500,11 @@ class DocumentSanitizer
         $out = $complete ? $base : ['id' => null, 'name' => null, 'c' => [], 't' => [], 's' => [], 'bg' => null];
 
         if (isset($v['id'])) {
-            $id = $this->id($v['id'], 'theme id');
-            $out['id'] = $id;
+            // Library themes are 'slate'; a team's own are 'custom:<n>' and brand kits 'brand-kit:<n>' (the theme API ids).
+            if (! is_string($v['id']) || preg_match('/^[A-Za-z0-9_-]+(?::[0-9]+)?$/', $v['id']) !== 1 || strlen($v['id']) > 40) {
+                throw new InvalidDocument('invalid theme id');
+            }
+            $out['id'] = $v['id'];
         }
         if (isset($v['name'])) {
             $out['name'] = $this->str($v['name'], 80, 'theme name');
