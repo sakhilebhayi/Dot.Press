@@ -3,15 +3,14 @@
 use App\Http\Controllers\Api\PresentSessionController;
 use App\Http\Controllers\Auth\EcosystemAuthController;
 use App\Http\Controllers\CspReportController;
+use App\Http\Controllers\DeckPageController;
 use App\Http\Controllers\DependencyPatchController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GuardianHealthController;
 use App\Http\Controllers\SchedulerProbeController;
 use App\Http\Controllers\SharedDeckController;
-use App\Http\Controllers\SlideEditorController;
 use App\Http\Middleware\AuthenticateGuardian;
 use App\Http\Middleware\PrivateShareResponse;
-use App\Models\Project;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -71,25 +70,13 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        $projects = Project::where('user_id', auth()->id())
-            ->with(['decks' => fn ($query) => $query->withCount('slides')->orderByDesc('updated_at')])
-            ->latest('id')
-            ->get();
+    Route::get('/dashboard', [DeckPageController::class, 'library'])->name('dashboard');
+    Route::get('/decks/{deck}', [DeckPageController::class, 'editor'])->whereNumber('deck')->name('press.editor');
 
-        // Courtesy for the UI only: the API enforces this on every write.
-        $projects->each(fn (Project $project) => $project->setAttribute('can_edit', auth()->user()->can('update', $project)));
-
-        return Inertia::render('Dashboard', [
-            'projects' => $projects,
-        ]);
-    })->name('dashboard');
-
-    Route::get('/editor', [SlideEditorController::class, 'start'])->name('editor.start');
-    Route::get('/editor/decks/{deck}/slides/{slide}', [SlideEditorController::class, 'show'])
-        ->name('editor.slides.show');
-    Route::get('/present/decks/{deck}/slides/{slide}', [SlideEditorController::class, 'present'])
-        ->name('presentation.slides.show');
+    // Links from before R-40 (one page per slide) keep working.
+    Route::get('/editor', [DeckPageController::class, 'legacyEditor'])->name('editor.start');
+    Route::get('/editor/decks/{deck}/slides/{slide}', [DeckPageController::class, 'legacyEditor'])->name('editor.slides.show');
+    Route::get('/present/decks/{deck}/slides/{slide}', [DeckPageController::class, 'legacyPresent'])->name('presentation.slides.show');
     Route::get('/export/decks/{deck}/pdf', [ExportController::class, 'pdf'])
         ->middleware('throttle:export')
         ->name('export.decks.pdf');
