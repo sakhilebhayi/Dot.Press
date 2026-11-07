@@ -152,12 +152,15 @@ final class FontRegistry
     {
         $ready = [];
         $metrics = self::metrics();
+        $lock = null;
         foreach ($families as $family) {
             $name = self::canonical((string) $family);
             if ($name === null) {
                 continue;
             }
             if (! isset(self::$installed[$name])) {
+                // Two exports installing fonts at once must not write the font list over each other.
+                $lock ??= self::lock();
                 foreach (self::manifest()[$name] as $style => $file) {
                     $path = self::ttfDir().'/'.$file;
                     if (! is_file($path)) {
@@ -173,8 +176,24 @@ final class FontRegistry
             }
             $ready[] = $name;
         }
+        if (is_resource($lock)) {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
 
         return $ready;
+    }
+
+    /** @return resource|null */
+    private static function lock()
+    {
+        $dir = (string) config('press_export.font_dir');
+        $h = @fopen($dir.'/.install.lock', 'c');
+        if ($h !== false) {
+            @flock($h, LOCK_EX);
+        }
+
+        return $h !== false ? $h : null;
     }
 
     /** Test hook: forget what was installed in this process (for example after pointing font_dir elsewhere). */

@@ -112,6 +112,24 @@ class ExportPreflightTest extends TestCase
         }
     }
 
+    public function test_fonts_the_pdf_does_not_bundle_are_called_out_for_pdf_only(): void
+    {
+        $doc = PressSampleDeck::doc();
+        $doc['slides'] = [['id' => 'f', 'title' => 'f', 'els' => [
+            ['id' => 'a', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'font' => 'Comic Sans MS'],
+            ['id' => 'b', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'font' => 'Inter', 'doc' => ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'x', 'marks' => [['type' => 'textStyle', 'attrs' => ['fontFamily' => 'Papyrus']]]]]]]]],
+            ['id' => 'c', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'font' => 'inter'],
+        ]]];
+
+        $pdf = $this->levels(ExportPreflight::analyze($doc, 'pdf'));
+        $pptx = $this->levels(ExportPreflight::analyze($doc, 'pptx'));
+
+        $this->assertSame('approximated', $pdf['f/a']);
+        $this->assertSame('approximated', $pdf['f/b']);
+        $this->assertSame('native', $pdf['f/c']);
+        $this->assertSame('native', $pptx['f/a'], 'the PPTX only names the font');
+    }
+
     public function test_every_element_has_a_level_and_a_reason_unless_native(): void
     {
         foreach (['pdf', 'pptx'] as $format) {

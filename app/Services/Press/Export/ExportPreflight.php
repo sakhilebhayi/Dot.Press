@@ -2,6 +2,7 @@
 
 namespace App\Services\Press\Export;
 
+use App\Services\Press\Export\Pdf\FontRegistry;
 use App\Services\Press\Export\Pptx\PptxChart;
 use App\Services\Press\Export\Support\ChartData;
 use App\Services\Press\Export\Support\Els;
@@ -140,6 +141,29 @@ final class ExportPreflight
         return ['id' => $id, 'type' => $type, 'level' => $level, 'reason' => $reason];
     }
 
+    /** The first font family of an element that the PDF export does not bundle, or null. */
+    private static function unknownFont(array $el, Theme $theme): ?string
+    {
+        $families = [];
+        if (isset($el['font']) && is_string($el['font'])) {
+            $families[] = $theme->family($el['font']);
+        }
+        foreach (TextDoc::paragraphs(is_array($el['doc'] ?? null) ? $el['doc'] : null) as $p) {
+            foreach ($p['runs'] as $r) {
+                if (! empty($r['font'])) {
+                    $families[] = $theme->family($r['font']);
+                }
+            }
+        }
+        foreach ($families as $f) {
+            if (FontRegistry::canonical($f) === null) {
+                return $f;
+            }
+        }
+
+        return null;
+    }
+
     /** True when the deck holds video (such decks skip the in-request fast path). */
     public static function hasVideo(array $doc): bool
     {
@@ -164,6 +188,12 @@ final class ExportPreflight
         $rotated = abs(fmod($b['rot'], 360)) > 0.001;
         $hasBox = isset($el['fill']) || isset($el['stroke']);
 
+        if ($pdf && in_array($type, ['text', 'shape', 'table'], true)) {
+            $unknown = self::unknownFont($el, $theme);
+            if ($unknown !== null) {
+                return ['approximated', 'The font "'.$unknown.'" is not one of the fonts bundled for PDF export, so Public Sans is used instead.'];
+            }
+        }
         switch ($type) {
             case 'text':
                 if (($el['fx'] ?? 'none') === 'outline' && $pdf) {

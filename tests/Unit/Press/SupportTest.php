@@ -198,6 +198,42 @@ class SupportTest extends TestCase
         $this->assertSame([], (new IconLibrary('/no/such/file.js'))->names());
     }
 
+    public function test_the_icon_library_reads_the_editors_i_rows_and_evaluates_circle_and_box(): void
+    {
+        $lib = new IconLibrary(__DIR__.'/../../Fixtures/Press/icons_sample.js');
+
+        $this->assertSame(['check', 'target', 'card', 'grid', 'arrow-right'], $lib->names());
+        $this->assertSame(['M4 12.5l5 5L20 6.5'], $lib->paths('check'));
+        $this->assertSame([
+            'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z',
+            'M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0Z',
+            'M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0Z',
+        ], $lib->paths('target'));
+        $this->assertSame('M4.5 5h15a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2Z', $lib->paths('card')[0]);
+        $this->assertSame('M4 4h7v7h-7Z', $lib->paths('grid')[0]);
+        $this->assertSame('M14 4h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1Z', $lib->paths('grid')[1]);
+        $svg = (string) $lib->svg('arrow-right', '#123456', 1.75, 48, 48);
+        $this->assertSame(2, substr_count($svg, '<path'));
+        $this->assertStringContainsString('viewBox="0 0 24 24"', $svg);
+    }
+
+    public function test_the_real_icon_file_parses_completely_when_it_is_there(): void
+    {
+        $file = resource_path('js/press/icons.js');
+        if (! is_file($file)) {
+            $this->markTestSkipped('resources/js/press/icons.js is not in this checkout.');
+        }
+        $lib = new IconLibrary($file);
+        preg_match_all("/^\s*I\('([a-z0-9-]+)'/m", (string) file_get_contents($file), $m);
+
+        $this->assertSame($m[1], $lib->names(), 'every I(...) row becomes an icon with at least one path');
+        foreach ($lib->names() as $name) {
+            foreach ($lib->paths($name) as $d) {
+                $this->assertNotSame([], SvgPath::parse($d), $name.' has a path nobody can read');
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ images
 
     public function test_image_plans_follow_cover_contain_and_fill(): void

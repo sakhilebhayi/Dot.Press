@@ -3,10 +3,12 @@
 namespace App\Services\Press\Export\Support;
 
 /**
- * Reads the editor's icon set from resources/js/press/icons.js without running any JavaScript. It looks for
- * `name: 'path data'` or `name: '<path d="..."/>...'` entries (single, double or backtick quotes) and keeps the path
- * data per icon on a 24 x 24 grid. An icon the file does not name is unknown, and the exporters draw a labelled
- * placeholder square for it and say so.
+ * Reads the editor's icon set from resources/js/press/icons.js without running any JavaScript.
+ *
+ * The file lists icons as `I('id', 'Label', ['tags'], 'path', 'path', circle(cx, cy, r), box(x, y, w, h, r))` on a
+ * 24 x 24 grid; the two helpers are evaluated here exactly as the JavaScript does. As a fallback it also reads plain
+ * `name: 'path data'` or `name: '<path d="..."/>'` entries. An icon the file does not name is unknown, and the exporters
+ * draw a placeholder square for it and say so.
  */
 final class IconLibrary
 {
@@ -61,6 +63,10 @@ final class IconLibrary
             return $this->icons;
         }
         $src = (string) file_get_contents($this->file);
+        $this->readCalls($src);
+        if ($this->icons !== []) {
+            return $this->icons;
+        }
         if (preg_match_all('/[\'"]?([A-Za-z][A-Za-z0-9_-]{0,40})[\'"]?\s*:\s*([\'"`])((?:\\\\.|(?!\2).)*)\2/s', $src, $m, PREG_SET_ORDER)) {
             foreach ($m as $hit) {
                 $paths = self::extractPaths($hit[3]);
@@ -71,6 +77,122 @@ final class IconLibrary
         }
 
         return $this->icons;
+    }
+
+    /** The `I('id', label, tags, ...paths)` form. */
+    private function readCalls(string $src): void
+    {
+        if (! preg_match_all('/^[ \t]*I\(\s*([\'"])([A-Za-z][A-Za-z0-9_-]{0,40})\1\s*,/m', $src, $m, PREG_OFFSET_CAPTURE)) {
+            return;
+        }
+        foreach ($m[0] as $i => [$text, $offset]) {
+            $open = strpos($src, '(', $offset);
+            if ($open === false) {
+                continue;
+            }
+            $args = self::splitArgs($src, $open);
+            if ($args === null || count($args) < 4) {
+                continue;
+            }
+            $paths = [];
+            foreach (array_slice($args, 3) as $arg) {
+                $d = self::evaluate(trim($arg));
+                if ($d !== null && $d !== '') {
+                    $paths[] = $d;
+                }
+            }
+            if ($paths !== []) {
+                $this->icons[$m[2][$i][0]] = $paths;
+            }
+        }
+    }
+
+    /** The top level arguments of the call whose "(" is at $open. @return list<string>|null */
+    private static function splitArgs(string $src, int $open): ?array
+    {
+        $depth = 0;
+        $args = [];
+        $cur = '';
+        $quote = null;
+        $len = strlen($src);
+        for ($i = $open; $i < $len && $i < $open + 4000; $i++) {
+            $ch = $src[$i];
+            if ($quote !== null) {
+                $cur .= $ch;
+                if ($ch === '\\' && $i + 1 < $len) {
+                    $cur .= $src[++$i];
+                } elseif ($ch === $quote) {
+                    $quote = null;
+                }
+
+                continue;
+            }
+            if ($ch === "'" || $ch === '"' || $ch === '`') {
+                $quote = $ch;
+                $cur .= $ch;
+
+                continue;
+            }
+            if ($ch === '(' || $ch === '[') {
+                if (++$depth > 1) {
+                    $cur .= $ch;
+                }
+
+                continue;
+            }
+            if ($ch === ')' || $ch === ']') {
+                if (--$depth === 0) {
+                    $args[] = $cur;
+
+                    return $args;
+                }
+                $cur .= $ch;
+
+                continue;
+            }
+            if ($ch === ',' && $depth === 1) {
+                $args[] = $cur;
+                $cur = '';
+
+                continue;
+            }
+            $cur .= $ch;
+        }
+
+        return null;
+    }
+
+    /** A string literal, or circle(...) and box(...) evaluated like the JavaScript helpers. */
+    private static function evaluate(string $arg): ?string
+    {
+        if ($arg === '') {
+            return null;
+        }
+        if (preg_match('/^([\'"`])(.*)\1$/s', $arg, $mm)) {
+            return $mm[2];
+        }
+        if (! preg_match('/^(circle|box)\(\s*([^)]*)\)$/', $arg, $mm)) {
+            return null;
+        }
+        $n = array_map(fn ($x) => (float) trim($x), explode(',', $mm[2]));
+        $f = static fn (float $v): string => rtrim(rtrim(sprintf('%.10F', round($v, 10)), '0'), '.') ?: '0';
+        $r2 = static fn (float $v): float => round($v, 2);
+        if ($mm[1] === 'circle' && count($n) === 3) {
+            [$cx, $cy, $r] = $n;
+
+            return 'M'.$f($r2($cx - $r)).' '.$f($cy).'a'.$f($r).' '.$f($r).' 0 1 0 '.$f($r2(2 * $r)).' 0a'.$f($r).' '.$f($r).' 0 1 0 '.$f($r2(-2 * $r)).' 0Z';
+        }
+        if ($mm[1] === 'box' && count($n) >= 4) {
+            [$x, $y, $w, $h] = $n;
+            $r = $n[4] ?? 0.0;
+            if ($r == 0.0) {
+                return 'M'.$f($x).' '.$f($y).'h'.$f($w).'v'.$f($h).'h'.$f(-$w).'Z';
+            }
+
+            return 'M'.$f($x + $r).' '.$f($y).'h'.$f($w - 2 * $r).'a'.$f($r).' '.$f($r).' 0 0 1 '.$f($r).' '.$f($r).'v'.$f($h - 2 * $r).'a'.$f($r).' '.$f($r).' 0 0 1 '.$f(-$r).' '.$f($r).'h'.$f(-($w - 2 * $r)).'a'.$f($r).' '.$f($r).' 0 0 1 '.$f(-$r).' '.$f(-$r).'v'.$f(-($h - 2 * $r)).'a'.$f($r).' '.$f($r).' 0 0 1 '.$f($r).' '.$f(-$r).'Z';
+        }
+
+        return null;
     }
 
     /** @return list<string> */
