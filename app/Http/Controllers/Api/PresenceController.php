@@ -28,10 +28,10 @@ class PresenceController extends Controller
         $this->authorize('view', $deck);
 
         $v = $request->validate([
-            'client' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_.:-]+$/'],
+            'client' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_.:-]+$/D'],
             'slide' => ['nullable', 'integer', 'min:1'],
             'selection' => ['nullable', 'array', 'max:50'],
-            'selection.*' => ['string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/'],
+            'selection.*' => ['string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/D'],
             'cursor' => ['nullable', 'array'],
             'cursor.x' => ['required_with:cursor', 'numeric', 'between:-100000,100000'],
             'cursor.y' => ['required_with:cursor', 'numeric', 'between:-100000,100000'],

@@ -115,13 +115,20 @@ class Sharing
         return Str::random(self::TOKEN_LENGTH);
     }
 
-    /** Find the person to share with: an existing account, by id or e-mail address. */
-    public static function findPerson(?int $userId, ?string $email): User
+    /**
+     * Find the person to share with: an existing account, by e-mail address, or by id for someone the actor already
+     * works with (a member of one of their teams). An id outside those teams answers like an id that does not exist,
+     * so the number cannot be walked to read every account's name and address.
+     */
+    public static function findPerson(?int $userId, ?string $email, ?User $actor = null): User
     {
         $user = null;
 
         if ($userId) {
             $user = User::find($userId);
+            if ($user && ($actor === null || ! self::worksWith($actor, $user))) {
+                $user = null;
+            }
         } elseif ($email) {
             $user = User::whereRaw('lower(email) = ?', [Str::lower(trim($email))])->first();
         }
@@ -133,6 +140,16 @@ class Sharing
         }
 
         return $user;
+    }
+
+    private static function worksWith(User $actor, User $person): bool
+    {
+        if ($actor->id === $person->id) {
+            return true;
+        }
+        $mine = $actor->allTeams()->pluck('id');
+
+        return $mine->contains(fn ($id) => $person->belongsToTeam($actor->allTeams()->firstWhere('id', $id)));
     }
 
     public static function addPerson(Deck $deck, User $actor, User $person, string $role): DeckShare

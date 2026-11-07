@@ -226,7 +226,7 @@ class AiController extends Controller
 
         $validated = $request->validate([
             'text' => ['nullable', 'string', 'max:8000', 'required_without:element'],
-            'element' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/', 'required_without:text'],
+            'element' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/D', 'required_without:text'],
             'mode' => ['required', 'string', 'in:shorten,expand,rephrase,tone'],
             'tone' => ['nullable', 'string', 'max:80'],
         ]);

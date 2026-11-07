@@ -176,14 +176,19 @@ class SharedDeckController extends Controller
     {
         $doc = DeckAccessScope::without(fn () => DeckDocument::toArray($deck));
 
-        // A guest never receives speaker notes, and never the content of a hidden slide: those are left out of the
-        // document altogether, so they cannot be read from the page data either.
-        $slides = array_values(array_map(function (array $slide): array {
+        // No speaker notes, and a hidden slide is sent as an empty place holder: the owner hid it, so a guest must not be
+        // able to read its content in the page data even though the player skips it.
+        $slides = array_map(function (array $slide): array {
             $slide['notes'] = null;
+            if (! empty($slide['hidden'])) {
+                $slide['title'] = null;
+                $slide['bg'] = null;
+                $slide['els'] = [];
+            }
 
             return $slide;
-        }, array_filter($doc['slides'], fn (array $slide): bool => ! $slide['hidden'])));
-        $doc['deck']['slide_order'] = array_column($slides, 'id');
+        }, $doc['slides']);
+        $slides = array_values($slides);
 
         return [
             'deck' => collect($doc['deck'])->only(['id', 'title', 'w', 'h', 'theme', 'sections', 'slide_order', 'updated_at'])->all(),

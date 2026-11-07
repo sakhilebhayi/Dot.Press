@@ -6,6 +6,7 @@ use App\Models\Deck;
 use App\Models\DeckReview;
 use App\Models\User;
 use App\Services\Press\DeckLinks;
+use App\Services\Press\MailText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -28,12 +29,12 @@ class ReviewRequested extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
-            ->subject("{$this->requester->name} asked you to review \"{$this->deck->title}\"")
-            ->greeting("Hello {$notifiable->name}")
-            ->line("{$this->requester->name} asked you to review \"{$this->deck->title}\".");
+            ->subject(MailText::subject("{$this->requester->name} asked you to review \"{$this->deck->title}\""))
+            ->greeting('Hello '.MailText::plain($notifiable->name, 80))
+            ->line(MailText::plain($this->requester->name, 80).' asked you to review "'.MailText::plain($this->deck->title, 120).'".');
 
         if ($this->review->note) {
-            $mail->line('"'.$this->review->note.'"');
+            $mail->line('"'.MailText::plain($this->review->note, 2000).'"');
         }
 
         return $mail->action('Open the deck', DeckLinks::editor($this->deck));

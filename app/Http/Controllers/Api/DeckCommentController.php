@@ -32,7 +32,7 @@ class DeckCommentController extends Controller
         $data = $request->validate([
             'body' => ['required', 'string', 'max:'.Comments::BODY_MAX],
             'slide_id' => ['nullable', 'integer'],
-            'element_id' => ['nullable', 'string', 'regex:/^[A-Za-z0-9_-]{1,40}$/'],
+            'element_id' => ['nullable', 'string', 'regex:/^[A-Za-z0-9_-]{1,40}$/D'],
             'anchor' => ['nullable', 'array'],
             'anchor.x' => ['required_with:anchor', 'numeric'],
             'anchor.y' => ['required_with:anchor', 'numeric'],

@@ -40,10 +40,10 @@ return Application::configure(basePath: dirname(__DIR__))
             fn ($request) => $request->is('api/decks/*/ops'),
         ]);
 
-        // Spaces are text too: "Typography " followed by an italic "and " must keep both, or the words run together. Laravel's
-        // TrimStrings would strip every string in the operations body, including the text runs of a document.
+        // The same goes for spaces: a rich text run that ends in a space ("This is ", then a bold word) is a string whose
+        // edges matter. The document sanitiser trims the fields it means to trim (titles, section names) itself.
         $middleware->trimStrings(except: [
-            fn ($request) => $request->is('api/decks/*/ops'),
+            fn ($request) => $request->is('api/decks/*/ops') || $request->is('api/layouts', 'api/layouts/*'),
         ]);
 
         $middleware->alias([

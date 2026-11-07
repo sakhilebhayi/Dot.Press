@@ -42,7 +42,6 @@ class AccessPublicLinkTest extends AccessTestCase
                 ->where('title', 'Quarterly deck')
                 ->where('needsPassword', false)
                 ->where('error', null)
-                ->where('allowDownload', false)
                 ->where('token', $this->token)
                 ->where('doc.deck.title', 'Quarterly deck')
                 ->has('doc.slides', 1)
@@ -185,13 +184,6 @@ class AccessPublicLinkTest extends AccessTestCase
         $this->postJson("/s/{$this->token}/unlock", [])->assertUnprocessable();
     }
 
-    public function test_download_flag_is_passed_to_the_page(): void
-    {
-        $this->deck->forceFill(['share_allow_download' => true])->save();
-
-        $this->get("/s/{$this->token}")->assertInertia(fn (Assert $page) => $page->where('allowDownload', true));
-    }
-
     public function test_a_signed_in_outsider_can_use_a_link_like_a_guest(): void
     {
         $this->actingAs($this->outsider)->get("/s/{$this->token}")->assertOk()
@@ -299,12 +291,12 @@ class AccessPublicLinkTest extends AccessTestCase
         Slide::create(['deck_id' => $this->deck->id, 'title' => 'Third', 'notes' => '', 'sort_order' => 2, 'canvas_state' => ['elements' => []], 'els' => []]);
     }
 
-    public function test_hidden_slides_are_not_sent_to_a_guest_at_all(): void
+    public function test_hidden_slides_reach_a_guest_only_as_empty_place_holders(): void
     {
         $this->addHiddenAndSecondSlides();
 
         $page = $this->get("/s/{$this->token}");
-        $page->assertInertia(fn (Assert $p) => $p->has('doc.slides', 2)->where('doc.deck.slide_order', fn ($ids) => count($ids) === 2));
+        $page->assertInertia(fn (Assert $p) => $p->has('doc.slides', 3)->where('doc.slides.1.hidden', true)->where('doc.slides.1.els', [])->where('doc.slides.1.title', null));
         $this->assertStringNotContainsString('HIDDEN-CONTENT', $page->getContent());
         $this->assertStringNotContainsString('HIDDEN-NOTE', $page->getContent());
         $this->assertStringNotContainsString('HIDDEN-CONTENT', $this->getJson("/s/{$this->token}/document")->getContent());

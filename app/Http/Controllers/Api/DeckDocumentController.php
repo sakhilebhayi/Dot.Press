@@ -40,8 +40,8 @@ class DeckDocumentController extends Controller
         }
 
         $v = $request->validate([
-            'client' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_.:-]+$/'],
-            'key' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9_.:-]+$/'],
+            'client' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_.:-]+$/D'],
+            'key' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9_.:-]+$/D'],
             'ops' => ['required', 'array', 'min:1', 'max:'.DocumentSanitizer::MAX_OPS],
         ]);
 

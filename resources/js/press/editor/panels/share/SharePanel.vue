@@ -4,7 +4,7 @@
 // can read who has access.
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useEditorContext } from '../../context.js';
-import { Dialog, EmptyState, InlineNotice, PanelSection, ProgressBead, SelectMenu, Toggle } from '../../../ui/controls';
+import { Dialog, EmptyState, InlineNotice, PanelSection, ProgressBead, SelectMenu } from '../../../ui/controls';
 import VisibilityRail from './VisibilityRail.vue';
 import { usePeople } from '../comments/usePeople.js';
 import {
@@ -117,7 +117,7 @@ async function rotate() {
 }
 const allowDownload = computed({
     get: () => !!link.value?.allow_download,
-    set: (v) => { apply(() => editor.api.put(base, { allow_download: !!v }), v ? 'Downloads allowed' : 'Downloads off'); },
+    set: (v) => { apply(() => editor.api.put(base, { allow_download: !!v }), v ? 'Visitors can save as PDF' : 'Saving as PDF is off'); },
 });
 
 const pw = ref('');

@@ -329,6 +329,9 @@ jobs:
           esac
           if [ "$(envval SESSION_DRIVER)" = "redis" ]; then echo "::warning::SESSION_DRIVER=redis in the production .env; there is no Redis. Use database."; fi
           if [ "$(envval CACHE_STORE)" = "redis" ]; then echo "::warning::CACHE_STORE=redis in the production .env; there is no Redis. Use database."; fi
+          # R-40 security pass: the settings docs/programme/R40_SECURITY.md lists for production.
+          if [ "$(envval SESSION_SECURE_COOKIE)" != "true" ]; then echo "::warning::SESSION_SECURE_COOKIE is not true in the production .env; the session cookie would also travel over plain http. Set it to true."; fi
+          if [ "$(envval SECURITY_CSP_REPORT_ONLY)" = "true" ]; then echo "::warning::SECURITY_CSP_REPORT_ONLY=true: the Content-Security-Policy is only reporting, not enforcing. Remove it once the page it was set for is fixed."; fi
 
           # ---- frontend: swap the staged build in, keep the docroot copy in step
           # public/build is gitignored, so git never refreshes it. The docroot
