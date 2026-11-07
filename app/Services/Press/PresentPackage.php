@@ -4,6 +4,7 @@ namespace App\Services\Press;
 
 use App\Models\Asset;
 use App\Models\Deck;
+use App\Services\Press\Assets\AssetLimits;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
@@ -32,7 +33,24 @@ class PresentPackage
     public function __construct(
         private readonly ?string $bundleDir = null,
         private readonly ?string $fontsDir = null,
+        private readonly ?int $totalBytes = null,
     ) {}
+
+    /**
+     * How many bytes of files may be inlined. Every byte is held as base64, again as JSON and again as the page, about
+     * four times over, so the budget follows the process's memory limit instead of risking a fatal error halfway
+     * through a download. Files beyond it are left out and named in the warnings, as before.
+     */
+    public function totalBudget(): int
+    {
+        if ($this->totalBytes !== null) {
+            return $this->totalBytes;
+        }
+
+        $limit = AssetLimits::iniBytes((string) ini_get('memory_limit'));
+
+        return $limit > 0 ? min(self::MAX_TOTAL_BYTES, max(4 * 1024 * 1024, intdiv($limit, 8))) : self::MAX_TOTAL_BYTES;
+    }
 
     /**
      * @return array{html: string, warnings: list<string>}
@@ -211,6 +229,13 @@ HTML;
         $map = [];
         $total = 0;
         foreach (PresentPayload::assets($deck, PresentPayload::assetIds($slides)) as $asset) {
+            // The size is read from storage first: a file that cannot fit must never be loaded into memory to find out.
+            $stored = $this->storedSize($asset);
+            if ($stored !== null && ($stored > min(self::MAX_FILE_BYTES, $this->totalBudget()) || $total + $stored > $this->totalBudget())) {
+                $warnings[] = 'Asset "'.$asset->original_name.'" is too large for an offline package and was left out.';
+
+                continue;
+            }
             $loaded = $this->readAsset($asset);
             if ($loaded === null) {
                 $warnings[] = 'Asset "'.$asset->original_name.'" could not be read and was left out.';
@@ -218,7 +243,7 @@ HTML;
                 continue;
             }
             [$bytes, $mime] = $loaded;
-            if (strlen($bytes) > self::MAX_FILE_BYTES || $total + strlen($bytes) > self::MAX_TOTAL_BYTES) {
+            if (strlen($bytes) > min(self::MAX_FILE_BYTES, $this->totalBudget()) || $total + strlen($bytes) > $this->totalBudget()) {
                 $warnings[] = 'Asset "'.$asset->original_name.'" is too large for an offline package and was left out.';
 
                 continue;
@@ -234,6 +259,22 @@ HTML;
         }
 
         return $map;
+    }
+
+    /** The size in storage of the file readAsset() would load, or null when it cannot be told. */
+    private function storedSize(Asset $asset): ?int
+    {
+        $isImage = str_starts_with((string) $asset->mime_type, 'image/');
+        $path = $isImage ? ($asset->web_path ?: $asset->path) : $asset->path;
+        if (! $path) {
+            return null;
+        }
+
+        try {
+            return Storage::disk($asset->disk)->exists($path) ? (int) Storage::disk($asset->disk)->size($path) : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** @return array{0: string, 1: string}|null bytes and mime type */

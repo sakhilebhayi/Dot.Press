@@ -3,10 +3,12 @@
 namespace Tests\Feature\Press\Security;
 
 use App\Models\Deck;
+use App\Services\Press\Assets\AssetLimits;
 use App\Services\Press\Export\ExportService;
 use App\Services\Press\Export\Pdf\PdfExporter;
 use App\Services\Press\Export\Pptx\PptxExporter;
 use App\Services\Press\PresentPackage;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Feature\Press\AccessTestCase;
 
@@ -125,5 +127,46 @@ class HostileContentOutputsTest extends AccessTestCase
         $this->assertMatchesRegularExpression('/<title>[^<]*&lt;\/script&gt;/', $html);
         @unlink($dir.'/press-player.iife.js');
         @unlink($dir.'/press-player.css');
+    }
+
+    public function test_the_offline_package_never_loads_a_file_that_cannot_fit_and_says_so(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('a/small.png', str_repeat('x', 1000));
+        Storage::disk('local')->put('a/big.mp4', str_repeat('y', 3 * 1024 * 1024));
+        $small = $this->asset('small.png');
+        $small->forceFill(['path' => 'a/small.png', 'disk' => 'local', 'mime_type' => 'image/png', 'size' => 1000])->save();
+        $big = $this->asset('big.mp4');
+        $big->forceFill(['path' => 'a/big.mp4', 'disk' => 'local', 'mime_type' => 'video/mp4', 'size' => 3 * 1024 * 1024, 'kind' => 'video'])->save();
+        $this->slide->forceFill(['els' => [
+            ['id' => 'i', 'type' => 'image', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'src' => ['asset' => $small->id]],
+            ['id' => 'v', 'type' => 'video', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'src' => ['asset' => $big->id]],
+        ]])->save();
+
+        $dir = storage_path('framework/testing/pkg2');
+        @mkdir($dir, 0775, true);
+        file_put_contents($dir.'/press-player.iife.js', 'window.__p=1;');
+        file_put_contents($dir.'/press-player.css', '.a{}');
+
+        // a 2 MB budget: the small picture fits, the 3 MB video is left out without ever being read
+        $built = (new PresentPackage($dir, $dir, 2 * 1024 * 1024))->build($this->deck, false);
+
+        $this->assertStringContainsString('data:image/png;base64', $built['html']);
+        $this->assertStringNotContainsString('data:video/mp4', $built['html']);
+        $this->assertCount(1, array_filter($built['warnings'], fn ($w) => str_contains($w, 'big.mp4') && str_contains($w, 'too large')));
+        @unlink($dir.'/press-player.iife.js');
+        @unlink($dir.'/press-player.css');
+    }
+
+    public function test_the_default_budget_follows_the_memory_limit(): void
+    {
+        $budget = (new PresentPackage)->totalBudget();
+        $limit = AssetLimits::iniBytes((string) ini_get('memory_limit'));
+
+        $this->assertGreaterThanOrEqual(4 * 1024 * 1024, $budget);
+        $this->assertLessThanOrEqual(PresentPackage::MAX_TOTAL_BYTES, $budget);
+        if ($limit > 0) {
+            $this->assertLessThanOrEqual(max(4 * 1024 * 1024, intdiv($limit, 8)), $budget);
+        }
     }
 }
