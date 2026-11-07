@@ -59,9 +59,14 @@ class ProjectPolicy
     /**
      * Determine whether the user can delete the model.
      */
+    /**
+     * Deleting a project deletes every deck and picture in it, and a team's decks all live in one workspace project.
+     * That is a team administrator's decision, not an editor's: editors delete decks (which are archived first), not the
+     * library that holds them.
+     */
     public function delete(User $user, Project $project): bool
     {
-        return $this->mayChangeIn($user, $project->team);
+        return $project->team !== null && $user->hasTeamPermission($project->team, 'delete');
     }
 
     /**

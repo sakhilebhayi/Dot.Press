@@ -48,4 +48,22 @@ class AccountDeletionKeepsTeamWorkTest extends AccessTestCase
 
         $this->assertNull(Deck::withoutGlobalScopes()->find($deckId), 'a team that was deleted takes its decks with it, as the page says');
     }
+
+    public function test_an_editor_cannot_delete_the_teams_workspace_project_and_nobody_can_while_it_holds_decks(): void
+    {
+        $projectId = $this->project->id;
+        $deckId = $this->deck->id;
+
+        $this->actingAs($this->editor)->deleteJson("/api/projects/{$projectId}")->assertForbidden();
+        $this->actingAs($this->viewer)->deleteJson("/api/projects/{$projectId}")->assertForbidden();
+
+        // even an administrator is told to deal with the decks first: one request must not erase a team's whole library
+        $this->actingAs($this->admin)->deleteJson("/api/projects/{$projectId}")->assertStatus(409);
+        $this->assertNotNull(Project::withoutGlobalScopes()->find($projectId));
+        $this->assertNotNull(Deck::withoutGlobalScopes()->find($deckId));
+
+        // an empty project can go
+        $empty = Project::create(['user_id' => $this->owner->id, 'team_id' => $this->team->id, 'name' => 'Empty', 'slug' => 'empty-'.uniqid()]);
+        $this->actingAs($this->admin)->deleteJson("/api/projects/{$empty->id}")->assertNoContent();
+    }
 }
