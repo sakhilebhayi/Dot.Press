@@ -78,6 +78,8 @@ Charts draw from `data` only, never from decoration. `src.kind="file"` records t
 
 `anim` is an ordered list. Each step: `{ id, ph: "in"|"out"|"emph", fx: "fade"|"rise"|"drop"|"slide-l"|"slide-r"|"zoom"|"wipe"|"pop"|"pulse"|"spin"|"grow", on: "click"|"with"|"after", delay: ms, dur: ms, ease: "out"|"inout"|"spring" }`. The slide's playback sequence is the steps of its elements merged in z-order, grouped into clicks: `click` starts a new group, `with` runs with the previous step, `after` runs when the previous ends. Elements that have an `in` step start hidden.
 
+A step may carry an optional integer `ord` (0 to 9999) so a presenter can reorder the sequence without changing layering. The merge then sorts steps by `ord` when present (otherwise by the element's z index), then by the element's z index, then by the step's index within its element; without any `ord` the order is exactly the z-order above. Editors that reorder the sequence write `ord` on every step of the slide (0, 1, 2 ... in play order) so the result does not depend on layering.
+
 ## 8. Operations (the only way to change a deck)
 
 The editor never sends a whole slide to the server. It sends operations. The server applies them in order, inside one transaction, to the latest stored document.

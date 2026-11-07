@@ -1233,7 +1233,7 @@ class DocumentSanitizer
                 throw new InvalidDocument('invalid anim step');
             }
 
-            return [
+            $out = [
                 'id' => isset($step['id']) ? $this->id($step['id'], 'anim id') : substr(bin2hex(random_bytes(6)), 0, 10),
                 'ph' => isset($step['ph']) ? $this->enum($step['ph'], ['in', 'out', 'emph'], 'anim ph') : 'in',
                 'fx' => $this->enum($step['fx'] ?? null, ['fade', 'rise', 'drop', 'slide-l', 'slide-r', 'zoom', 'wipe', 'pop', 'pulse', 'spin', 'grow'], 'anim fx'),
@@ -1242,6 +1242,11 @@ class DocumentSanitizer
                 'dur' => (int) $this->num($step['dur'] ?? 400, 0, 60000, 'anim dur'),
                 'ease' => isset($step['ease']) ? $this->enum($step['ease'], ['out', 'inout', 'spring'], 'anim ease') : 'out',
             ];
+            if (isset($step['ord'])) {
+                $out['ord'] = (int) round($this->num($step['ord'], 0, 9999, 'anim ord'));
+            }
+
+            return $out;
         });
     }
 
