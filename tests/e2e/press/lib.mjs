@@ -97,7 +97,7 @@ export function suite(name) {
         results,
         async step(id, title, fn) {
             const t = Date.now();
-            try { await fn(); results.push({ id, title, ok: true }); console.log(`PASS  ${id}  ${title}  (${Date.now() - t} ms)`); }
+            try { await fn(); if (api.page) { const sx = await api.page.evaluate(() => document.querySelector('.ed')?.scrollLeft || 0).catch(() => 0); if (sx) throw new Error('the editor shell was scrolled sideways by ' + sx + 'px'); } results.push({ id, title, ok: true }); console.log(`PASS  ${id}  ${title}  (${Date.now() - t} ms)`); }
             catch (e) { if (api.page) await shot(api.page, `${name}-FAIL-${id}`).catch(() => {}); results.push({ id, title, ok: false, err: e.message.split('\n')[0] }); console.log(`FAIL  ${id}  ${title}\n      ${e.message.split('\n').slice(0, 3).join('\n      ')}`); }
         },
         summary() {

@@ -2,7 +2,7 @@
  * Editor chrome: top bar, the three column grid, dock, inspector, banners. See DESIGN.md "Layout".
  * Spine 288 | stage | inspector 320. Below 1024 the Spine is a drawer; below 768 the inspector is a bottom sheet.
  */
-.ed { --toast-bottom: 76px; position: fixed; inset: 0; display: grid; grid-template-columns: var(--spine-w) minmax(0, 1fr) auto; grid-template-rows: var(--bar-h) auto minmax(0, 1fr); background: var(--paper); overflow: hidden; }
+.ed { --toast-bottom: 76px; position: fixed; inset: 0; display: grid; grid-template-columns: var(--spine-w) minmax(0, 1fr) auto; grid-template-rows: var(--bar-h) auto minmax(0, 1fr); background: var(--paper); overflow: hidden; overflow: clip; }
 .ed[data-spine='closed'] { grid-template-columns: 0 minmax(0, 1fr) auto; }
 .ed-spine { grid-column: 1; grid-row: 3; min-width: 0; min-height: 0; border-right: 1px solid var(--line); overflow: hidden; }
 .ed[data-spine='closed'] .ed-spine { visibility: hidden; border: 0; }

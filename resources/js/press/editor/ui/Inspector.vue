@@ -41,7 +41,13 @@ function onTabKey(e) {
 }
 watch(active, async () => {
     await nextTick();
-    strip.value?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    // Scroll only the strip. scrollIntoView would also scroll the app shell sideways while the drawer slides in.
+    const box = strip.value;
+    const tab = box?.querySelector('[aria-selected="true"]');
+    if (!box || !tab) return;
+    const left = tab.offsetLeft - box.offsetLeft;
+    if (left < box.scrollLeft) box.scrollLeft = Math.max(0, left - 8);
+    else if (left + tab.offsetWidth > box.scrollLeft + box.clientWidth) box.scrollLeft = left + tab.offsetWidth - box.clientWidth + 8;
 });
 async function close() {
     editor.closePanel();

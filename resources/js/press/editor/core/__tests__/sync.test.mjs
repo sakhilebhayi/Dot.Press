@@ -77,7 +77,7 @@ test('flush() on demand, blur, and unloading with a beacon', async () => {
   assert.deepEqual(beacons[0].ops, [set('a', { x: 9 })]);
   assert.equal(beacons[0].key, 'key-tab1-1');
   await b.sync.persisted();
-  const saved = await b.sync.recover();
+  const saved = await b.sync.recover({ self: true });
   assert.equal(saved.inflight.key, 'key-tab1-1', 'the same key is persisted, so a resend after reload is harmless');
 });
 
@@ -540,4 +540,29 @@ test('discardRecovery removes a stored record without sending anything', async (
   await b.sync.discardRecovery(rec);
   assert.equal(await b.sync.recover(), null);
   assert.equal(b.server.calls.length, 0);
+});
+
+test('a live tab never offers its own queue back as unsent changes from an earlier session', async () => {
+  const storage = fakeStorage();
+  const server = fakeServer(initial());
+  const dead = boot({ server, storage, clientId: 'tab0' });
+  dead.server.holdResponses();
+  dead.sync.dispatch([set('a', { x: 5 })]);
+  await dead.clock.advance(700);
+  await dead.sync.persisted();
+  dead.sync.destroy();
+  const live = boot({ server: fakeServer(initial()), storage, clientId: 'tab1' });
+  live.server.holdResponses();
+  live.sync.dispatch([set('b', { x: 6 })]);
+  await live.clock.advance(20_000);
+  await live.sync.persisted();
+  const rec = await live.sync.recover();
+  assert.ok(rec, 'the dead tab record is still found');
+  assert.equal(rec.clientId, 'tab0', 'and it is not shadowed by this tab, whose record is newer');
+  const none = boot({ storage: fakeStorage(), clientId: 'tab2' });
+  none.server.holdResponses();
+  none.sync.dispatch([set('b', { x: 7 })]);
+  await none.clock.advance(20_000);
+  await none.sync.persisted();
+  assert.equal(await none.sync.recover(), null, 'own pending ops are not a recovery');
 });
