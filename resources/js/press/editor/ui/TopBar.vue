@@ -6,6 +6,7 @@ import { useEditorContext } from '../context.js';
 import DropMenu from './DropMenu.vue';
 import Ico from './Ico.vue';
 import ThemeToggle from './ThemeToggle.vue';
+import ApprovalChip from '../panels/approval/ApprovalChip.vue';
 import { shortcutsFor } from '../core/keys.js';
 
 const editor = useEditorContext();
@@ -72,6 +73,7 @@ const exportItems = computed(() => [
 const overflowItems = computed(() => [
     ...(editor.hasPanel('share') ? [{ label: 'Share', icon: 'share', run: () => editor.openPanel('share') }] : []),
     ...(editor.hasPanel('review') ? [{ label: 'Review', icon: 'review', run: () => editor.openPanel('review') }] : []),
+    ...(editor.hasPanel('approval') ? [{ label: 'Approval', icon: 'review', run: () => editor.openPanel('approval') }] : []),
     { label: 'Download PDF', icon: 'document', href: editor.exportLinks.pdf },
     { label: 'Download PowerPoint', icon: 'document', href: editor.exportLinks.pptx },
     { separator: true },
@@ -106,6 +108,7 @@ const canPresent = computed(() => editor.can.present !== false);
                 <li v-for="p in shown" :key="p.id" class="pr-avatar" :style="{ '--c': p.color }" :title="p.me ? `${p.name} (you)` : p.name"><span aria-hidden="true">{{ initials(p.name) }}</span><span class="pr-sr">{{ p.me ? `${p.name}, you` : p.name }}</span></li>
                 <li v-if="more" class="pr-avatar tb-more" :title="`${more} more`">+{{ more }}</li>
             </ul>
+            <ApprovalChip />
             <button v-if="editor.hasPanel('share')" type="button" class="pr-btn tb-act" @click="editor.openPanel('share')"><Ico name="share" size="sm" /><span class="tb-lbl">Share</span></button>
             <button v-if="editor.hasPanel('review')" type="button" class="pr-btn tb-act" @click="editor.openPanel('review')"><Ico name="review" size="sm" /><span class="tb-lbl">Review</span></button>
             <DropMenu v-if="canExport" :items="exportItems" align="end" label="Export">
