@@ -68,6 +68,13 @@ export function useEditor(props) {
   const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
   const clientId = uuid();
   const storage = safeStorage();
+  // A reload keeps the tab (sessionStorage) but not the client id: tell the server which id to retire, once.
+  let replacesClient = null;
+  try {
+    const key = `press:client:${deckId}`;
+    replacesClient = window.sessionStorage.getItem(key);
+    window.sessionStorage.setItem(key, clientId);
+  } catch { /* storage blocked: a reload then leaves a ghost for 20 seconds, nothing worse */ }
   const http = axios.create({ withCredentials: true, headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' } });
   const api = createApi(http);
 
@@ -245,8 +252,10 @@ export function useEditor(props) {
       selection: s.selection.ids.filter((i) => FIELD_ID.test(i)).slice(0, 50),
     };
     if (cursor.value) body.cursor = cursor.value;
+    if (replacesClient) body.replaces = replacesClient;
     try {
       const res = await api.post(`/api/decks/${deckId}/presence`, body);
+      replacesClient = null;
       presence.value = (res.others || []).map((o) => ({
         client: o.client, user_id: o.user_id, name: o.name, color: o.color, slide_id: o.slide != null ? String(o.slide) : null,
         selection: o.selection || [], cursor: o.cursor || null,

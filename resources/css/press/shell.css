@@ -27,7 +27,8 @@
 .tb-name:not(:disabled):hover { background: var(--raised); border-color: var(--line); }
 .tb-name:disabled { cursor: default; }
 .tb-input { height: 34px; width: min(40ch, 60vw); margin-left: -10px; padding: 0 10px; border-radius: var(--r-2); border: 1px solid var(--ink); background: var(--sheet); font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.02em; color: var(--ink); box-shadow: none; }
-.tb-save { display: inline-flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; color: var(--muted); }
+.tb-save { display: inline-flex; align-items: center; gap: 8px; flex: none; min-width: 0; color: var(--muted); }
+.tb-save.is-offline, .tb-save.is-error { flex: 0 1 auto; } /* a long status may be cut; Saved never is */
 .tb-save.is-offline, .tb-save.is-error { color: var(--ink); }
 .tb-save-w { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .tb-save .pr-bead { transition: background-color var(--d-3) var(--spring), border-color var(--d-2), transform var(--d-3) var(--spring); }
@@ -124,10 +125,13 @@
     .ed[data-spine='open'] .ed-spine { transform: none; transition: transform var(--d-3) var(--ease-settle); }
     .ed .tb .tb-menu { display: inline-flex; }
     .ed .tb-left { border-right: 0; }
+    /* the title needs the room: wordmark, people and the word Saved give way first (the bead says the same) */
+    .tb .tb-word, .tb .tb-people { display: none; }
+    .tb .tb-save:not(.is-offline):not(.is-error) .tb-save-w { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } /* still read out by the status role */
 }
 @media (max-width: 767px) {
     .tb-title { padding: 0 6px; gap: 10px; }
-    .tb .tb-word, .tb .tb-people, .tb .tb-theme, .tb .tb-act, .tb .tb-save-w, .tb .tb-insp { display: none; }
+    .tb .tb-word, .tb .tb-people, .tb .tb-theme, .tb .tb-act, .tb .tb-insp { display: none; }
     .tb .tb-overflow { display: inline-flex; }
     .tb .tb-save.is-offline .tb-save-w, .tb .tb-save.is-error .tb-save-w { display: inline; max-width: 8ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tb-name { font-size: var(--t-md); }

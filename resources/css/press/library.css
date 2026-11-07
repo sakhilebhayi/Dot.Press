@@ -173,7 +173,7 @@
     .lh-word { display: none; }
     .lh-search { padding: 0 4px; }
     .ls-key { display: none; }
-    .lh-new span { display: none; }
+    .lh-new span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* the label stays for screen readers */
     .lh-new { padding: 0; width: 44px; }
     .lw-grid { grid-template-columns: 1fr; gap: 36px; }
     .ns { width: 100%; border-left: 0; }
