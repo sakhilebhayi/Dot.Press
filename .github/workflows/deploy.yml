@@ -532,6 +532,14 @@ jobs:
             CODE=$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' "$SITE_URL/build/$ASSET" || true)
             if [ "$CODE" = "200" ]; then echo "200 $SITE_URL/build/$ASSET"; else echo "::error::$SITE_URL/build/$ASSET answered ${CODE:-no response} (expected 200): the docroot is not serving the new build"; FAILED=1; fi
           done
+          # Every URL the app writes comes from APP_URL (host header injection defence). A wrong APP_URL would send
+          # every link and form to the wrong host, so compare the route table's base URL with the site just reached.
+          ZIGGY_URL="$(curl -s --max-time 30 "$SITE_URL/login" | python3 -c "import re,sys; m=re.search(r'\"url\":\"([^\"]+)\"', sys.stdin.read()); print(m.group(1).replace('\\\\/','/') if m else '')")"
+          if [ -n "$ZIGGY_URL" ] && [ "${ZIGGY_URL%/}" != "${SITE_URL%/}" ]; then
+            echo "::error::The app builds its URLs from $ZIGGY_URL but the site answers at $SITE_URL: fix APP_URL in the production .env."; FAILED=1
+          else
+            echo "APP_URL matches the site ($SITE_URL)"
+          fi
           # A GET-only route answering POST is a harmless 405: ~1 KB in
           # production, an ~840 KB stack-trace page when APP_DEBUG is on.
           curl -s --max-time 30 -o "$WORK/probe.html" -X POST "$SITE_URL/up" || true
