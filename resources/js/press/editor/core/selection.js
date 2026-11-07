@@ -11,7 +11,8 @@
  *   emptySelection(slideId?)
  *   isPickable(el)
  *   expandGroups(slide, ids) -> ids   members of every group touched, z-order
- *   select(doc, sel, slideId, ids, mode = 'replace')   mode: replace | add | remove | toggle
+ *   select(doc, sel, slideId, ids, mode = 'replace', {members})   mode: replace | add | remove | toggle;
+ *        members: true selects exactly the ids given, without expanding to their groups (double click into a group)
  *   clickSelect(doc, sel, slideId, elId, {shift, meta})   canvas / layer click semantics
  *   pickAt(doc, slideId, point, {pad}) -> elementId|null   topmost pickable element under the point
  *   marquee(doc, slideId, rect, {contain}) -> ids          pickable elements touched (or contained)
@@ -42,12 +43,14 @@ function same(a, b) {
   return a.slide === b.slide && a.ids.length === b.ids.length && a.ids.every((x, i) => x === b.ids[i]);
 }
 
-export function select(doc, sel, slideId, ids, mode = 'replace') {
+export function select(doc, sel, slideId, ids, mode = 'replace', { members = false } = {}) {
   const slide = slideById(doc, slideId);
   if (!slide) return emptySelection(sel.slide);
   const sid = slide.id;
   const base = sel.slide === sid ? sel.ids : [];
-  const incoming = expandGroups(slide, ids.filter((id) => slide.els.some((e) => e.id === id)));
+  const present = ids.filter((id) => slide.els.some((e) => e.id === id));
+  // members: true selects exactly these elements and does not expand to their groups (entering a group)
+  const incoming = members ? slide.els.filter((e) => present.includes(e.id)).map((e) => e.id) : expandGroups(slide, present);
   let next;
   if (mode === 'replace') next = incoming;
   else if (mode === 'add') next = [...new Set([...base, ...incoming])];
