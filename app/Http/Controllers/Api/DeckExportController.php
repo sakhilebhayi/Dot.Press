@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeckExportController extends Controller
@@ -59,8 +60,8 @@ class DeckExportController extends Controller
             return response()->json(['message' => 'You already have exports in progress. Wait for one to finish.'], 429);
         }
 
-        $doc = ExportService::document($deck);
-        if (count($doc['slides']) > (int) config('press_export.max_export_slides', 600)) {
+        // The slides are counted, not loaded: a big deck is only read by the job that renders it.
+        if (ExportService::slideCount($deck) > (int) config('press_export.max_export_slides', 600)) {
             return response()->json(['message' => 'This deck has too many slides to export.'], 422);
         }
         $export = DeckExport::create([
@@ -72,7 +73,7 @@ class DeckExportController extends Controller
             'attempts' => 0,
         ]);
 
-        if (ExportService::isSmall($doc)) {
+        if (ExportService::isSmallDeck($deck)) {
             // Small decks are done before the response, so the page does not wait for the scheduler.
             app(ExportService::class)->run($export);
             $export->refresh();
@@ -133,6 +134,12 @@ class DeckExportController extends Controller
             'options' => ['nullable', 'array'],
             'options.include_hidden' => ['nullable', 'boolean'],
         ]);
+        try {
+            // The preflight reads the whole document inside this request, so it must fit this request's memory.
+            ExportService::assertFits($deck, $data['format']);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage(), 'errors' => ['deck' => [$e->getMessage()]]], 422);
+        }
         $doc = ExportService::document($deck);
         $options = ExportService::cleanOptions($data['format'], $data['options'] ?? []);
         $resolver = ExportService::resolverFor($deck);

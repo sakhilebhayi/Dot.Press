@@ -144,9 +144,11 @@ class DeckDocument
      * Bytes of element JSON in the deck: a cheap measure of how heavy the document is, used to decide whether a page
      * may carry it inline.
      */
-    public static function weight(Deck $deck): int
+    public static function weight(Deck $deck, ?array $onlyIds = null): int
     {
-        return (int) DB::table('slides')->where('deck_id', $deck->id)->selectRaw('coalesce(sum(length(els)), 0) as n')->value('n');
+        return (int) DB::table('slides')->where('deck_id', $deck->id)
+            ->when($onlyIds !== null, fn ($q) => $q->whereIn('id', array_map('intval', $onlyIds)))
+            ->selectRaw('coalesce(sum(length(els)), 0) as n')->value('n');
     }
 
     /** True when the whole deck is small enough to write into a page (config press_perf.inline_bytes). */

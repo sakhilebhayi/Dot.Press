@@ -64,6 +64,29 @@ class PresentPayload
     }
 
     /**
+     * The slides of slides(), one at a time, so a caller that handles each slide and moves on never holds the deck.
+     *
+     * @return \Generator<int, array<string, mixed>>
+     */
+    public static function eachSlide(Deck $deck, bool $notes, bool $blankHidden = false): \Generator
+    {
+        foreach (Slide::withoutGlobalScopes()->where('deck_id', $deck->id)->orderBy('sort_order')->orderBy('id')->cursor() as $slide) {
+            $blank = $blankHidden && $slide->hidden;
+
+            yield [
+                'id' => $slide->id,
+                'title' => $blank ? null : $slide->title,
+                'notes' => $notes ? (string) $slide->notes : '',
+                'hidden' => (bool) $slide->hidden,
+                'layout' => $slide->layout ?: 'blank',
+                'bg' => $blank ? null : $slide->bg,
+                'transition' => $slide->transition,
+                'els' => $blank ? [] : ($slide->els ?? []),
+            ];
+        }
+    }
+
+    /**
      * The same payload as slides() + assetMap() as JSON text in pieces: `{"slides":[...],"assets":{...}}`, with each
      * slide's stored element JSON passed through undecoded (see DeckDocument::chunks). Used when the page would
      * otherwise have to hold the whole deck as PHP arrays.

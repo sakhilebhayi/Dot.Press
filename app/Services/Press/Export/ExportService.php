@@ -9,6 +9,8 @@ use App\Services\Press\ActivityRecorder;
 use App\Services\Press\DeckDocument;
 use App\Services\Press\Export\Pdf\PdfExporter;
 use App\Services\Press\Export\Pptx\PptxExporter;
+use App\Services\Press\Export\Support\Memory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -73,6 +75,59 @@ final class ExportService
         return new DatabaseAssetResolver($projects ?: [(int) $deck->project_id]);
     }
 
+    /**
+     * MB of PHP memory an export of this deck needs, from measurements (docs/programme/R40_PERFORMANCE.md): the server
+     * itself 40, the document as PHP arrays 15 times the size of its element JSON, the exporter's own working space
+     * (PDF: one part of the deck at a time, PPTX: pictures go to disk) and a small amount per slide.
+     */
+    public static function memoryNeededMb(int $weightBytes, int $slides, string $format): float
+    {
+        $document = 15 * $weightBytes / 1048576;
+
+        return 40 + $document + ($format === 'pdf' ? 22 + 0.04 * $slides : 6 + 0.05 * $slides);
+    }
+
+    /**
+     * Refuses, in plain words and before anything is read, an export the server's PHP memory limit cannot hold. A
+     * memory error is fatal in PHP and cannot be caught, so it has to be foreseen.
+     *
+     * @param  list<int|string>|null  $onlySlides  the slides the export is limited to, when it is
+     */
+    public static function assertFits(Deck $deck, string $format, ?array $onlySlides = null): void
+    {
+        $limit = Memory::limit();
+        if ($limit < 0) {
+            return;
+        }
+        $ids = $onlySlides === null ? null : array_values(array_filter($onlySlides, fn ($id) => ctype_digit((string) $id)));
+        $weight = DeckDocument::weight($deck, $ids);
+        $slides = $ids === null ? (int) DB::table('slides')->where('deck_id', $deck->id)->count() : count($ids);
+        $needed = self::memoryNeededMb($weight, $slides, $format);
+        $have = $limit / 1048576;
+        if ($needed > $have * 0.95) {
+            // How many slides of this deck would fit: the same model solved for the slide count.
+            $perSlide = $slides > 0 ? (15 * $weight / 1048576 + ($format === 'pdf' ? 0.04 : 0.05) * $slides) / $slides : 1;
+            $fixed = 40 + ($format === 'pdf' ? 22 : 6);
+            $fit = max(1, (int) floor(($have * 0.95 - $fixed) / max(0.001, $perSlide)));
+            throw new RuntimeException(sprintf(
+                'This deck is too large to export as %s on this server: it would need about %d MB of memory and %d MB are available. About %d of its %d slides fit; choose fewer slides%s, or ask the administrator to raise the PHP memory limit.',
+                strtoupper($format), (int) ceil($needed), (int) floor($have), $fit, $slides, $format === 'pdf' ? '' : ' (export a PDF of a range, or a smaller PPTX)',
+            ));
+        }
+    }
+
+    public static function slideCount(Deck $deck): int
+    {
+        return (int) DB::table('slides')->where('deck_id', $deck->id)->count();
+    }
+
+    /** Small enough to be exported inside the request: few slides and no video (decided without loading the slides). */
+    public static function isSmallDeck(Deck $deck): bool
+    {
+        return self::slideCount($deck) <= (int) config('press_export.fast_path_slides', 12)
+            && ! DB::table('slides')->where('deck_id', $deck->id)->where('els', 'like', '%"type":"video"%')->exists();
+    }
+
     /** True when the deck is small enough to be exported inside the request. */
     public static function isSmall(array $doc): bool
     {
@@ -91,6 +146,7 @@ final class ExportService
             if ($deck === null) {
                 throw new RuntimeException('The deck no longer exists.');
             }
+            self::assertFits($deck, $export->format, $export->format === 'pdf' ? (self::cleanOptions('pdf', $export->options)['slides'] ?? null) : null);
             $doc = self::document($deck);
             if (count($doc['slides']) > (int) config('press_export.max_export_slides', 600)) {
                 throw new RuntimeException('This deck has too many slides to export.');
@@ -103,24 +159,22 @@ final class ExportService
             $storage = Storage::disk($disk);
             $part = $path.'.part';
 
+            $dir = storage_path('app/press/tmp');
+            if (! is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            $tmp = $dir.'/'.Str::uuid().'.'.($format === 'pptx' ? 'pptx' : 'pdf');
+            // Both exporters write to a file, so the finished document is never held in memory a second time.
             if ($format === 'pdf') {
-                $bytes = (new PdfExporter($resolver))->render($doc, $options);
-                $storage->put($part, $bytes);
-                $size = strlen($bytes);
-                unset($bytes);
+                $size = (new PdfExporter($resolver))->renderToFile($doc, $tmp, $options);
             } else {
-                $dir = storage_path('app/press/tmp');
-                if (! is_dir($dir)) {
-                    @mkdir($dir, 0775, true);
-                }
-                $tmp = $dir.'/'.Str::uuid().'.pptx';
                 (new PptxExporter($resolver))->render($doc, $tmp, $options);
                 $size = (int) filesize($tmp);
-                $stream = fopen($tmp, 'rb');
-                $storage->put($part, $stream);
-                if (is_resource($stream)) {
-                    fclose($stream);
-                }
+            }
+            $stream = fopen($tmp, 'rb');
+            $storage->put($part, $stream);
+            if (is_resource($stream)) {
+                fclose($stream);
             }
             if (! $storage->exists($part) || $storage->size($part) < 4) {
                 throw new RuntimeException('The export file could not be written.');

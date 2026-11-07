@@ -331,21 +331,23 @@ class PresentSessionController extends Controller
     {
         $this->authorize('view', $deck);
 
+        $tmp = (string) tempnam(sys_get_temp_dir(), 'pkg');
         try {
-            $built = $package->build($deck, notes: $request->boolean('notes', true));
+            $built = $package->buildToFile($deck, $tmp, notes: $request->boolean('notes', true));
         } catch (\RuntimeException $e) {
+            @unlink($tmp);
+
             return response()->json(['message' => $e->getMessage()], 503);
         }
 
         $name = Str::slug($deck->title ?: 'presentation') ?: 'presentation';
 
-        return response()->streamDownload(function () use ($built): void {
-            echo $built['html'];
-        }, $name.'.html', [
+        // Sent from the file it was written to, and removed once sent: the package is never held in memory.
+        return response()->download($tmp, $name.'.html', [
             'Content-Type' => 'text/html; charset=utf-8',
             'Cache-Control' => 'private, no-store',
             'X-Press-Warnings' => (string) count($built['warnings']),
-        ]);
+        ])->deleteFileAfterSend(true);
     }
 
     // ---- helpers -----------------------------------------------------------------------------------------------

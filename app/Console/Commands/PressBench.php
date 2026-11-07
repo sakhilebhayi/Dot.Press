@@ -613,20 +613,18 @@ class PressBench extends Command
 
             // Ceiling under the default 128 MB limit: grow the deck until the exporter fails or stops degrading.
             $ladder = [10, 25, 50, 100, 150, 200, 300, 450, 600];
-            $deckMax = $this->deck(max($sizes));
             $survived = 0;
             $note = '';
             foreach ($ladder as $n) {
-                if ($n > $deckMax->slides()->count() * 1 && $n > 300) {
-                    // Larger than any generated deck: reuse slides cyclically in the worker.
-                }
-                $res = $this->child('export', ['deck' => $deckMax->id, 'format' => $format, 'slides' => $n], '128M');
+                $res = $this->child('export', ['deck' => $this->deck($n)->id, 'format' => $format, 'slides' => $n], '128M');
                 if (($res['ok'] ?? false) === true) {
                     $survived = $n;
                     $this->put('export', "{$format}.128M.{$n}_slides", round($res['ms'] / 1000, 1).' s, '.round($res['peak_mb']).' MB php peak, '.round($res['rss_mb'] ?? 0).' MB rss'.(isset($res['degraded']) ? ', '.$res['degraded'] : ''));
                 } else {
                     $note = (string) ($res['error'] ?? 'failed');
-                    $this->put('export', "{$format}.128M.{$n}_slides", 'FAILED: '.mb_substr($note, 0, 120));
+                    $clean = ! empty($res['degraded_cleanly']);
+                    $this->put('export', "{$format}.128M.{$n}_slides", ($clean ? 'REFUSED WITH A MESSAGE: ' : 'FATAL ERROR: ').mb_substr($note, 0, 140));
+                    $this->put('export', "{$format}.128M.first_failure_is_clean_message", $clean ? 'yes' : 'NO, a fatal error');
                     break;
                 }
             }
@@ -636,14 +634,15 @@ class PressBench extends Command
 
     private function sectionImport(array $sizes, int $runs): void
     {
-        $slides = in_array(100, $sizes, true) ? 100 : max($sizes);
-        $deck = $this->deck($slides);
-        $file = storage_path('app/bench/import-'.$slides.'.pptx');
-        $make = $this->child('export', ['deck' => $deck->id, 'format' => 'pptx', 'slides' => $slides, 'keep' => $file], '512M');
-        $this->put('import', 'fixture.pptx_mb', isset($make['bytes']) ? $make['bytes'] / 1048576 : null);
-        foreach (['256M', '128M'] as $limit) {
-            $res = $this->child('import', ['file' => $file], $limit);
-            $this->put('import', "{$slides}_slides.{$limit}", ($res['ok'] ?? false) ? round($res['ms'] / 1000, 2).' s, '.round($res['peak_mb']).' MB php peak, '.round($res['rss_mb'] ?? 0).' MB rss, '.$res['slides'].' slides' : 'FAILED: '.mb_substr((string) ($res['error'] ?? '?'), 0, 140));
+        foreach (array_values(array_unique([in_array(100, $sizes, true) ? 100 : min($sizes), max($sizes)])) as $slides) {
+            $deck = $this->deck($slides);
+            $file = storage_path('app/bench/import-'.$slides.'.pptx');
+            $make = $this->child('export', ['deck' => $deck->id, 'format' => 'pptx', 'slides' => $slides, 'keep' => $file], '512M');
+            $this->put('import', "{$slides}_slides.fixture_pptx_mb", isset($make['bytes']) ? $make['bytes'] / 1048576 : null);
+            foreach (['256M', '128M'] as $limit) {
+                $res = $this->child('import', ['file' => $file], $limit);
+                $this->put('import', "{$slides}_slides.{$limit}", ($res['ok'] ?? false) ? round($res['ms'] / 1000, 2).' s, '.round($res['peak_mb']).' MB php peak, '.round($res['rss_mb'] ?? 0).' MB rss, '.$res['slides'].' slides' : (! empty($res['fatal']) ? 'FATAL ERROR: ' : 'FAILED: ').mb_substr((string) ($res['error'] ?? '?'), 0, 140));
+            }
         }
     }
 
@@ -655,7 +654,7 @@ class PressBench extends Command
 
             return;
         }
-        $ids = DeckGenerator::createAssets($this->project, $this->user, 40, 2400, 1350);
+        $ids = DeckGenerator::createAssets($this->project, $this->user, 40, 2400, 1350, photo: true);
         $deck = (new DeckGenerator($ids))->createDeck($this->project, $this->user, 'Bench present 40 images', 20);
         $deck->slides()->each(function (Slide $slide, int $i) use ($ids): void {
             $els = array_values(array_filter($slide->els, fn ($e) => $e['type'] !== 'image'));
@@ -987,8 +986,17 @@ class PressBench extends Command
     private function workerExport(array $a): array
     {
         $deck = Deck::withoutGlobalScopes()->with('project')->findOrFail($a['deck']);
-        $doc = ExportService::document($deck);
         $want = (int) $a['slides'];
+        if (empty($a['keep'])) {
+            // What ExportService::run does before reading the deck: refuse, in words, what the memory limit cannot hold.
+            $weightShare = DeckDocument::weight($deck) * ($want / max(1, ExportService::slideCount($deck)));
+            $needed = ExportService::memoryNeededMb((int) $weightShare, $want, (string) $a['format']);
+            $limitMb = ini_get('memory_limit') === '-1' ? PHP_INT_MAX : (int) ini_get('memory_limit');
+            if ($needed > $limitMb * 0.95) {
+                return ['ok' => false, 'error' => sprintf('refused up front: needs about %d MB, %d MB available', (int) ceil($needed), $limitMb), 'degraded_cleanly' => true];
+            }
+        }
+        $doc = ExportService::document($deck);
         $slides = $doc['slides'];
         if (count($slides) > $want) {
             $slides = array_slice($slides, 0, $want);
@@ -1005,19 +1013,15 @@ class PressBench extends Command
 
         memory_reset_peak_usage();
         $t = hrtime(true);
+        $tmp = $a['keep'] ?? tempnam(sys_get_temp_dir(), 'bench').'.'.$a['format'];
         if ($a['format'] === 'pdf') {
-            $bytes = (new PdfExporter($resolver))->render($doc, []);
-            $size = strlen($bytes);
-            if (! empty($a['keep'])) {
-                file_put_contents($a['keep'], $bytes);
-            }
+            $size = (new PdfExporter($resolver))->renderToFile($doc, $tmp, []);
         } else {
-            $tmp = $a['keep'] ?? tempnam(sys_get_temp_dir(), 'bench').'.pptx';
             (new PptxExporter($resolver))->render($doc, $tmp, []);
             $size = (int) filesize($tmp);
-            if (empty($a['keep'])) {
-                @unlink($tmp);
-            }
+        }
+        if (empty($a['keep'])) {
+            @unlink($tmp);
         }
 
         return ['ok' => true, 'ms' => (hrtime(true) - $t) / 1e6, 'peak_mb' => memory_get_peak_usage() / 1048576, 'bytes' => $size];
@@ -1040,9 +1044,21 @@ class PressBench extends Command
         $deck = Deck::withoutGlobalScopes()->findOrFail($a['deck']);
         memory_reset_peak_usage();
         $t = hrtime(true);
-        $built = app(PresentPackage::class)->build($deck);
+        $tmp = tempnam(sys_get_temp_dir(), 'pkgb');
+        $built = app(PresentPackage::class)->buildToFile($deck, $tmp);
+        $peak = memory_get_peak_usage() / 1048576;
+        $ms = (hrtime(true) - $t) / 1e6;
+        $gz = 0;
+        $zlib = deflate_init(ZLIB_ENCODING_GZIP, ['level' => 6]);
+        $in = fopen($tmp, 'rb');
+        while (! feof($in)) {
+            $gz += strlen((string) deflate_add($zlib, (string) fread($in, 262144), ZLIB_NO_FLUSH));
+        }
+        $gz += strlen((string) deflate_add($zlib, '', ZLIB_FINISH));
+        fclose($in);
+        @unlink($tmp);
 
-        return ['ok' => true, 'ms' => (hrtime(true) - $t) / 1e6, 'peak_mb' => memory_get_peak_usage() / 1048576, 'bytes' => strlen($built['html']), 'gz' => strlen((string) gzencode($built['html'], 6)), 'warnings' => count($built['warnings'])];
+        return ['ok' => true, 'ms' => $ms, 'peak_mb' => $peak, 'bytes' => $built['bytes'], 'gz' => $gz, 'warnings' => count($built['warnings'])];
     }
 
     /** @return array<string, mixed> */

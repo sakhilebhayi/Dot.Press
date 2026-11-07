@@ -35,24 +35,51 @@ class PresentPackage
     ) {}
 
     /**
+     * The package as a string. Fine for a small deck and for tests; a deck with pictures goes through buildToFile().
+     *
      * @return array{html: string, warnings: list<string>}
      */
     public function build(Deck $deck, bool $notes = true): array
     {
+        $tmp = (string) tempnam(sys_get_temp_dir(), 'pkg');
+        try {
+            $built = $this->buildToFile($deck, $tmp, $notes);
+
+            return ['html' => (string) file_get_contents($tmp), 'warnings' => $built['warnings']];
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
+    /**
+     * Writes the package to $path piece by piece: the slides one at a time and every picture as it is read, so memory
+     * holds one picture and one slide whatever the size of the deck. (Building the whole file as a string needed about
+     * four times the size of the pictures: 177 MB of PHP memory for 34 MB of photographs, against a 128 MB limit.)
+     *
+     * @return array{bytes: int, warnings: list<string>}
+     */
+    public function buildToFile(Deck $deck, string $path, bool $notes = true): array
+    {
         $js = $this->readBundle('press-player.iife.js');
         $css = $this->readBundle('press-player.css');
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
 
         $warnings = [];
-        $slides = PresentPayload::slides($deck, notes: $notes);
         $header = PresentPayload::deckHeader($deck);
 
-        $slides = array_map(fn (array $slide): array => $this->stripExternal($slide), $slides);
-        $assets = $this->inlineAssets($deck, $slides, $warnings);
-
-        $fontCss = $this->fontCss($this->familiesUsed($header, $slides), $warnings);
-
-        $data = ['deck' => $header, 'slides' => $slides, 'assets' => $assets, 'generated_at' => now()->toIso8601String()];
-        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        // First pass: which fonts and pictures the slides use. One slide is held at a time.
+        $families = [];
+        $assetIds = [];
+        foreach (PresentPayload::eachSlide($deck, $notes) as $slide) {
+            $slide = $this->stripExternal($slide);
+            foreach ($this->familiesUsed($header, [$slide]) as $family) {
+                $families[$family] = true;
+            }
+            foreach (PresentPayload::assetIds([$slide]) as $id) {
+                $assetIds[$id] = true;
+            }
+        }
+        $fontCss = $this->fontCss(array_keys($families), $warnings);
 
         $title = htmlspecialchars((string) $deck->title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         // A script or style element ends at its first closing tag, so the bundle must never contain one.
@@ -60,7 +87,17 @@ class PresentPackage
         $css = str_ireplace('</style', '<\\/style', $css);
         $fontCss = str_ireplace('</style', '<\\/style', $fontCss);
 
-        $html = <<<HTML
+        $out = fopen($path, 'wb');
+        if ($out === false) {
+            throw new RuntimeException('The offline package could not be written.');
+        }
+        $bytes = 0;
+        $write = function (string $text) use ($out, &$bytes): void {
+            fwrite($out, $text);
+            $bytes += strlen($text);
+        };
+
+        $write(<<<HTML
 <!doctype html>
 <html lang="en">
 <head>
@@ -75,13 +112,47 @@ class PresentPackage
 </head>
 <body>
 <div id="press-app"></div>
-<script type="application/json" id="press-data">{$json}</script>
-<script>{$js}</script>
-</body>
-</html>
-HTML;
+<script type="application/json" id="press-data">
+HTML);
+        unset($fontCss, $css);
 
-        return ['html' => $html, 'warnings' => $warnings];
+        // The data: deck, slides, assets, generated_at, in the order the player has always read them.
+        $write('{"deck":'.json_encode($header, $flags).',"slides":[');
+        $first = true;
+        foreach (PresentPayload::eachSlide($deck, $notes) as $slide) {
+            $write(($first ? '' : ',').json_encode($this->stripExternal($slide), $flags));
+            $first = false;
+        }
+        $write('],"assets":{');
+
+        $total = 0;
+        $first = true;
+        foreach (PresentPayload::assets($deck, array_keys($assetIds)) as $asset) {
+            $loaded = $this->readAsset($asset);
+            if ($loaded === null) {
+                $warnings[] = 'Asset "'.$asset->original_name.'" could not be read and was left out.';
+
+                continue;
+            }
+            [$raw, $mime] = $loaded;
+            if (strlen($raw) > self::MAX_FILE_BYTES || $total + strlen($raw) > self::MAX_TOTAL_BYTES) {
+                $warnings[] = 'Asset "'.$asset->original_name.'" is too large for an offline package and was left out.';
+
+                continue;
+            }
+            $total += strlen($raw);
+            $meta = json_encode(['w' => $asset->width ? (int) $asset->width : null, 'h' => $asset->height ? (int) $asset->height : null, 'mime' => $mime, 'name' => $asset->original_name], $flags);
+            // base64 holds no character that needs escaping in JSON or inside a script element.
+            $write(($first ? '' : ',').json_encode((string) $asset->id).':{"url":"data:'.$mime.';base64,'.base64_encode($raw).'",'.substr($meta, 1));
+            unset($raw, $loaded);
+            $first = false;
+        }
+        $write('},"generated_at":'.json_encode(now()->toIso8601String(), $flags).'}');
+
+        $write("</script>\n<script>{$js}</script>\n</body>\n</html>");
+        fclose($out);
+
+        return ['bytes' => $bytes, 'warnings' => $warnings];
     }
 
     // ---- bundle -----------------------------------------------------------------------------------------------
@@ -200,41 +271,6 @@ HTML;
     }
 
     // ---- assets -----------------------------------------------------------------------------------------------
-
-    /**
-     * @param  list<array<string, mixed>>  $slides
-     * @param  list<string>  $warnings
-     * @return array<string, array{url: string, w: int|null, h: int|null, mime: string|null, name: string|null}>
-     */
-    private function inlineAssets(Deck $deck, array $slides, array &$warnings): array
-    {
-        $map = [];
-        $total = 0;
-        foreach (PresentPayload::assets($deck, PresentPayload::assetIds($slides)) as $asset) {
-            $loaded = $this->readAsset($asset);
-            if ($loaded === null) {
-                $warnings[] = 'Asset "'.$asset->original_name.'" could not be read and was left out.';
-
-                continue;
-            }
-            [$bytes, $mime] = $loaded;
-            if (strlen($bytes) > self::MAX_FILE_BYTES || $total + strlen($bytes) > self::MAX_TOTAL_BYTES) {
-                $warnings[] = 'Asset "'.$asset->original_name.'" is too large for an offline package and was left out.';
-
-                continue;
-            }
-            $total += strlen($bytes);
-            $map[(string) $asset->id] = [
-                'url' => 'data:'.$mime.';base64,'.base64_encode($bytes),
-                'w' => $asset->width ? (int) $asset->width : null,
-                'h' => $asset->height ? (int) $asset->height : null,
-                'mime' => $mime,
-                'name' => $asset->original_name,
-            ];
-        }
-
-        return $map;
-    }
 
     /** @return array{0: string, 1: string}|null bytes and mime type */
     private function readAsset(Asset $asset): ?array

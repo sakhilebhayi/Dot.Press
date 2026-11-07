@@ -129,7 +129,7 @@ final class DeckGenerator
      *
      * @return list<int> asset ids
      */
-    public static function createAssets(Project $project, User $user, int $count = 4, int $width = 800, int $height = 450): array
+    public static function createAssets(Project $project, User $user, int $count = 4, int $width = 800, int $height = 450, bool $photo = false): array
     {
         $ids = [];
         for ($i = 0; $i < $count; $i++) {
@@ -138,12 +138,22 @@ final class DeckGenerator
                 imagefilledrectangle($im, 0, $y, $width, $y + 2, imagecolorallocate($im, (int) (($i * 40 + $y / $height * 180) % 255), (int) (60 + $y / 4 % 160), 140 + ($i * 11) % 100));
             }
             imagefilledellipse($im, (int) ($width / 2), (int) ($height / 2), (int) ($height * 0.7), (int) ($height * 0.7), imagecolorallocate($im, 250, 250, 250));
+            if ($photo) {
+                // Noise and shapes make the JPEG as heavy as a photograph (about 0.5 to 1 MB at 2400 x 1350).
+                mt_srand($i + 11);
+                for ($k = 0; $k < 120; $k++) {
+                    imagefilledellipse($im, mt_rand(0, $width), mt_rand(0, $height), mt_rand(20, 400), mt_rand(20, 400), imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255)));
+                }
+                for ($k = 0; $k < intdiv($width * $height, 40); $k++) {
+                    imagesetpixel($im, mt_rand(0, $width - 1), mt_rand(0, $height - 1), mt_rand(0, 0xFFFFFF));
+                }
+            }
             ob_start();
             imagejpeg($im, null, 85);
             $bytes = (string) ob_get_clean();
             unset($im);
 
-            $path = 'projects/'.$project->id.'/assets/bench-'.$i.'.jpg';
+            $path = 'projects/'.$project->id.'/assets/bench-'.($photo ? 'photo-' : '').$i.'.jpg';
             Storage::disk('local')->put($path, $bytes);
             $ids[] = Asset::create([
                 'project_id' => $project->id, 'uploaded_by' => $user->id, 'disk' => 'local', 'path' => $path, 'original_name' => 'bench-'.$i.'.jpg',
