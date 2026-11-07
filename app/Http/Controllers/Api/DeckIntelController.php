@@ -24,6 +24,17 @@ use InvalidArgumentException;
  */
 class DeckIntelController extends Controller
 {
+    /** The narrative structures the story tools and the outline accept: ids, names and beats, for pickers. */
+    public function frameworks(): JsonResponse
+    {
+        return response()->json(['frameworks' => array_values(array_map(fn (array $f) => [
+            'id' => $f['id'],
+            'name' => $f['name'],
+            'summary' => $f['summary'],
+            'beats' => array_map(fn (array $b) => ['id' => $b['id'], 'label' => $b['label'], 'optional' => (bool) $b['optional']], $f['beats']),
+        ], Frameworks::all()))]);
+    }
+
     public function analyze(Deck $deck, DeckAnalyzer $analyzer): JsonResponse
     {
         $deck->loadMissing('project');
