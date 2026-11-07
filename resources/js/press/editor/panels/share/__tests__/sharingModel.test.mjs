@@ -63,7 +63,7 @@ test('the fixed explanations stay honest', () => {
   assert.match(LINK_LIMITS, /comments, speaker notes, versions or who has access/);
   assert.ok(COLLAB_HELP.some((l) => /last edit wins/.test(l)));
   assert.ok(COLLAB_HELP.some((l) => /no live co-typing/.test(l)));
-  for (const text of [...COLLAB_HELP, LINK_LIMITS, ...LEVELS.map((l) => l.long)]) assert.doesNotMatch(text, /[–—]/);
+  for (const text of [...COLLAB_HELP, LINK_LIMITS, ...LEVELS.map((l) => l.long)]) assert.doesNotMatch(text, new RegExp('[\u2013\u2014]'));
 });
 
 test('failure text', () => {
