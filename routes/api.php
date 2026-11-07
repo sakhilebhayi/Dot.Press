@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AssetController;
+use App\Http\Controllers\Api\BrandKitController;
 use App\Http\Controllers\Api\CollaborationController;
 use App\Http\Controllers\Api\DeckController;
+use App\Http\Controllers\Api\LayoutController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SlideController;
+use App\Http\Controllers\Api\ThemeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,10 +20,21 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('decks', DeckController::class);
     Route::apiResource('slides', SlideController::class);
-    Route::apiResource('assets', AssetController::class)->only(['index', 'store', 'show', 'destroy']);
+    // Asset library (R-40). The signed routes stream the stored file with Range support.
+    Route::apiResource('assets', AssetController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::get('assets/{asset}/usage', [AssetController::class, 'usage'])->name('assets.usage');
+    Route::post('assets/{asset}/poster', [AssetController::class, 'poster'])->name('assets.poster');
+    Route::get('assets/{asset}/file', [AssetController::class, 'file'])
+        ->middleware('signed')
+        ->name('assets.file');
     Route::get('assets/{asset}/download', [AssetController::class, 'download'])
         ->middleware('signed')
         ->name('assets.download');
+
+    // Themes, brand kits and custom layouts (team scoped; editors and admins write, viewers read).
+    Route::apiResource('themes', ThemeController::class);
+    Route::apiResource('brand-kits', BrandKitController::class)->parameters(['brand-kits' => 'brandKit']);
+    Route::apiResource('layouts', LayoutController::class);
 
     Route::prefix('ai')->middleware('throttle:ai')->group(function (): void {
         Route::get('usage', [AiController::class, 'usage']);
