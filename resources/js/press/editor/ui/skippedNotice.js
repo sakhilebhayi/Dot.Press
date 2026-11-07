@@ -7,17 +7,18 @@
  */
 const MAX_REASONS = 2;
 
+// Short, because a toast is one line: "3 changes not saved: deleted by someone else."
 const KNOWN = [
-  [/^element not found$/, 'an element was deleted by someone else first'],
-  [/^unknown slide$/, 'a slide was deleted by someone else first'],
-  [/^unknown section$/, 'a section was deleted by someone else first'],
-  [/^unknown asset$/, 'a picture or video that is not in this team\'s library'],
-  [/too large|text too large/, 'some content is too long or too big to store'],
-  [/is full$/, 'a slide or the deck is at its size limit'],
-  [/must be https|invalid .*(href|link|url)/, 'a web address that is not a secure https link'],
-  [/^duplicate/, 'an item that already exists'],
-  [/^a deck keeps at least one slide$/, 'the last slide of a deck cannot be removed'],
-  [/^a deck is approved by a reviewer/, 'a deck is approved by a reviewer, not by an edit'],
+  [/^element not found$/, 'deleted by someone else'],
+  [/^unknown slide$/, 'deleted by someone else'],
+  [/^unknown section$/, 'deleted by someone else'],
+  [/^unknown asset$/, 'picture not in this team\'s library'],
+  [/too large/, 'too big to store'],
+  [/is full$/, 'size limit reached'],
+  [/must be https|invalid .*(href|link|url)/, 'not a secure https link'],
+  [/^duplicate/, 'already exists'],
+  [/^a deck keeps at least one slide$/, 'a deck keeps one slide'],
+  [/^a deck is approved by a reviewer/, 'only a reviewer approves a deck'],
 ];
 
 function plain(reason) {
@@ -39,7 +40,7 @@ export function skippedNotice(list) {
   const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   const shown = ranked.slice(0, MAX_REASONS).map(([w]) => w);
   const more = ranked.length - shown.length;
-  const head = count === 1 ? '1 change was not saved' : `${count} changes were not saved`;
+  const head = count === 1 ? '1 change not saved' : `${count} changes not saved`;
   let message = `${head}: ${more > 0 ? shown.join(', ') : shown.join(' and ')}`;
   if (more > 0) message += `, and ${more} more ${more === 1 ? 'reason' : 'reasons'}`;
   return { message: `${message}.`, kind: 'warn', count };

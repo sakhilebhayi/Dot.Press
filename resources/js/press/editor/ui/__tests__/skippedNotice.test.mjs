@@ -12,7 +12,7 @@ test('nothing skipped says nothing', () => {
 test('one skipped change is named in plain words', () => {
   const n = skippedNotice([{ op: 'el.set', index: 0, reason: 'element not found' }]);
   assert.equal(n.count, 1);
-  assert.match(n.message, /^1 change was not saved/);
+  assert.match(n.message, /^1 change not saved/);
   assert.match(n.message, /deleted by someone else/);
   assert.equal(n.kind, 'warn');
 });
@@ -27,15 +27,16 @@ test('several reasons are grouped, counted once each and capped', () => {
     { op: 'el.add', reason: 'something odd and very very long '.repeat(10) },
   ]);
   assert.equal(n.count, 6);
-  assert.match(n.message, /^6 changes were not saved/);
+  assert.match(n.message, /^6 changes not saved/);
   assert.match(n.message, /and 3 more reasons/);
   assert.ok(n.message.length < 400);
+  assert.ok(skippedNotice([{ reason: 'element not found' }]).message.length <= 52, 'one reason fits a one line toast');
   assert.ok(!/—|–/.test(n.message));
 });
 
 test('a text op that the server refuses for size gets the size reason', () => {
   const n = skippedNotice([{ op: 'el.set', reason: 'text too large' }]);
-  assert.match(n.message, /too long/);
+  assert.match(n.message, /too big/);
 });
 
 test('unknown reasons are shown trimmed, never as markup', () => {
