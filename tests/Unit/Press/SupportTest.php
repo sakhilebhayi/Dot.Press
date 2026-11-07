@@ -74,6 +74,8 @@ class SupportTest extends TestCase
         $this->assertSame(['bullet', 1], [$p[2]['list'], $p[2]['level']]);
         $this->assertSame(['ordered', 0, 2], [$p[3]['list'], $p[3]['level'], $p[3]['n']]);
         $this->assertSame("A\nB\none\nnested\ntwo", TextDoc::plain($doc));
+        $px = TextDoc::paragraphs(['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'x', 'marks' => [['type' => 'textStyle', 'attrs' => ['fontSize' => '24px']]]]]]]]);
+        $this->assertSame(24.0, $px[0]['runs'][0]['size'], 'the editor writes font sizes as "24px"');
         $this->assertSame([['list' => null, 'level' => 0, 'n' => 0, 'runs' => []]], TextDoc::paragraphs(null));
         $this->assertSame('x', TextDoc::paragraphs(null, 'x')[0]['runs'][0]['t']);
     }

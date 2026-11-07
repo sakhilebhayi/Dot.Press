@@ -37,7 +37,8 @@ final class ImportedDeckBuilder
 
         self::storeMedia($user, $project, $result);
 
-        $deck = DB::transaction(function () use ($user, $project, $result, $fileName): Deck {
+        $report = [];
+        $deck = DB::transaction(function () use ($user, $project, $result, $fileName, &$report): Deck {
             $d = $result->deck;
             $title = trim((string) ($d['title'] ?? ''));
             if ($title === '' || $title === 'Imported presentation') {
@@ -74,8 +75,8 @@ final class ImportedDeckBuilder
                 $slideModels[] = [$slide, $s];
             }
             // Second pass: slide links point at the new ids, and the elements are stored.
-            foreach ($slideModels as [$slide, $s]) {
-                $els = self::remapLinks($s['els'], $ids);
+            foreach ($slideModels as $n => [$slide, $s]) {
+                $els = self::sanitize(self::remapLinks($s['els'], $ids), $n + 1, $report);
                 if (strlen((string) json_encode($els)) > 2 * 1048576) {
                     $els = array_slice($els, 0, 150);
                 }
@@ -87,7 +88,34 @@ final class ImportedDeckBuilder
 
         ActivityRecorder::record($deck, $user, 'imported', ['slides' => count($result->slides), 'from' => 'pptx']);
 
-        return ['deck' => $deck, 'report' => $result->report];
+        return ['deck' => $deck, 'report' => array_merge($result->report, $report)];
+    }
+
+    /**
+     * The document rules (App\Services\Press\DocumentSanitizer, when it is there) have the last word: an element they
+     * refuse is left out and reported, one they accept is stored in their cleaned form.
+     *
+     * @param  list<array<string, mixed>>  $els
+     * @param  list<array{slide: ?int, element: ?string, kind: string, message: string}>  $report
+     * @return list<array<string, mixed>>
+     */
+    private static function sanitize(array $els, int $slideNo, array &$report): array
+    {
+        $class = 'App\\Services\\Press\\DocumentSanitizer';
+        if (! class_exists($class)) {
+            return $els;
+        }
+        $san = new $class;
+        $out = [];
+        foreach ($els as $el) {
+            try {
+                $out[] = $san->element($el);
+            } catch (Throwable $e) {
+                $report[] = ['slide' => $slideNo, 'element' => $el['id'] ?? null, 'kind' => 'unsupported', 'message' => 'An element was left out because it breaks the document rules ('.mb_substr($e->getMessage(), 0, 80).').'];
+            }
+        }
+
+        return $out;
     }
 
     private static function titleFromFile(string $name): string

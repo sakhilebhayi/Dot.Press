@@ -210,7 +210,7 @@ final class IconLibrary
         }
         if (preg_match_all('/<circle\b[^>]*?\scx="([\d.\-]+)"[^>]*?\scy="([\d.\-]+)"[^>]*?\sr="([\d.\-]+)"/i', $value, $mm, PREG_SET_ORDER)) {
             foreach ($mm as [, $cx, $cy, $r]) {
-                $paths[] = sprintf('M %1$s %2$s m -%3$s 0 a %3$s %3$s 0 1 0 %4$s 0 a %3$s %3$s 0 1 0 -%4$s 0', $cx, $cy, $r, $r * 2);
+                $paths[] = sprintf('M %1$s %2$s m -%3$s 0 a %3$s %3$s 0 1 0 %4$s 0 a %3$s %3$s 0 1 0 -%4$s 0', $cx, $cy, $r, (float) $r * 2);
             }
         }
         if (preg_match_all('/<line\b[^>]*?\sx1="([\d.\-]+)"[^>]*?\sy1="([\d.\-]+)"[^>]*?\sx2="([\d.\-]+)"[^>]*?\sy2="([\d.\-]+)"/i', $value, $mm, PREG_SET_ORDER)) {

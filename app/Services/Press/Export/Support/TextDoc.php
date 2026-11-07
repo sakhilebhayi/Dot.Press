@@ -150,8 +150,10 @@ final class TextDoc
                     if (isset($a['color']) && is_string($a['color'])) {
                         $r['color'] = $a['color'];
                     }
-                    if (isset($a['fontSize']) && is_numeric($a['fontSize']) && $a['fontSize'] > 0) {
-                        $r['size'] = Els::num($a['fontSize'], 0, 1, 2000);
+                    // The editor writes "24px"; a plain number is the same size in slide units.
+                    $fs = is_string($a['fontSize'] ?? null) ? preg_replace('/px$/i', '', trim($a['fontSize'])) : ($a['fontSize'] ?? null);
+                    if (is_numeric($fs) && $fs > 0) {
+                        $r['size'] = Els::num($fs, 0, 1, 2000);
                     }
                     if (isset($a['fontFamily']) && is_string($a['fontFamily'])) {
                         $r['font'] = $a['fontFamily'];
