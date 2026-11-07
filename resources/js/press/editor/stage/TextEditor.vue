@@ -18,6 +18,7 @@ import { fontStack, isKnownFont } from '../../fonts.js';
 import { fitFactor } from '../../render/fit.js';
 import { safeHref } from '../../render/doc.js';
 import { growVertically } from '../core/geometry.js';
+import { matchShortcut } from '../core/keys.js';
 import { textBoxStyle } from './lib/textstyle.js';
 import {
     sanitizeDoc, normalizeColor, normalizeFontFamily, normalizeFontSize, docEqual, docIsBlank,
@@ -31,7 +32,8 @@ const props = defineProps({
     insert: { type: String, default: '' },
     at: { type: Object, default: null },
 });
-const emit = defineEmits(['commit']);
+const emit = defineEmits(['commit', 'link', 'ready']);
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 const theme = computed(() => normalizeTheme(props.deck.theme));
 const local = reactive({}); // element level changes made from the bar while editing (align, font, size, colour ...)
@@ -147,7 +149,17 @@ function build() {
                 autocapitalize: 'sentences',
             },
             handleKeyDown: (_v, ev) => {
+                if (ev.isComposing) return false;
                 if (ev.key === 'Escape') { ev.preventDefault(); commit(); return true; }
+                // the keymap's text scope: alignment of the box and the link bar (bold, italic and underline are Tiptap's own)
+                const m = matchShortcut(ev, 'text', { mac: isMac });
+                if (m?.cmd === 'text.alignLeft' || m?.cmd === 'text.alignCenter' || m?.cmd === 'text.alignRight') {
+                    ev.preventDefault();
+                    local.align = m.cmd.slice(10).toLowerCase();
+                    tick.value++;
+                    return true;
+                }
+                if (m?.cmd === 'text.link') { ev.preventDefault(); emit('link'); return true; }
                 return false;
             },
         },
@@ -185,6 +197,7 @@ function commit(cancelled = false) {
 onMounted(async () => {
     build();
     await nextTick();
+    emit('ready');
     scheduleMeasure();
     if (props.at) {
         const ed = editor.value;

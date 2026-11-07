@@ -36,7 +36,7 @@
 // collides with the core keymap's nudge by 10), Enter or typing edits, Tab and Shift+Tab walk the element proxies, Shift+1 fit,
 // Shift+2 zoom to selection, Alt+F10 focus the contextual bar, Space+drag pans.
 import {
-    computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, unref, watch,
+    computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, unref, watch,
 } from 'vue';
 import {
     SlideView, ensureFonts, reducedMotion, resolveSrc, themeVars,
@@ -52,7 +52,6 @@ import { useGestures } from './useGestures.js';
 import { useUploads } from './useUploads.js';
 import { createFormat } from './format.js';
 import SelectionLayer from './SelectionLayer.vue';
-import TextEditor from './TextEditor.vue';
 import CropLayer from './CropLayer.vue';
 import TableLayer from './TableLayer.vue';
 import ContextBar from './ContextBar.vue';
@@ -71,6 +70,9 @@ import {
     insertRow, insertCol, deleteRow, deleteCol, mergeRange, unmerge, canMerge, anchorAt, gridSize,
 } from './lib/table.js';
 import '../../../../css/press/stage.css';
+
+// Tiptap is the heaviest part of the editor and only needed once text is edited: it loads on first use.
+const TextEditor = defineAsyncComponent(() => import('./TextEditor.vue'));
 
 const editor = useEditorContext();
 const { store, ui } = editor;
@@ -101,13 +103,11 @@ const root = ref(null);
 const kbd = ref(false); // the last input was the keyboard: only then draw the focus ring on the stage
 const viewport = ref(null);
 const viewRef = ref(null);
-const inputRef = ref(null);
 const vp = useViewport(editor, viewport, deck);
 const zoom = vp.zoom;
 const origin = vp.origin;
 
 const preview = shallowRef(null);
-const editingId = computed(() => ui.editingText);
 const draft = ref(null); // a text element that is being typed but is not in the document yet
 const textRef = ref(null);
 const cropRef = ref(null);
@@ -300,19 +300,20 @@ function onTextCommit({ id, patch, doc, isDraft, cancelled }) {
 }
 
 // Hide the slide's own rendering of the box while the overlay edits it, so nothing shows twice.
-watch([editTarget, () => ui.cropping], ([t, c], [, oldC]) => {
+const editorReady = ref(false);
+watch(() => ui.editingText, () => { editorReady.value = false; });
+watch([editTarget, () => ui.cropping, editorReady], ([t, c, ready]) => {
     const nodes = viewRef.value?.nodes?.();
     if (!nodes) return;
     for (const n of nodes.values()) {
         n.querySelector(':scope > .p-fx > .pt, :scope > .p-fx > .psh > .pt')?.style.removeProperty('visibility');
         n.style.removeProperty('visibility');
     }
-    if (t && !(draft.value && t.id === draft.value.id)) {
+    if (t && ready && !(draft.value && t.id === draft.value.id)) {
         const n = nodes.get(t.id);
         n?.querySelector(':scope > .p-fx > .pt, :scope > .p-fx > .psh > .pt')?.style.setProperty('visibility', 'hidden');
     }
     if (c) nodes.get(c)?.style.setProperty('visibility', 'hidden');
-    void oldC;
 }, { flush: 'post' });
 
 // ---- crop ------------------------------------------------------------------------------------------------
@@ -831,11 +832,14 @@ const api = {
     pickFiles,
     addFiles: (files, opts) => uploads.addFiles(files, opts),
     announce,
+    openLink: () => barRef.value?.openLink?.(),
 };
 defineExpose(api);
 
 onMounted(() => {
     ensureFonts();
+    // warm the text editor chunk while the browser is idle, so the first double click does not wait for it
+    (typeof requestIdleCallback === 'function' ? requestIdleCallback : (f) => setTimeout(f, 800))(() => { import('./TextEditor.vue'); });
     try { editor.stage = api; } catch { /* a frozen editor object: the shell can use the template ref instead */ }
     try { ui.userGuides = JSON.parse(localStorage.getItem(`press:guides:${deck.value.id}`) || '[]'); } catch { ui.userGuides = []; }
     window.addEventListener('keyup', onKeyUp);
@@ -941,6 +945,8 @@ onBeforeUnmount(() => {
                     :insert="insertText" :at="editAt"
                     :zoom="zoom"
                     @commit="onTextCommit"
+                    @ready="editorReady = true"
+                    @link="barRef?.openLink?.()"
                 />
                 <div v-if="previewEl && previewSrc" class="es-media" data-es-ui :style="{ width: previewEl.w + 'px', height: previewEl.h + 'px', transform: `translate(${previewEl.x}px, ${previewEl.y}px)${previewEl.rot ? ` rotate(${previewEl.rot}deg)` : ''}` }">
                     <video v-if="previewEl.type === 'video'" :src="previewSrc.url" controls autoplay playsinline :loop="!!previewEl.loop" :muted="!!previewEl.muted"></video>
@@ -1044,7 +1050,7 @@ onBeforeUnmount(() => {
 
             <div v-if="cropTarget" class="es-crop-hint" role="status">Drag to move, scroll to scale. Enter applies, Esc cancels.</div>
             <div v-if="readOnly" class="es-badge" role="note"><i aria-hidden="true"></i>Read only</div>
-            <p :id="'es-help-' + slide.id" class="es-sr">Arrow keys move the element, Shift with arrows moves by ten, Alt with arrows resizes, Enter edits, Delete removes.</p>
+            <p :id="'es-help-' + slide.id" class="es-sr">Arrow keys move the element, Shift with arrows moves by ten, Alt with arrows resizes, Enter edits, Delete removes, Alt F10 moves to the formatting bar.</p>
             <div class="es-sr" role="status" aria-live="polite" aria-atomic="true">{{ liveText }}</div>
         </div>
 
