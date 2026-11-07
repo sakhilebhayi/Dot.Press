@@ -2,6 +2,7 @@
 
 namespace App\Services\Ai;
 
+use App\Services\Press\Intel\JsonShape;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -51,6 +52,107 @@ class ContentGenerator
         }
 
         return $this->rewriteTextMock($input, $mode, $tone);
+    }
+
+    /**
+     * True only when a real language model can be called: the provider is `anthropic` and an API key
+     * is configured. With the default `mock` provider every Dot.Press intelligence feature runs its
+     * deterministic local rules instead and says so (`mode: "local"`).
+     */
+    public function modelAvailable(): bool
+    {
+        return config('ai.provider', 'mock') === 'anthropic'
+            && filled(config('ai.anthropic.api_key'))
+            && (bool) config('press-ai.model_mode', true);
+    }
+
+    /**
+     * Ask the model for one JSON document and validate it against a schema (the subset JsonShape
+     * understands). One request, one retry: a timeout, a 5xx, a 429, text that is not JSON, or JSON
+     * that does not fit the schema is tried once more (the second time telling the model what was
+     * wrong). It never throws and never returns unvalidated data: on failure `ok` is false and the
+     * caller falls back to local mode and reports `degraded: true`.
+     *
+     * @param  array<string, mixed>  $schema
+     * @param  array{max_tokens?: int, timeout?: int}  $options
+     * @return array{ok: bool, data: array<string, mixed>|null, usage: array{input_tokens: int, output_tokens: int}, error: string|null, attempts: int, latency_ms: int}
+     */
+    public function completeJson(string $system, string $user, array $schema, array $options = []): array
+    {
+        $usage = ['input_tokens' => 0, 'output_tokens' => 0];
+        $started = microtime(true);
+        $error = null;
+        $attempts = 0;
+        $hint = '';
+
+        if (! $this->modelAvailable()) {
+            return ['ok' => false, 'data' => null, 'usage' => $usage, 'error' => 'No language model is configured.', 'attempts' => 0, 'latency_ms' => 0];
+        }
+
+        $system .= "\n\nReply with one JSON object only: no prose, no markdown fences. It must fit this JSON schema:\n".json_encode($schema, JSON_UNESCAPED_SLASHES);
+
+        for ($try = 0; $try < 2; $try++) {
+            $attempts++;
+
+            try {
+                $response = Http::timeout((int) ($options['timeout'] ?? config('ai.anthropic.json_timeout_seconds', 45)))
+                    ->withHeaders([
+                        'x-api-key' => (string) config('ai.anthropic.api_key'),
+                        'anthropic-version' => '2023-06-01',
+                        'content-type' => 'application/json',
+                    ])
+                    ->post('https://api.anthropic.com/v1/messages', [
+                        'model' => config('ai.anthropic.model'),
+                        'max_tokens' => (int) ($options['max_tokens'] ?? config('ai.anthropic.json_max_tokens', 4000)),
+                        'system' => $system,
+                        'messages' => [['role' => 'user', 'content' => $user.$hint]],
+                    ]);
+            } catch (\Throwable $e) {
+                $error = 'The model request failed: '.class_basename($e);
+
+                continue;
+            }
+
+            $usage['input_tokens'] += (int) Arr::get($response->json() ?? [], 'usage.input_tokens', 0);
+            $usage['output_tokens'] += (int) Arr::get($response->json() ?? [], 'usage.output_tokens', 0);
+
+            if (! $response->successful()) {
+                $error = 'The model returned status '.$response->status().'.';
+                // A bad key or a malformed request will not improve on a retry.
+                if ($response->status() >= 400 && $response->status() < 500 && $response->status() !== 429) {
+                    break;
+                }
+
+                continue;
+            }
+
+            try {
+                $json = $this->extractJson($response->json() ?? []);
+            } catch (RuntimeException $e) {
+                $error = 'The model reply was not JSON.';
+                $hint = "\n\nYour previous reply was not a single valid JSON object. Reply with the JSON object only.";
+
+                continue;
+            }
+            $data = json_decode($json, true);
+            if (! is_array($data)) {
+                $error = 'The model reply was not valid JSON.';
+                $hint = "\n\nYour previous reply was not valid JSON. Reply with the JSON object only.";
+
+                continue;
+            }
+            $problems = JsonShape::validate($data, $schema);
+            if ($problems !== []) {
+                $error = 'The model reply did not fit the expected shape.';
+                $hint = "\n\nYour previous reply did not fit the schema: ".implode('; ', array_slice($problems, 0, 5)).'. Fix it and reply with the JSON object only.';
+
+                continue;
+            }
+
+            return ['ok' => true, 'data' => $data, 'usage' => $usage, 'error' => null, 'attempts' => $attempts, 'latency_ms' => (int) round((microtime(true) - $started) * 1000)];
+        }
+
+        return ['ok' => false, 'data' => null, 'usage' => $usage, 'error' => $error, 'attempts' => $attempts, 'latency_ms' => (int) round((microtime(true) - $started) * 1000)];
     }
 
     private function generateDeckMock(string $prompt, int $slideCount): array
