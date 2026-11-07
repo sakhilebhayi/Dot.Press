@@ -99,7 +99,7 @@ class PublicPagesTest extends TestCase
 
     public function test_the_legal_pages_render_and_say_the_things_that_are_true_of_the_product(): void
     {
-        $this->get('/privacy-policy')->assertOk()->assertSee('Last updated: 2026-11-07', false);
+        $this->get('/privacy-policy')->assertOk()->assertSee('Last updated: 2026-11-08', false);
         $this->get('/terms-of-service')->assertOk()->assertSee('Last updated: 2026-11-07', false);
         $this->get('/cookies')->assertOk()->assertSee('Last updated: 2026-11-07', false);
 

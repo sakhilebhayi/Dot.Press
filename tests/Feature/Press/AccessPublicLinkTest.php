@@ -41,7 +41,6 @@ class AccessPublicLinkTest extends AccessTestCase
                 ->where('title', 'Quarterly deck')
                 ->where('needsPassword', false)
                 ->where('error', null)
-                ->where('allowDownload', false)
                 ->where('token', $this->token)
                 ->where('doc.deck.title', 'Quarterly deck')
                 ->has('doc.slides', 1)
@@ -182,13 +181,6 @@ class AccessPublicLinkTest extends AccessTestCase
     {
         $this->lock();
         $this->postJson("/s/{$this->token}/unlock", [])->assertUnprocessable();
-    }
-
-    public function test_download_flag_is_passed_to_the_page(): void
-    {
-        $this->deck->forceFill(['share_allow_download' => true])->save();
-
-        $this->get("/s/{$this->token}")->assertInertia(fn (Assert $page) => $page->where('allowDownload', true));
     }
 
     public function test_a_signed_in_outsider_can_use_a_link_like_a_guest(): void

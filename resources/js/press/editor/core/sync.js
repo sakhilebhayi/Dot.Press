@@ -463,9 +463,9 @@ export function createSync(opts) {
     pollNow,
     reload,
 
-    /** Unsent changes left by a closed or crashed tab, or null. This tab's own queue is not an earlier session (self: true reads it, for tests). */
-    async recover({ self = false } = {}) {
-      const best = await store.read(clock.now(), cfg.aliveMs, { self });
+    /** Unsent changes left by a closed or crashed tab, or null. */
+    async recover() {
+      const best = await store.read(clock.now(), cfg.aliveMs);
       if (!best) return null;
       const ops = [...(best.inflight ? best.inflight.ops : []), ...best.queue];
       if (!ops.length) return null;

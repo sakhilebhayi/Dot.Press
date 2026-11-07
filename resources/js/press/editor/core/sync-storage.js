@@ -6,8 +6,7 @@
  *
  *   const p = createPersistence({storage, clientId, deckId})
  *   p.write(record | null)         store this tab's record, or remove it when null
- *   p.read(now, aliveMs, {self})   the newest recoverable record of another (dead) tab, or null. This tab's own record is the
- *                                  live queue in memory, never an "earlier session", so it is only read when `self` is true
+ *   p.read(now, aliveMs)           the newest recoverable record of another (dead) tab, or null; never this tab's own
  *   p.forget(clientId)             remove a recovered record
  *   p.settled()                    promise of all queued writes
  */
@@ -41,15 +40,15 @@ export function createPersistence({ storage, clientId, deckId }) {
     await storage.set(idxKey, JSON.stringify(idx.filter((c) => c !== cid)));
   });
 
-  api.read = async (now, aliveMs, { self = false } = {}) => {
+  api.read = async (now, aliveMs) => {
     await chain;
     let best = null;
     for (const cid of await readIndex()) {
       let rec;
       try { rec = JSON.parse(await storage.get(recKey(cid))); } catch { continue; }
       if (!rec) continue;
-      if (cid === clientId) { if (!self) continue; } // our own record: the queue we hold in memory, not an earlier session
-      else if (now - rec.savedAt < aliveMs) continue; // another tab that is still alive
+      if (cid === clientId) continue; // this tab's own record is its live queue, not an earlier session
+      if (now - rec.savedAt < aliveMs) continue; // another tab that is still alive
       if (!best || rec.savedAt > best.savedAt) best = rec;
     }
     return best;

@@ -77,7 +77,10 @@ test('flush() on demand, blur, and unloading with a beacon', async () => {
   assert.deepEqual(beacons[0].ops, [set('a', { x: 9 })]);
   assert.equal(beacons[0].key, 'key-tab1-1');
   await b.sync.persisted();
-  const saved = await b.sync.recover({ self: true });
+  // the page reloads: a new tab id finds what the closing tab left behind
+  const next = boot({ storage: b.storage, clientId: 'tab2' });
+  await next.clock.advance(20_000);
+  const saved = await next.sync.recover();
   assert.equal(saved.inflight.key, 'key-tab1-1', 'the same key is persisted, so a resend after reload is harmless');
 });
 
@@ -452,6 +455,18 @@ test('recover ignores a record that a live tab is still updating, and returns nu
   await live.sync.persisted();
   const other = boot({ storage, clientId: 'tab2' });
   assert.equal(await other.sync.recover(), null, 'tab1 saved a moment ago');
+});
+
+test('a tab never offers to recover its own unsent changes (the false "unsent changes from an earlier session" banner)', async () => {
+  // Server down: the tab keeps its edits, and the delayed recovery check of the same tab must not find them.
+  const { sync, server, clock } = boot({ transport: { postOps: async () => { throw netError(); }, getChanges: async () => { throw netError(); }, getDocument: async () => { throw netError(); } } });
+  sync.dispatch([set('a', { x: 9 })]);
+  await clock.advance(700);
+  await sync.persisted();
+  assert.equal(sync.state.pending, 1);
+  await clock.advance(20_000);
+  assert.equal(await sync.recover(), null, 'own record is not an earlier session');
+  assert.ok(server);
 });
 
 test('storage failures never break saving', async () => {

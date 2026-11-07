@@ -14,7 +14,7 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         {{-- The theme before first paint, as on every page. Storage can be blocked, so it is guarded. --}}
-        <script>
+        <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             (function () {
                 var root = document.documentElement, mode = null;
                 try { mode = localStorage.getItem('press:theme'); } catch (e) {}

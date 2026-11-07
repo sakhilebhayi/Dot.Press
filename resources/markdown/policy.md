@@ -1,4 +1,4 @@
-_Last updated: 2026-11-07_
+_Last updated: 2026-11-08_
 
 This policy explains what Dot.Press stores about you and your work, what it does with it, who can see it and how to have it corrected or deleted. Dot.Press is run by **BluePin Inc** ("we", "us") and is part of the Dot ecosystem. It is written with South Africa's **Protection of Personal Information Act 4 of 2013 (POPIA)** in mind.
 
@@ -56,7 +56,9 @@ Nothing a model or a rule suggests changes your deck until you accept it.
 
 You choose, for each deck: private (you and the people you name), your team, or anyone with a link.
 
-**Link sharing.** A link contains a 40 character random code. Anyone who has the link can open the deck, so treat it like a key. You can protect a link with a password (stored as a hash), give it an expiry date and decide whether viewers may download. Turning link sharing off, or letting the link expire, makes it answer "not found" and an old link never works again. Shared pages are marked so search engines do not index them, are not cached, and do not pass the link to other sites.
+**Link sharing.** A link contains a 40 character random code. Anyone who has the link can open the deck, so treat it like a key. You can protect a link with a password (stored as a hash) and give it an expiry date. People who open the link see the slides only: no speaker notes, comments, versions or hidden slides. Turning link sharing off, or letting the link expire, makes it answer "not found" and an old link never works again. Shared pages are marked so search engines do not index them, are not cached, and do not pass the link to other sites.
+
+**Presenting links.** The audience link and the phone remote link of a live session work for whoever has them, for up to 12 hours. They stop sooner when you end the session, when the deck is archived, or when the person who started the session loses access to the deck. The audience link shows the slides only, never speaker notes.
 
 **Teams.** People in your team see the decks you share with the team, with the rights their role gives them.
 
@@ -68,7 +70,7 @@ Exports and the offline present package are built on the server and handed to yo
 
 ## 8. How long we keep it
 
-We keep your account and decks while your account is active. Deleting a deck deletes its slides, restore points, comments, activity and shared links. Deleting your account deletes the teams you own and the projects you created, with the decks inside them, even ones you shared with others. Download anything you want to keep first.
+We keep your account and decks while your account is active. Deleting a deck deletes its slides, restore points, comments, activity and shared links. Deleting your account deletes the teams you own, with every deck, file and comment inside them. Decks you made in a team you do not own stay with that team and no longer name you. Download anything you want to keep first.
 
 Some copies last a little longer: the daily database backups for up to 14 days, and the change log for up to 14 days. Export files go after 24 hours. We may keep records the law requires us to keep.
 

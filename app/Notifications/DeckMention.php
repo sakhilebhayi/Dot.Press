@@ -6,6 +6,7 @@ use App\Models\Deck;
 use App\Models\DeckComment;
 use App\Models\User;
 use App\Services\Press\DeckLinks;
+use App\Services\Press\MailText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -29,10 +30,10 @@ class DeckMention extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("{$this->author->name} mentioned you in \"{$this->deck->title}\"")
-            ->greeting("Hello {$notifiable->name}")
-            ->line("{$this->author->name} mentioned you in a comment on \"{$this->deck->title}\".")
-            ->line('"'.$this->excerpt().'"')
+            ->subject(MailText::subject("{$this->author->name} mentioned you in \"{$this->deck->title}\""))
+            ->greeting('Hello '.MailText::plain($notifiable->name, 80))
+            ->line(MailText::plain($this->author->name, 80).' mentioned you in a comment on "'.MailText::plain($this->deck->title, 120).'".')
+            ->line('"'.MailText::plain($this->excerpt()).'"')
             ->action('Open the deck', DeckLinks::editor($this->deck, $this->comment->slide_id));
     }
 

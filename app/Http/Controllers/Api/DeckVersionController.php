@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deck;
+use App\Models\DeckVersion;
 use App\Services\Press\ActivityRecorder;
 use App\Services\Press\VersionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class DeckVersionController extends Controller
 {
+    public const MAX_NAMED = 200;
+
     public function index(Request $request, Deck $deck, VersionService $versions): JsonResponse
     {
         $this->authorize('view', $deck);
@@ -28,6 +32,11 @@ class DeckVersionController extends Controller
         $this->authorize('update', $deck);
 
         $v = $request->validate(['label' => ['nullable', 'string', 'max:120']]);
+
+        // Named versions are kept for good, so their number is bounded (the 40 newest automatic ones prune themselves).
+        if (DeckVersion::query()->where('deck_id', $deck->id)->where('kind', 'manual')->count() >= self::MAX_NAMED) {
+            throw ValidationException::withMessages(['label' => 'A deck keeps up to '.self::MAX_NAMED.' saved versions. Restore the one you need or keep working: the automatic history continues.']);
+        }
 
         $version = $versions->create($deck, $request->user(), 'manual', $v['label'] ?? null);
         ActivityRecorder::record($deck, $request->user(), 'version.saved', ['version' => $version->id, 'label' => $version->label]);

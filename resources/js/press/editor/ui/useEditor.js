@@ -23,7 +23,7 @@
  *   editor.on(name, fn) / emit(name, payload)   tiny event bus. Events used: 'paste:files' (File[]), 'spine:rename',
  *                              'stage:focus'
  *   editor.hasPanel(id), editor.panelList (computed list for the current context), editor.activePanelId
- *   editor.renameDeck(title), editor.present(kind), editor.copyAudienceLink(), editor.exportLinks
+ *   editor.renameDeck(title), editor.present(kind), editor.copyAudienceLink()
  *   editor.spineSelection      ref of the slide ids selected in the Spine; editor.slideIdsForAction() resolves them
  */
 import { computed, onBeforeUnmount, onMounted, provide, reactive, ref, shallowRef, watch, nextTick } from 'vue';
@@ -34,6 +34,7 @@ import { EDITOR_KEY, createEditorUi } from '../context.js';
 import { createApi, createKeepaliveBeacon, createTransport, safeStorage } from './transport.js';
 import { createToasts } from './toasts.js';
 import { saveInfo } from './saveState.js';
+import { skippedNotice } from './skippedNotice.js';
 import { activePanel, hasPanel, listPanels, registerPanel } from '../panels/registry.js';
 
 const UI_PREFS_KEY = 'press:ui:v1';
@@ -125,6 +126,13 @@ export function useEditor(props) {
     lastKey = k;
     if (k === 'saved') announce('Saved');
     else if (k === 'offline' || k === 'error') announce(save.value.label);
+  });
+  // An operation the server refuses is dropped from the document, so the change would undo itself unseen. Say so.
+  const offSkipped = sync.onSkipped((list) => {
+    const n = skippedNotice(list);
+    if (!n) return;
+    toast(n.message, { kind: n.kind, ms: 12000 });
+    announce(n.message);
   });
   const retrySave = () => sync.retry();
   function discardUnsent() {
@@ -234,10 +242,6 @@ export function useEditor(props) {
       toast(`Could not make an audience link: ${e.message}`, { kind: 'error' });
     }
   }
-  const exportLinks = {
-    pdf: `/export/decks/${deckId}/pdf`,
-    pptx: `/export/decks/${deckId}/pptx`,
-  };
 
   // ---- presence -----------------------------------------------------------------------------------
   let focused = typeof document === 'undefined' ? true : document.hasFocus() && !document.hidden;
@@ -417,6 +421,7 @@ export function useEditor(props) {
     sync.stopPolling();
     offStore();
     offToasts();
+    offSkipped();
     store.destroy();
     sync.destroy();
   });
@@ -443,7 +448,7 @@ export function useEditor(props) {
     cursor, setCursor,
     on, emit,
     hasPanel, panelList, activePanelId,
-    renameDeck, present, copyAudienceLink, exportLinks,
+    renameDeck, present, copyAudienceLink,
     spineSelection, slideIdsForAction, removeSlides,
     settle,
   };

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
-/** Baseline browser protections are on every response, the policy only reports, and violation reports are accepted safely. */
+/** Baseline browser protections are on every response, the policy is enforced with a nonce, and violation reports are accepted safely. */
 class SecurityHeadersTest extends TestCase
 {
     public function test_every_response_carries_the_enforced_baseline_headers(): void
@@ -42,25 +42,73 @@ class SecurityHeadersTest extends TestCase
         $this->get('/__strict')->assertHeader('X-Frame-Options', 'DENY');
     }
 
-    public function test_the_content_security_policy_only_reports_and_names_the_origins_the_pages_use(): void
+    public function test_the_content_security_policy_is_enforced_and_scripts_need_the_nonce(): void
     {
         $r = $this->get('/');
 
-        $this->assertFalse($r->headers->has('Content-Security-Policy'), 'nothing is enforced yet');
-        $policy = (string) $r->headers->get('Content-Security-Policy-Report-Only');
+        $this->assertFalse($r->headers->has('Content-Security-Policy-Report-Only'), 'enforced, not just reported');
+        $policy = (string) $r->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("default-src 'self'", $policy);
         $this->assertStringContainsString('report-uri /csp-report', $policy);
         $this->assertStringContainsString("frame-ancestors 'self'", $policy);
         $this->assertStringContainsString("object-src 'none'", $policy);
         $this->assertStringContainsString("base-uri 'self'", $policy);
         $this->assertStringContainsString("font-src 'self'", $policy);
-        foreach (['bunny.net', 'googleapis.com', 'gstatic.com', 'unsplash.com', 'ui-avatars.com', 'unsafe-eval'] as $gone) {
+        $this->assertStringContainsString("form-action 'self'", $policy);
+        $this->assertStringContainsString("connect-src 'self'; ", $policy, 'no websocket and no other origin to talk to');
+        $this->assertStringContainsString("img-src 'self' data: blob: https:", $policy);
+        $this->assertStringContainsString('https://www.youtube.com https://player.vimeo.com', $policy);
+        foreach (['bunny.net', 'googleapis.com', 'gstatic.com', 'unsplash.com', 'ui-avatars.com', 'unsafe-eval', 'wss:'] as $gone) {
             $this->assertStringNotContainsString($gone, $policy, "{$gone} is not loaded by any page any more");
         }
-        $this->assertStringContainsString('https://www.youtube.com https://player.vimeo.com', $policy);
-        $this->assertStringContainsString('img-src \'self\' data: blob:', $policy);
-        $this->assertStringContainsString("connect-src 'self' wss:", $policy);
-        $this->assertStringContainsString("form-action 'self'", $policy);
+
+        // Scripts: self and one nonce, never 'unsafe-inline'. The style rule is the only place unsafe-inline remains.
+        $this->assertSame(1, preg_match("/script-src 'self' 'nonce-([A-Za-z0-9]{40})'(;|$)/", $policy, $m), $policy);
+        $this->assertStringNotContainsString("script-src 'self' 'unsafe-inline'", $policy);
+
+        // Every inline script the page prints carries that nonce, and the Vite tags too.
+        $html = $r->getContent();
+        preg_match_all('/<script\b([^>]*)>/i', $html, $tags);
+        $executable = array_filter($tags[1], fn ($attrs) => ! str_contains($attrs, 'application/ld+json') && ! str_contains($attrs, 'application/json'));
+        $this->assertNotEmpty($executable);
+        foreach ($executable as $attrs) {
+            $this->assertStringContainsString('nonce="'.$m[1].'"', $attrs, "a script tag without the nonce would be blocked: <script{$attrs}>");
+        }
+    }
+
+    public function test_the_nonce_changes_on_every_request(): void
+    {
+        $one = (string) $this->get('/')->headers->get('Content-Security-Policy');
+        $two = (string) $this->get('/')->headers->get('Content-Security-Policy');
+
+        preg_match('/nonce-([A-Za-z0-9]+)/', $one, $a);
+        preg_match('/nonce-([A-Za-z0-9]+)/', $two, $b);
+        $this->assertNotSame($a[1], $b[1]);
+    }
+
+    public function test_the_kill_switch_turns_the_same_policy_into_report_only(): void
+    {
+        config(['security.csp_report_only' => true]);
+        $r = $this->get('/');
+
+        $this->assertFalse($r->headers->has('Content-Security-Policy'));
+        $this->assertStringContainsString("script-src 'self' 'nonce-", (string) $r->headers->get('Content-Security-Policy-Report-Only'));
+    }
+
+    public function test_error_pages_carry_the_policy_and_their_inline_script_the_nonce(): void
+    {
+        $r = $this->get('/does-not-exist')->assertNotFound();
+
+        $policy = (string) $r->headers->get('Content-Security-Policy');
+        preg_match('/nonce-([A-Za-z0-9]+)/', $policy, $m);
+        $this->assertNotEmpty($m);
+        $this->assertStringContainsString('<script nonce="'.$m[1].'">', $r->getContent());
+    }
+
+    public function test_upgrade_insecure_requests_is_only_asked_for_on_https(): void
+    {
+        $this->assertStringNotContainsString('upgrade-insecure-requests', (string) $this->get('/')->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString('upgrade-insecure-requests', (string) $this->get('https://localhost/')->headers->get('Content-Security-Policy'));
     }
 
     public function test_violation_reports_are_accepted_without_a_session_and_keep_only_the_directive_and_host(): void
@@ -87,5 +135,21 @@ class SecurityHeadersTest extends TestCase
 
         $this->call('POST', '/csp-report', [], [], [], ['CONTENT_TYPE' => 'application/csp-report'], json_encode(['csp-report' => ['effective-directive' => 'img-src', 'blocked-uri' => 'inline']]))
             ->assertNoContent();
+    }
+
+    public function test_no_other_origin_is_allowed_to_call_the_api(): void
+    {
+        $answer = $this->call('OPTIONS', '/api/decks', [], [], [], ['HTTP_ORIGIN' => 'https://evil.example', 'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'POST']);
+        $this->assertNull($answer->headers->get('Access-Control-Allow-Origin'));
+
+        $this->withHeaders(['Origin' => 'https://evil.example'])->getJson('/api/decks')->assertUnauthorized()->assertHeaderMissing('Access-Control-Allow-Origin');
+    }
+
+    public function test_the_framework_file_serving_route_is_not_exposed(): void
+    {
+        // Files are only ever read through the signed asset routes; the local disk's own /storage/{path} route is off.
+        $paths = collect(app('router')->getRoutes()->getRoutes())->map(fn ($r) => $r->uri())->filter(fn ($u) => str_starts_with($u, 'storage/'));
+        $this->assertCount(0, $paths);
+        $this->get('/storage/projects/1/assets/x.png')->assertNotFound();
     }
 }
