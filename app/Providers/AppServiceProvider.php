@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Every link the app writes into mail (password reset, verification, invitations, deck links) and every redirect
+        // comes from APP_URL, never from the Host header of the request, so a request sent with a Host of someone
+        // else's choosing cannot put their address into a message from this platform.
+        if (config('security.force_root_url')) {
+            URL::forceRootUrl((string) config('app.url'));
+            // Only ever upgrade to https: a wrong http APP_URL must not downgrade a site that is served securely.
+            if (parse_url((string) config('app.url'), PHP_URL_SCHEME) === 'https') {
+                URL::forceScheme('https');
+            }
+        }
+
         RateLimiter::for('ai', function (Request $request): Limit {
             $maxAttempts = (int) config('ai.limits.per_minute', 20);
             $key = (string) optional($request->user())->id;

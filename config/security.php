@@ -27,4 +27,10 @@ return [
     */
     'press_batch_growth_bytes' => (int) env('PRESS_BATCH_GROWTH_BYTES', 8 * 1024 * 1024),
     'press_deck_bytes' => (int) env('PRESS_DECK_BYTES', 32 * 1024 * 1024),
+
+    /*
+    | Build every URL from APP_URL instead of the request's Host header (host header injection into mail links).
+    | On in production, off elsewhere so local servers on any port keep working. SECURITY_FORCE_ROOT_URL overrides.
+    */
+    'force_root_url' => filter_var(env('SECURITY_FORCE_ROOT_URL', env('APP_ENV') === 'production'), FILTER_VALIDATE_BOOL),
 ];
