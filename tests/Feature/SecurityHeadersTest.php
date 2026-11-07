@@ -144,4 +144,12 @@ class SecurityHeadersTest extends TestCase
 
         $this->withHeaders(['Origin' => 'https://evil.example'])->getJson('/api/decks')->assertUnauthorized()->assertHeaderMissing('Access-Control-Allow-Origin');
     }
+
+    public function test_the_framework_file_serving_route_is_not_exposed(): void
+    {
+        // Files are only ever read through the signed asset routes; the local disk's own /storage/{path} route is off.
+        $paths = collect(app('router')->getRoutes()->getRoutes())->map(fn ($r) => $r->uri())->filter(fn ($u) => str_starts_with($u, 'storage/'));
+        $this->assertCount(0, $paths);
+        $this->get('/storage/projects/1/assets/x.png')->assertNotFound();
+    }
 }
