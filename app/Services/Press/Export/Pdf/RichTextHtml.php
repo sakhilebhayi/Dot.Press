@@ -25,7 +25,7 @@ final class RichTextHtml
         $first = true;
         foreach ($paras as $p) {
             $size = $style['size'] * $scale;
-            $css = 'margin:0;padding:0;text-align:'.$style['align'].';line-height:'.self::n($style['lh']).';font-size:'.self::n($size).'px;';
+            $css = 'margin:0;padding:0;text-align:'.$style['align'].';line-height:'.self::n(FontRegistry::lineHeightPx($style['font'], $style['lh'], $size)).'px;font-size:'.self::n($size).'px;';
             if (! $first) {
                 $css .= 'margin-top:'.self::n($style['ps'] * $size).'px;';
             }

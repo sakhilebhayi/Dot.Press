@@ -105,6 +105,18 @@ final class PressSampleDeck
         ];
     }
 
+    /** The sample document without its video, so it takes the in-request export path. */
+    public static function docWithoutVideo(): array
+    {
+        $doc = self::doc();
+        foreach ($doc['slides'] as &$s) {
+            $s['els'] = array_values(array_filter($s['els'], fn ($e) => $e['type'] !== 'video'));
+        }
+        unset($s);
+
+        return $doc;
+    }
+
     /** A resolver holding a gradient JPEG as asset 1 and a transparent PNG as asset 2. */
     public static function assets(): ArrayAssetResolver
     {

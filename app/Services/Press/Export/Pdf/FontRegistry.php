@@ -69,18 +69,27 @@ final class FontRegistry
     }
 
     /**
-     * How far (in em) DomPDF puts the first baseline of a line below where a browser would, for the given line height.
-     * DomPDF's baseline sits at 0.88 x (ascent + descent) x line height from the top of the line, a browser's at
-     * half the leading plus the ascent. The text is moved by the difference (a negative number moves it up).
+     * DomPDF multiplies every line height by 1.1 x (ascent + descent) of the font. To get a line pitch of $lh x $size
+     * (what a browser does) the CSS value has to be divided by that factor.
+     */
+    public static function lineHeightPx(string $family, float $lh, float $size): float
+    {
+        $m = self::vmetrics($family);
+
+        return $lh * $size / (1.1 * ($m['asc'] + $m['desc']));
+    }
+
+    /**
+     * How far (in em) DomPDF puts the first baseline of a line below where a browser would, for the given line height,
+     * when the line height has been set with lineHeightPx. DomPDF's baseline sits at 0.8 x the line pitch from the top of the
+     * line, a browser's at half the leading plus the ascent. The text is moved by the difference (negative moves it up).
      */
     public static function baselineShift(string $family, float $lh): float
     {
         $m = self::vmetrics($family);
         $h = $m['asc'] + $m['desc'];
-        $browser = ($lh - $h) / 2 + $m['asc'];
-        $dompdf = 0.88 * $h * $lh;
 
-        return $browser - $dompdf;
+        return (($lh - $h) / 2 + $m['asc']) - 0.8 * $lh;
     }
 
     /** The exact bundled family name for any capitalisation ("inter" to "Inter"), or null when the font is not bundled. */

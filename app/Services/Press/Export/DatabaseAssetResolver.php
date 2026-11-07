@@ -22,6 +22,12 @@ final class DatabaseAssetResolver implements AssetResolver
     /** @param list<int>|null $projectIds */
     public function __construct(private ?array $projectIds = null) {}
 
+    /** @return list<int>|null the projects this resolver reads from */
+    public function projectIds(): ?array
+    {
+        return $this->projectIds;
+    }
+
     public function find(int $id): ?array
     {
         if (array_key_exists($id, $this->cache)) {

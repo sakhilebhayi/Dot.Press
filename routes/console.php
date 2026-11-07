@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\BackupSqliteDatabase;
+use App\Console\Commands\PruneDeckExports;
 use App\Console\Commands\ScanDependencyAdvisories;
 use App\Http\Controllers\SchedulerProbeController;
 use App\Jobs\QueueHeartbeat;
@@ -32,3 +33,6 @@ Schedule::job(new QueueHeartbeat)->everyFiveMinutes()->name('queue-heartbeat');
 // data. The SQLite-backed Dot apps share one host, so each one backs up at its
 // own minute. No-op on other database drivers.
 Schedule::command(BackupSqliteDatabase::class)->dailyAt('02:55')->onOneServer();
+
+// Export files live for 24 hours; this removes them and tidies the history.
+Schedule::command(PruneDeckExports::class)->hourly()->name('press-exports-prune')->onOneServer();
