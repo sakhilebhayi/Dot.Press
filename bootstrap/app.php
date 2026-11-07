@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Every response, including /up, the API and error pages: baseline security headers.
         $middleware->append(SecurityHeaders::class);
 
+        // The editor and the library call /api/* from the signed-in browser with the session cookie and the XSRF header.
+        // Requests whose Origin or Referer is one of SANCTUM_STATEFUL_DOMAINS (the app's own host by default) get the
+        // session and CSRF middleware; everything else still needs a bearer token.
+        $middleware->statefulApi();
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
