@@ -71,7 +71,7 @@ class PresentSessionController extends Controller
 
         return Inertia::render('Press/Audience', $this->pageProps($request, $deck, notes: false) + [
             'follow' => null,
-            'channelKey' => preg_match('/^[a-z0-9]{6,24}$/', $key) === 1 ? $key : null,
+            'channelKey' => preg_match('/^[a-z0-9]{6,24}$/D', $key) === 1 ? $key : null,
         ]);
     }
 

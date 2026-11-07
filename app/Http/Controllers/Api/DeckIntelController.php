@@ -71,7 +71,7 @@ class DeckIntelController extends Controller
             'beat' => ['required', 'string', 'max:40'],
             'after' => ['nullable', 'string', 'max:40'],
             'into' => ['nullable', 'string', 'max:40'],
-            'at' => ['nullable', 'regex:/^[A-Za-z0-9_-]{1,40}$/'],
+            'at' => ['nullable', 'regex:/^[A-Za-z0-9_-]{1,40}$/D'],
             'claim' => ['nullable', 'string', 'max:300'],
         ]);
 
@@ -93,8 +93,8 @@ class DeckIntelController extends Controller
         $max = (int) config('press-ai.suggest.max_text_chars', 8000);
         $validated = $request->validate([
             'kind' => ['required', 'string', Rule::in(Suggestions::KINDS)],
-            'slide' => ['nullable', 'regex:/^[A-Za-z0-9_-]{1,40}$/'],
-            'element' => ['nullable', 'string', 'regex:/^[A-Za-z0-9_-]{1,40}$/'],
+            'slide' => ['nullable', 'regex:/^[A-Za-z0-9_-]{1,40}$/D'],
+            'element' => ['nullable', 'string', 'regex:/^[A-Za-z0-9_-]{1,40}$/D'],
             'text' => ['nullable', 'string', 'max:'.$max],
             'tone' => ['nullable', 'string', 'max:40'],
             'framework' => ['nullable', 'string', Rule::in(['auto', ...Frameworks::ids()])],

@@ -24,7 +24,7 @@ class DocumentSanitizer
 
     public const MAX_SECTIONS = 100;
 
-    public const ID_PATTERN = '/^[A-Za-z0-9_-]{1,40}$/';
+    public const ID_PATTERN = '/^[A-Za-z0-9_-]{1,40}$/D';
 
     public const ROLES = ['title', 'subtitle', 'body', 'media', 'caption', 'footer', 'number', 'kpi'];
 
@@ -396,7 +396,7 @@ class DocumentSanitizer
         if (is_string($v) && in_array($v, self::LAYOUTS, true)) {
             return $v;
         }
-        if (is_string($v) && preg_match('/^custom:[A-Za-z0-9_-]{1,40}$/', $v)) {
+        if (is_string($v) && preg_match('/^custom:[A-Za-z0-9_-]{1,40}$/D', $v)) {
             return $v;
         }
 
@@ -501,7 +501,7 @@ class DocumentSanitizer
 
         if (isset($v['id'])) {
             // Library themes are 'slate'; a team's own are 'custom:<n>' and brand kits 'brand-kit:<n>' (the theme API ids).
-            if (! is_string($v['id']) || preg_match('/^[A-Za-z0-9_-]+(?::[0-9]+)?$/', $v['id']) !== 1 || strlen($v['id']) > 40) {
+            if (! is_string($v['id']) || preg_match('/^[A-Za-z0-9_-]+(?::[0-9]+)?$/D', $v['id']) !== 1 || strlen($v['id']) > 40) {
                 throw new InvalidDocument('invalid theme id');
             }
             $out['id'] = $v['id'];
@@ -934,7 +934,7 @@ class DocumentSanitizer
         if (is_int($v) && $v >= 0) {
             $v = (string) $v;
         }
-        if (! is_string($v) || ! preg_match('/^[A-Za-z0-9_-]+$/', $v) || strlen($v) > $max || $v === '') {
+        if (! is_string($v) || ! preg_match('/^[A-Za-z0-9_-]+$/D', $v) || strlen($v) > $max || $v === '') {
             throw new InvalidDocument("invalid {$what}");
         }
 
@@ -1018,13 +1018,13 @@ class DocumentSanitizer
         }
         $v = trim($v);
 
-        if (preg_match('/^@(\w+)$/', $v, $m) && in_array($m[1], self::TOKENS, true)) {
+        if (preg_match('/^@(\w+)$/D', $v, $m) && in_array($m[1], self::TOKENS, true)) {
             return $v;
         }
-        if (preg_match('/^#([0-9a-f]{3})$/i', $v, $m)) {
+        if (preg_match('/^#([0-9a-f]{3})$/iD', $v, $m)) {
             return '#'.strtolower($m[1][0].$m[1][0].$m[1][1].$m[1][1].$m[1][2].$m[1][2]);
         }
-        if (preg_match('/^#([0-9a-f]{6}|[0-9a-f]{8})$/i', $v)) {
+        if (preg_match('/^#([0-9a-f]{6}|[0-9a-f]{8})$/iD', $v)) {
             return strtolower($v);
         }
 
@@ -1080,7 +1080,7 @@ class DocumentSanitizer
             throw new InvalidDocument("invalid {$what}");
         }
 
-        if ($allowSlide && preg_match('/^#slide:[A-Za-z0-9_-]{1,40}$/', $v)) {
+        if ($allowSlide && preg_match('/^#slide:[A-Za-z0-9_-]{1,40}$/D', $v)) {
             return $v;
         }
 
@@ -1091,7 +1091,7 @@ class DocumentSanitizer
         if (isset($parts['user']) || isset($parts['pass'])) {
             throw new InvalidDocument("invalid {$what}");
         }
-        if (! preg_match('/^[\p{L}\p{N}.\-]+$/u', $parts['host']) || (isset($parts['port']) && ($parts['port'] < 1 || $parts['port'] > 65535))) {
+        if (! preg_match('/^[\p{L}\p{N}.\-]+$/uD', $parts['host']) || (isset($parts['port']) && ($parts['port'] < 1 || $parts['port'] > 65535))) {
             throw new InvalidDocument("invalid {$what}");
         }
 
@@ -1150,7 +1150,7 @@ class DocumentSanitizer
 
     private function fontFamily(mixed $v, string $what): string
     {
-        if (! is_string($v) || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9 _.\-]{0,59}$/', trim($v))) {
+        if (! is_string($v) || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9 _.\-]{0,59}$/D', trim($v))) {
             throw new InvalidDocument("invalid {$what}");
         }
 
@@ -1354,7 +1354,7 @@ class DocumentSanitizer
         }
         if (isset($src['at'])) {
             $at = $this->str($src['at'], 40, 'chart source date');
-            if (! preg_match('/^\d{4}-\d{2}-\d{2}([T ][\d:.]+(Z|[+-]\d{2}:?\d{2})?)?$/', $at)) {
+            if (! preg_match('/^\d{4}-\d{2}-\d{2}([T ][\d:.]+(Z|[+-]\d{2}:?\d{2})?)?$/D', $at)) {
                 throw new InvalidDocument('invalid chart source date');
             }
             $outSrc['at'] = $at;
