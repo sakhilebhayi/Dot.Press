@@ -2,6 +2,7 @@
 
 namespace App\Services\Press\Export\Pptx;
 
+use App\Services\Press\Export\Pdf\FontRegistry;
 use App\Services\Press\Export\Support\TextMeasurer;
 use App\Services\Press\Export\Support\TextStyle;
 use App\Services\Press\Export\Support\Theme;
@@ -56,7 +57,7 @@ final class PptxText
             'justify' => 'just',
             default => 'l',
         }.'"';
-        $natural = \App\Services\Press\Export\Pdf\FontRegistry::naturalLineHeight($style['font']);
+        $natural = FontRegistry::naturalLineHeight($style['font']);
         $kids = '<a:lnSpc><a:spcPct val="'.(int) round($style['lh'] / $natural * 100000).'"/></a:lnSpc>';
         $kids .= '<a:spcBef><a:spcPts val="0"/></a:spcBef>';
         $after = $spaceAfter ? (int) round($style['ps'] * $size * 0.75 * 100) : 0;

@@ -2,6 +2,8 @@
 
 namespace App\Services\Press\Import;
 
+use App\Services\Press\Export\Support\ShapeGeometry;
+use App\Services\Press\Export\Support\TextDoc;
 use DOMDocument;
 use DOMElement;
 
@@ -418,7 +420,7 @@ final class PptxImporter
         $title = '';
         foreach ($this->els as $el) {
             if (($el['role'] ?? null) === 'title' && $el['type'] === 'text') {
-                $title = trim(\App\Services\Press\Export\Support\TextDoc::plain($el['doc'] ?? null));
+                $title = trim(TextDoc::plain($el['doc'] ?? null));
                 break;
             }
         }
@@ -1012,7 +1014,7 @@ final class PptxImporter
         $prst = Xml::attr($geom, 'prst');
         if (in_array($prst, ['wedgeRectCallout', 'wedgeRoundRectCallout'], true)) {
             // The preset's body is the whole box and its tail lies outside it; the spec's callout keeps its tail inside the box.
-            $xf['h'] = $xf['h'] / \App\Services\Press\Export\Support\ShapeGeometry::CALLOUT_BODY;
+            $xf['h'] = $xf['h'] / ShapeGeometry::CALLOUT_BODY;
         }
         $pl = $this->place($m, $xf['x'], $xf['y'], $xf['w'], $xf['h'], $xf['rot'], $xf['fh'], $xf['fv']);
         if ($geom === null && Xml::child($spPr, 'custGeom') !== null) {

@@ -6,6 +6,7 @@ use DOMElement;
 
 /**
  * Turns DrawingML colour elements into spec colours. Scheme colours without modifiers stay theme tokens (@accent, @ink,
+ *
  * @bg ...) so a theme change still recolours them; anything with a lum/tint/shade/alpha modifier becomes a hex value.
  */
 final class ColorResolver

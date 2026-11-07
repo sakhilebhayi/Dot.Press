@@ -409,6 +409,7 @@ final class TextImporter
             $top['content'][] = ['type' => 'listItem', 'content' => [$para]];
             unset($top);
         }
+
         // break the reference links before returning a plain array
         return json_decode((string) json_encode(['type' => 'doc', 'content' => $root]), true) ?: ['type' => 'doc', 'content' => [['type' => 'paragraph']]];
     }

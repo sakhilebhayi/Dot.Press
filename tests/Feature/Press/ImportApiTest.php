@@ -8,6 +8,7 @@ use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ImportApiTest extends TestCase
@@ -17,7 +18,7 @@ class ImportApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
         config(['press_export.font_dir' => storage_path('framework/testing/press-fonts')]);
     }
 

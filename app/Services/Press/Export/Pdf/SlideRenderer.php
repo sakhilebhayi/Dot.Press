@@ -28,6 +28,9 @@ final class SlideRenderer
 
     private int $slideIndex = 0;
 
+    /** @var array<string, string> gradient PNGs by their parameters */
+    private array $gradientCache = [];
+
     public function __construct(
         private Theme $theme,
         private AssetResolver $assets,
@@ -136,18 +139,23 @@ final class SlideRenderer
     /** A gradient painted with GD, clipped to the shape's outline. */
     private function gradientImg(array $fill, float $x, float $y, float $w, float $h, string $kind, float $radius): string
     {
-        [$pw, $ph, $d] = Raster::pixelSize($w, $h, 1.5);
         $stops = $this->theme->stops($fill);
         if ($stops === []) {
             return '';
         }
-        $im = Raster::gradient($pw, $ph, $stops, (float) ($fill['a'] ?? 180));
-        if (! ($kind === 'rect' && $radius <= 0)) {
-            Raster::applyMask($im, Raster::shapeMask($kind, $pw, $ph, $radius * $d));
+        $masked = ! ($kind === 'rect' && $radius <= 0);
+        // A smooth gradient needs few pixels; an outline needs enough to look clean.
+        [$pw, $ph, $d] = $masked ? Raster::pixelSize($w, $h, 1.5, 1400) : Raster::pixelSize($w, $h, 1.0, 640);
+        $key = md5(json_encode([$stops, $fill['a'] ?? 180, $pw, $ph, $kind, round($radius, 1)]));
+        if (! isset($this->gradientCache[$key])) {
+            $im = Raster::gradient($pw, $ph, $stops, (float) ($fill['a'] ?? 180));
+            if ($masked) {
+                Raster::applyMask($im, Raster::shapeMask($kind, $pw, $ph, $radius * $d));
+            }
+            $this->gradientCache[$key] = Raster::png($im);
         }
-        $png = Raster::png($im);
 
-        return $this->imgTag(['bytes' => $png, 'mime' => 'image/png'], $x, $y, $w, $h);
+        return $this->imgTag(['bytes' => $this->gradientCache[$key], 'mime' => 'image/png'], $x, $y, $w, $h);
     }
 
     /**

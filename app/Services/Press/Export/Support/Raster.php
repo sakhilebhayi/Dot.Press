@@ -206,9 +206,9 @@ final class Raster
     }
 
     /** Pixel dimensions for a box of $w x $h units: about 2 px per unit, never above MAX_SIDE. */
-    public static function pixelSize(float $w, float $h, float $density = 2.0): array
+    public static function pixelSize(float $w, float $h, float $density = 2.0, int $cap = self::MAX_SIDE): array
     {
-        $d = min($density, self::MAX_SIDE / max($w, $h, 1.0));
+        $d = min($density, $cap / max($w, $h, 1.0));
 
         return [max(1, (int) round($w * $d)), max(1, (int) round($h * $d)), $d];
     }

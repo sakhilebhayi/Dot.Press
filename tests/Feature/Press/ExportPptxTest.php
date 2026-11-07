@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Press;
 
+use App\Services\Press\Export\ArrayAssetResolver;
+use App\Services\Press\Export\ExportPreflight;
 use App\Services\Press\Export\Pptx\PptxExporter;
 use DOMDocument;
 use Tests\Support\PressPython;
@@ -221,7 +223,7 @@ class ExportPptxTest extends TestCase
         $this->assertStringContainsString('https://www.youtube.com/watch?v=dQw4w9WgXcQ', (string) $zip->getFromName('ppt/slides/_rels/slide5.xml.rels'));
         $zip->close();
         // every approximation the exporter made is a non-native entry of the preflight
-        $pre = \App\Services\Press\Export\ExportPreflight::analyze(PressSampleDeck::doc(), 'pptx', [], PressSampleDeck::assets());
+        $pre = ExportPreflight::analyze(PressSampleDeck::doc(), 'pptx', [], PressSampleDeck::assets());
         $levels = [];
         foreach ($pre['slides'] as $s) {
             foreach ($s['elements'] as $e) {
@@ -232,6 +234,30 @@ class ExportPptxTest extends TestCase
             if ($n['element'] !== null) {
                 $this->assertNotSame('native', $levels[$n['slide'].'/'.$n['element']] ?? null, 'Exporter degraded '.$n['element'].' but the preflight calls it native');
             }
+        }
+    }
+
+    public function test_elements_that_share_a_group_id_become_a_real_group(): void
+    {
+        $doc = PressSampleDeck::doc();
+        $doc['slides'] = [['id' => 'g', 'title' => 'g', 'els' => [
+            ['id' => 'solo', 'type' => 'shape', 'kind' => 'rect', 'x' => 0, 'y' => 0, 'w' => 50, 'h' => 50, 'fill' => '#ff0000'],
+            ['id' => 'a', 'type' => 'shape', 'kind' => 'rect', 'x' => 100, 'y' => 100, 'w' => 200, 'h' => 100, 'fill' => '#00ff00', 'group' => 'g1'],
+            ['id' => 'b', 'type' => 'shape', 'kind' => 'ellipse', 'x' => 400, 'y' => 300, 'w' => 100, 'h' => 100, 'fill' => '#0000ff', 'group' => 'g1'],
+            ['id' => 'lonely', 'type' => 'shape', 'kind' => 'rect', 'x' => 600, 'y' => 0, 'w' => 50, 'h' => 50, 'fill' => '#ffff00', 'group' => 'g2'],
+        ]]];
+        $this->export($doc);
+        $zip = new ZipArchive;
+        $zip->open($this->file);
+        $xml = $zip->getFromName('ppt/slides/slide1.xml');
+
+        $this->assertSame(1, substr_count($xml, '<p:grpSp>'), 'a group of one is not a group');
+        $this->assertStringContainsString('<a:off x="'.(100 * 9525).'" y="'.(100 * 9525).'"/><a:ext cx="'.(400 * 9525).'" cy="'.(300 * 9525).'"/><a:chOff x="'.(100 * 9525).'" y="'.(100 * 9525).'"/><a:chExt cx="'.(400 * 9525).'" cy="'.(300 * 9525).'"/>', $xml);
+        $this->assertSame(4, substr_count($xml, '<p:sp>'));
+        if (PressPython::bin() !== null) {
+            $info = PressPython::inspect('inspect_pptx.py', $this->file);
+            $types = array_column($info['slides'][0]['shapes'], 'type');
+            $this->assertContains('GROUP (6)', $types);
         }
     }
 
@@ -288,7 +314,7 @@ class ExportPptxTest extends TestCase
 
     public function test_missing_pictures_are_reported_not_fatal(): void
     {
-        $x = new PptxExporter(new \App\Services\Press\Export\ArrayAssetResolver);
+        $x = new PptxExporter(new ArrayAssetResolver);
         $x->render(PressSampleDeck::doc(), $this->file);
 
         $messages = array_column($x->notes, 'note');

@@ -5,11 +5,14 @@ namespace Tests\Feature\Press;
 use App\Jobs\RunDeckExport;
 use App\Models\DeckExport;
 use App\Models\User;
+use App\Services\Press\Export\ExportService;
+use App\Services\Press\Export\Pdf\FontRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\BuildsPressDecks;
+use Tests\Support\PressSampleDeck;
 use Tests\TestCase;
 
 class ExportApiTest extends TestCase
@@ -22,13 +25,13 @@ class ExportApiTest extends TestCase
         parent::setUp();
         Storage::fake('local');
         config(['press_export.font_dir' => storage_path('framework/testing/press-fonts')]);
-        \App\Services\Press\Export\Pdf\FontRegistry::reset();
+        FontRegistry::reset();
     }
 
     public function test_a_small_deck_exports_to_pdf_inside_the_request(): void
     {
         $user = $this->pressUser();
-        $deck = $this->pressDeck($user, \Tests\Support\PressSampleDeck::docWithoutVideo());
+        $deck = $this->pressDeck($user, PressSampleDeck::docWithoutVideo());
         Queue::fake();
 
         $res = $this->actingAs($user)->postJson("/api/decks/{$deck->id}/exports", ['format' => 'pdf'])->assertCreated();
@@ -59,7 +62,7 @@ class ExportApiTest extends TestCase
     public function test_a_small_deck_exports_to_pptx(): void
     {
         $user = $this->pressUser();
-        $deck = $this->pressDeck($user, \Tests\Support\PressSampleDeck::docWithoutVideo());
+        $deck = $this->pressDeck($user, PressSampleDeck::docWithoutVideo());
 
         $res = $this->actingAs($user)->postJson("/api/decks/{$deck->id}/exports", ['format' => 'pptx', 'options' => ['include_hidden' => true]])->assertCreated();
         $export = DeckExport::findOrFail($res->json('id'));
@@ -89,7 +92,7 @@ class ExportApiTest extends TestCase
         Storage::fake('local');
         $export = DeckExport::create(['deck_id' => $deck->id, 'user_id' => $user->id, 'format' => 'pdf', 'status' => 'queued', 'options' => []]);
 
-        (new RunDeckExport($export->id))->handle(app(\App\Services\Press\Export\ExportService::class));
+        (new RunDeckExport($export->id))->handle(app(ExportService::class));
 
         $export->refresh();
         $this->assertSame('done', $export->status);
@@ -233,7 +236,7 @@ class ExportApiTest extends TestCase
     public function test_exports_can_use_the_notes_option_and_skip_hidden_slides(): void
     {
         $user = $this->pressUser();
-        $deck = $this->pressDeck($user, \Tests\Support\PressSampleDeck::docWithoutVideo());
+        $deck = $this->pressDeck($user, PressSampleDeck::docWithoutVideo());
         Sanctum::actingAs($user);
 
         $with = $this->postJson("/api/decks/{$deck->id}/exports", ['format' => 'pdf', 'options' => ['notes' => true, 'include_hidden' => true]])->assertCreated();

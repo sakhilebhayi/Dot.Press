@@ -58,7 +58,7 @@ final class ZipGuard
                 throw new ImportException('A part of the file is larger than '.(int) ($limits['max_entry_bytes'] / 1048576).' MB uncompressed and was refused.');
             }
             // A tiny compressed entry that expands enormously is a zip bomb.
-            if ($st['size'] > 1048576 && $st['comp_size'] > 0 && $st['size'] / $st['comp_size'] > $limits['max_ratio']) {
+            if ($st['size'] > 1048576 && $st['comp_size'] > 0 && $limits['max_ratio'] < $st['size'] / $st['comp_size']) {
                 throw new ImportException('The file looks like a compression bomb and was refused.');
             }
             if ($st['size'] > 1048576 && $st['comp_size'] === 0) {
