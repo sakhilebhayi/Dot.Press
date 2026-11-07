@@ -1,12 +1,18 @@
 @extends('errors._ecosystem-layout', ['code' => 503])
 
-@section('icon')
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f5d573" stroke-width="1.75"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 005.4-5.4l-2.65 2.65a1.5 1.5 0 01-2.1-2.1L14.7 6.3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+@section('rail')
+    <svg class="er-rail" viewBox="0 0 640 64" fill="none" role="img" aria-label="A line of beads paused on one amber bead with the rest still hollow">
+        <line class="er-line" x1="0" y1="32" x2="640" y2="32"/>
+        <circle class="er-bead" cx="40" cy="32" r="8"/><circle class="er-bead" cx="148" cy="32" r="8"/>
+        <circle class="er-here" cx="256" cy="32" r="10"/>
+        <rect x="251" y="6" width="3" height="12" fill="var(--ink)"/><rect x="258" y="6" width="3" height="12" fill="var(--ink)"/>
+        <circle class="er-hollow" cx="364" cy="32" r="8"/><circle class="er-hollow" cx="472" cy="32" r="8"/><circle class="er-hollow" cx="580" cy="32" r="8"/>
+    </svg>
 @endsection
 
-@section('title', "We'll be right back")
-@section('message', "This platform is briefly down for scheduled maintenance — we're making some improvements behind the scenes. Check back shortly; nothing you were working on has been lost.")
+@section('title', 'Back in a moment.')
+@section('message', 'Dot.Press is down for maintenance. Anything you had already saved is kept. Try again in a few minutes.')
 
 @section('actions')
-    <a href="/" class="press" style="padding: 12px 24px; background: var(--accent); color: #180f08; font-family: var(--font-display); font-weight: 600; font-size: 15px; border-radius: 999px; text-decoration: none;">Try again</a>
+    <a href="{{ url()->current() }}" class="er-btn"><i aria-hidden="true"></i>Try again</a>
 @endsection

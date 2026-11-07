@@ -1,15 +1,19 @@
 @extends('errors._ecosystem-layout', ['code' => 500])
 
-@section('icon')
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e2574c" stroke-width="1.75"><path d="M12 3l9.5 16.5H2.5L12 3z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10v4" stroke-linecap="round"/><circle cx="12" cy="17" r="0.15" fill="#e2574c" stroke="none"/></svg>
+@section('rail')
+    <svg class="er-rail" viewBox="0 0 640 64" fill="none" role="img" aria-label="A line of beads with a break in the rail and a square mark where it breaks">
+        <line class="er-line" x1="0" y1="32" x2="270" y2="32"/>
+        <line class="er-line" x1="370" y1="32" x2="640" y2="32"/>
+        <circle class="er-bead" cx="40" cy="32" r="8"/><circle class="er-bead" cx="148" cy="32" r="8"/>
+        <rect class="er-bad" x="298" y="18" width="28" height="28" rx="3" transform="rotate(45 312 32)"/>
+        <circle class="er-hollow" cx="472" cy="32" r="8"/><circle class="er-hollow" cx="580" cy="32" r="8"/>
+    </svg>
 @endsection
 
-@section('title', 'Something went wrong on our end')
-@section('message', "That's on us, not you — an unexpected error interrupted this page. Try again in a moment; if it keeps happening, let us know and we'll take a look.")
+@section('title', 'Something broke on our side.')
+@section('message', 'That is our fault, not yours. Try again in a moment. If it keeps happening, tell us through InfoDot and mention the time it happened.')
 
 @section('actions')
-    <a href="/" class="press" style="padding: 12px 24px; background: var(--accent); color: #180f08; font-family: var(--font-display); font-weight: 600; font-size: 15px; border-radius: 999px; text-decoration: none;">Go home</a>
-    @if (Route::has('contact'))
-    <a href="{{ route('contact') }}" class="press link-underline" style="padding: 12px 24px; color: var(--ink); font-size: 15px; text-decoration: none;">Contact support</a>
-    @endif
+    <a href="{{ url()->current() }}" class="er-btn"><i aria-hidden="true"></i>Try again</a>
+    <a href="/" class="er-link">Go to the start</a>
 @endsection

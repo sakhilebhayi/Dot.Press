@@ -1,13 +1,17 @@
 @extends('errors._ecosystem-layout', ['code' => 419])
 
-@section('icon')
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f5d573" stroke-width="1.75"><circle cx="12" cy="13" r="8" stroke-linecap="round"/><path d="M12 9v4l2.5 2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke-linecap="round"/></svg>
+@section('rail')
+    <svg class="er-rail" viewBox="0 0 640 64" fill="none" role="img" aria-label="A line of beads that turns into a dotted line and stops">
+        <line class="er-line" x1="0" y1="32" x2="300" y2="32"/>
+        <line class="er-dash" x1="300" y1="32" x2="640" y2="32"/>
+        <circle class="er-bead" cx="40" cy="32" r="8"/><circle class="er-bead" cx="148" cy="32" r="8"/><circle class="er-hollow" cx="256" cy="32" r="8"/>
+    </svg>
 @endsection
 
-@section('title', 'Your session timed out')
-@section('message', 'For your security, this form expires after a while of inactivity. Nothing was lost — go back and try submitting again.')
+@section('title', 'This page timed out.')
+@section('message', 'A form expires after a while without activity, to protect your account. This attempt was not saved. Go back and send it again.')
 
 @section('actions')
-    <a href="{{ url()->previous() === url()->current() ? '/' : url()->previous() }}" class="press" style="padding: 12px 24px; background: var(--accent); color: #180f08; font-family: var(--font-display); font-weight: 600; font-size: 15px; border-radius: 999px; text-decoration: none;">Go back and retry</a>
-    <a href="/" class="press link-underline" style="padding: 12px 24px; color: var(--ink); font-size: 15px; text-decoration: none;">Go home</a>
+    <a href="{{ url()->previous() === url()->current() ? '/' : url()->previous() }}" class="er-btn"><i aria-hidden="true"></i>Go back and try again</a>
+    <a href="/" class="er-link">Go to the start</a>
 @endsection

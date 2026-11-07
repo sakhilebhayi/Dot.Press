@@ -1,19 +1,23 @@
 @extends('errors._ecosystem-layout', ['code' => 404])
 
-@section('icon')
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f0c33a" stroke-width="1.75"><circle cx="11" cy="11" r="7" stroke-linecap="round"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/><path d="M9 9.5c0-1.1.9-1.75 2-1.75s2 .65 2 1.75c0 .9-.6 1.3-1.2 1.7-.5.35-.8.7-.8 1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="14.75" r="0.15" fill="#f0c33a" stroke="none"/></svg>
+@section('rail')
+    <svg class="er-rail" viewBox="0 0 640 64" fill="none" role="img" aria-label="A line with empty places for beads and no beads on it">
+        <line class="er-line" x1="0" y1="32" x2="640" y2="32"/>
+        <circle class="er-slot" cx="40" cy="32" r="8"/><circle class="er-slot" cx="148" cy="32" r="8"/><circle class="er-slot" cx="256" cy="32" r="8"/>
+        <circle class="er-slot" cx="364" cy="32" r="8"/><circle class="er-slot" cx="472" cy="32" r="8"/><circle class="er-slot" cx="580" cy="32" r="8"/>
+    </svg>
 @endsection
 
-@section('title', "We couldn't find that page")
-@section('message', "The page you're looking for may have moved, been renamed, or never existed. Double-check the link, or head somewhere we know works.")
+@section('title', "Nothing on this line yet.")
+@section('message', "The page you asked for is not here. It may have moved, or the link may have a typo.")
 
 @section('actions')
-    <a href="/" class="press" style="padding: 12px 24px; background: var(--accent); color: #180f08; font-family: var(--font-display); font-weight: 600; font-size: 15px; border-radius: 999px; text-decoration: none;">Go home</a>
+    <a href="/" class="er-btn"><i aria-hidden="true"></i>Go to the start</a>
     @auth
-    <a href="{{ route('dashboard') }}" class="press link-underline" style="padding: 12px 24px; color: var(--ink); font-size: 15px; text-decoration: none;">Go to dashboard</a>
+    <a href="{{ route('dashboard') }}" class="er-link">Open your library</a>
     @else
         @if (Route::has('login'))
-    <a href="{{ route('login') }}" class="press link-underline" style="padding: 12px 24px; color: var(--ink); font-size: 15px; text-decoration: none;">Sign in</a>
+    <a href="{{ route('login') }}" class="er-link">Sign in</a>
         @endif
     @endauth
 @endsection
