@@ -103,6 +103,7 @@ POST /api/decks/{deck}/ops
 | `el.set` | `slide id p` (`p` is a shallow patch: a key set to `null` deletes the key) | change fields of an element |
 | `el.remove` | `slide id` | remove |
 | `el.order` | `slide ids` (full id list, bottom to top) | set z-order. Ids the server holds that are missing from the list stay on top in their old order |
+| `deck.reload` | none | written to the log by the server (a version restore, an import) to tell every other client to reload the whole document. Clients never send it |
 | `el.move` | `from id to index?` | move an element to another slide |
 
 Rules: a change to an element that no longer exists is skipped and reported in `skipped`, never an error. Two people changing different elements, or different keys of one element, never conflict. The same key changed twice: the later operation wins. Every accepted batch gets a `seq` in the append-only `deck_changes` log. Others read it with `GET /api/decks/{deck}/changes?after=<seq>` (long poll friendly, returns `{seq, changes:[{seq, client, user, ops}]}`) and apply the same ops locally. If the log no longer reaches back to `after`, the answer is `{"stale": true}` and the client reloads the document.
