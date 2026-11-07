@@ -432,6 +432,7 @@ defineExpose({ go, pos, toggleGrid, setPos });
             <button v-if="canNotes" class="pp-btn" type="button" :aria-pressed="notesOn" aria-label="Speaker notes" title="Speaker notes (N)" @click="toggleNotes"><ChromeIcon name="notes" /></button>
             <button class="pp-btn pp-hide-sm" type="button" :aria-pressed="cover === 'black'" aria-label="Black screen" title="Black screen (B)" @click="toggleCover('black')"><ChromeIcon name="black" /></button>
             <button class="pp-btn" type="button" :aria-pressed="fullscreen" :aria-label="fullscreen ? 'Leave full screen' : 'Full screen'" title="Full screen (F)" @click="toggleFullscreen"><ChromeIcon :name="fullscreen ? 'fullscreen-exit' : 'fullscreen'" /></button>
+            <slot name="actions" />
             <template v-if="exitUrl">
                 <span class="pp-sep" aria-hidden="true"></span>
                 <button class="pp-btn" type="button" aria-label="Close" title="Close (Esc)" @click="exit"><ChromeIcon name="close" /></button>

@@ -1,0 +1,12 @@
+import { launch, context, login, api, assert, summary } from './lib.mjs';
+import { buildAcceptanceDeck } from './fixture.mjs';
+const browser = await launch();
+const ctx = await context(browser);
+const page = await ctx.newPage();
+await login(page);
+const d = await buildAcceptanceDeck(page);
+console.log(JSON.stringify(d));
+const doc = await api(page, 'GET', `/api/decks/${d.id}/document`, null, {raw:true});
+console.log(doc.json.slides.map(s=>[s.id,s.title,s.hidden,s.els.length, s.transition&&s.transition.type]));
+summary('smoke2');
+await browser.close();

@@ -79,6 +79,7 @@ Route::middleware(PrivateShareResponse::class)
         Route::get('/', [SharedDeckController::class, 'show'])->name('shared.show');
         Route::post('unlock', [SharedDeckController::class, 'unlock'])->name('shared.unlock');
         Route::get('document', [SharedDeckController::class, 'document'])->name('shared.document');
+        Route::get('print', [SharedDeckController::class, 'print'])->name('shared.print');
         Route::get('asset/{asset}', [SharedDeckController::class, 'asset'])->middleware('throttle:600,1,press-share-asset')->name('shared.asset');
     });
 

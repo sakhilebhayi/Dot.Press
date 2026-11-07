@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\DeckComment;
 use App\Models\DeckReview;
 use App\Models\Project;
+use App\Models\Slide;
 use App\Services\Press\Sharing;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -285,5 +286,91 @@ class AccessPublicLinkTest extends AccessTestCase
         $this->get("/s/{$this->token}/asset/{$asset->id}")->assertForbidden();
         $this->postJson("/s/{$this->token}/unlock", ['password' => 'open sesame'])->assertOk();
         $this->get("/s/{$this->token}/asset/{$asset->id}")->assertOk();
+    }
+
+    // ---- allow download (the print view for link visitors) and hidden slides ---------------------------------
+
+    private function addHiddenAndSecondSlides(): void
+    {
+        Slide::create([
+            'deck_id' => $this->deck->id, 'title' => 'Hidden backup', 'notes' => 'HIDDEN-NOTE', 'sort_order' => 1, 'hidden' => true,
+            'canvas_state' => ['elements' => []], 'els' => [['id' => 'hx', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'doc' => ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'HIDDEN-CONTENT']]]]]]],
+        ]);
+        Slide::create(['deck_id' => $this->deck->id, 'title' => 'Third', 'notes' => '', 'sort_order' => 2, 'canvas_state' => ['elements' => []], 'els' => []]);
+    }
+
+    public function test_hidden_slides_are_not_sent_to_a_guest_at_all(): void
+    {
+        $this->addHiddenAndSecondSlides();
+
+        $page = $this->get("/s/{$this->token}");
+        $page->assertInertia(fn (Assert $p) => $p->has('doc.slides', 2)->where('doc.deck.slide_order', fn ($ids) => count($ids) === 2));
+        $this->assertStringNotContainsString('HIDDEN-CONTENT', $page->getContent());
+        $this->assertStringNotContainsString('HIDDEN-NOTE', $page->getContent());
+        $this->assertStringNotContainsString('HIDDEN-CONTENT', $this->getJson("/s/{$this->token}/document")->getContent());
+    }
+
+    public function test_a_picture_only_a_hidden_slide_uses_is_not_served_to_a_guest(): void
+    {
+        $asset = $this->storeAsset('abcdefghij');
+        Slide::create([
+            'deck_id' => $this->deck->id, 'title' => 'Hidden', 'sort_order' => 1, 'hidden' => true, 'canvas_state' => ['elements' => []],
+            'els' => [['id' => 'im', 'type' => 'image', 'x' => 0, 'y' => 0, 'w' => 10, 'h' => 10, 'src' => ['asset' => $asset->id]]],
+        ]);
+
+        $this->get("/s/{$this->token}/asset/{$asset->id}")->assertNotFound();
+        $this->assertArrayNotHasKey((string) $asset->id, $this->getJson("/s/{$this->token}/document")->json('assets'));
+    }
+
+    public function test_the_print_view_is_404_unless_downloads_are_allowed(): void
+    {
+        $this->get("/s/{$this->token}/print")->assertNotFound();
+
+        $this->deck->forceFill(['share_allow_download' => true])->save();
+        $this->get("/s/{$this->token}/print")->assertOk();
+    }
+
+    public function test_the_guest_print_view_has_no_notes_hidden_slides_or_internal_state(): void
+    {
+        $this->deck->forceFill(['share_allow_download' => true])->save();
+        $this->addHiddenAndSecondSlides();
+        DeckComment::create(['deck_id' => $this->deck->id, 'user_id' => $this->owner->id, 'body' => 'internal remark']);
+
+        $response = $this->get("/s/{$this->token}/print")->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->component('Press/Print')
+            ->has('slides', 2)
+            ->where('slides.0.notes', '')
+            ->where('options.notes', false)
+            ->where('options.hidden', false)
+            ->where('backUrl', "/s/{$this->token}"));
+
+        foreach (['secret speaker notes', 'HIDDEN-NOTE', 'HIDDEN-CONTENT', 'internal remark', 'share_password', 'Olive Owner'] as $leak) {
+            $this->assertStringNotContainsString($leak, $response->getContent(), "print view leaked {$leak}");
+        }
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+
+        // the print view never takes ?notes=1 or ?hidden=1 from a guest
+        $this->get("/s/{$this->token}/print?notes=1&hidden=1")->assertInertia(fn (Assert $p) => $p->has('slides', 2)->where('options.notes', false));
+    }
+
+    public function test_the_guest_print_view_uses_this_links_asset_route_and_respects_the_password(): void
+    {
+        $asset = $this->storeAsset('abcdefghij');
+        $this->useAsset($asset);
+        $this->deck->forceFill(['share_allow_download' => true])->save();
+        $this->lock();
+
+        $this->get("/s/{$this->token}/print")->assertRedirect("/s/{$this->token}");
+
+        $this->postJson("/s/{$this->token}/unlock", ['password' => 'open sesame'])->assertOk();
+        $this->get("/s/{$this->token}/print")->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->where("assets.{$asset->id}.url", route('shared.asset', ['token' => $this->token, 'asset' => $asset->id])));
+    }
+
+    public function test_the_print_view_of_a_dead_link_is_404(): void
+    {
+        $this->deck->forceFill(['share_allow_download' => true, 'share_expires_at' => now()->subMinute()])->save();
+        $this->get("/s/{$this->token}/print")->assertNotFound();
+        $this->get('/s/'.str_repeat('q', 40).'/print')->assertNotFound();
     }
 }

@@ -17,6 +17,7 @@ const props = defineProps({
     assets: { type: Object, default: () => ({}) },
     options: { type: Object, default: () => ({ hidden: false, notes: false }) },
     backUrl: { type: String, default: '/dashboard' },
+    backLabel: { type: String, default: 'Back to editor' },
 });
 
 const W = computed(() => Math.max(1, Math.round(+props.deck?.w || 1920)));
@@ -105,7 +106,7 @@ const statusText = computed(() => ({
                 </p>
             </div>
             <div class="prt-act">
-                <a :href="backUrl" class="pr-btn">Back to editor</a>
+                <a :href="backUrl" class="pr-btn">{{ backLabel }}</a>
                 <button type="button" class="pr-btn pr-btn--primary" :disabled="slideCount === 0" @click="print">Print or save as PDF</button>
             </div>
             <p class="prt-hint">{{ hint }}</p>
