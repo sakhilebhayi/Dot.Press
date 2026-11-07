@@ -33,7 +33,8 @@ final class Kpis
 
                 continue;
             }
-            $nums = array_values(array_filter(Numbers::find($s), fn ($n) => ! ($n['value'] >= 1900 && $n['value'] <= 2100 && ! $n['pct'] && ! $n['cur'] && ! $n['mag'])));
+            // Years and bare small counts ("5 steps", "Point 3") are not headline figures.
+            $nums = array_values(array_filter(Numbers::find($s), fn ($n) => $n['pct'] || $n['cur'] || $n['mag'] || ($n['value'] > 20 && ! ($n['value'] >= 1900 && $n['value'] <= 2100))));
             if (count($nums) !== 1) {
                 continue;
             }

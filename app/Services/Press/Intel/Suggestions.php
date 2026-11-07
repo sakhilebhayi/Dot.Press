@@ -145,7 +145,8 @@ final class Suggestions
             return $el['has_text'] ? [$el] : [];
         }
 
-        return array_values(array_filter($ctx->textEls($slide), fn ($e) => $e['type'] === 'text' && ! in_array($e['role'], ['footer', 'number', 'caption'], true)));
+        return array_values(array_filter($ctx->textEls($slide), fn ($e) => $e['type'] === 'text' && ! in_array($e['role'], ['title', 'footer', 'number', 'caption'], true)
+            && ! ($slide['title_el'] !== null && $slide['title_el']['id'] === $e['id'])));
     }
 
     /** @param  list<array{text: string, list: ?string, depth: int}>  $blocks */

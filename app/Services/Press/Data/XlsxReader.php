@@ -318,8 +318,16 @@ final class XlsxReader
         $rowIndex = 0;
 
         $cell = null;
+        $inIs = false;
         while (@$r->read()) {
             if ($r->nodeType === XMLReader::ELEMENT) {
+                if ($inIs) {
+                    if ($r->localName === 't' && ! $r->isEmptyElement && $cell !== null) {
+                        $cell['is'] = ($cell['is'] ?? '').$r->readString();
+                    }
+
+                    continue;
+                }
                 if ($r->localName === 'row') {
                     $rowIndex = $r->getAttribute('r') !== null ? (int) $r->getAttribute('r') : $rowIndex + 1;
                     $rowCells = [];
@@ -342,10 +350,13 @@ final class XlsxReader
                 } elseif ($cell !== null && $r->localName === 'v' && ! $r->isEmptyElement) {
                     $cell['v'] = $r->readString();
                 } elseif ($cell !== null && $r->localName === 'is' && ! $r->isEmptyElement) {
-                    $cell['is'] = trim(strip_tags($r->readInnerXml()));
+                    $inIs = true;
+                    $cell['is'] = '';
                 }
             } elseif ($r->nodeType === XMLReader::END_ELEMENT) {
-                if ($r->localName === 'c' && $cell !== null) {
+                if ($r->localName === 'is') {
+                    $inIs = false;
+                } elseif ($r->localName === 'c' && $cell !== null) {
                     if ($cell['col'] >= $maxCols) {
                         $truncCols = true;
                     } else {

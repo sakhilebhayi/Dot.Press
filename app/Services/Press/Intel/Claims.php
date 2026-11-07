@@ -27,6 +27,10 @@ final class Claims
         'consolidate', 'streamline', 'optimise', 'optimize', 'prioritise', 'prioritize', 'ensure', 'guarantee', 'commit', 'promise', 'warn', 'recommend', 'propose',
         'face', 'suffer', 'struggle', 'lack', 'miss', 'wait', 'delay', 'defer', 'extend', 'shorten', 'lengthen', 'happen', 'occur', 'emerge', 'appear', 'look',
         'sit', 'stand', 'rest', 'flow', 'sum', 'exist', 'differ', 'compare', 'match', 'fit', 'suit', 'benefit', 'profit', 'pay', 'outweigh', 'overtake', 'undercut',
+        'prefer', 'like', 'love', 'trust', 'understand', 'complain', 'appreciate', 'enjoy', 'handle', 'manage', 'process', 'produce', 'generate', 'consume', 'contribute', 'perform',
+        'identify', 'highlight', 'demonstrate', 'illustrate', 'present', 'describe', 'explain', 'analyse', 'analyze', 'underperform', 'worsen', 'deteriorate', 'stabilise', 'stabilize',
+        'recover', 'rebound', 'surge', 'jump', 'spike', 'plunge', 'plummet', 'soar', 'climb', 'dip', 'decline', 'narrow', 'widen', 'tighten', 'ease', 'peak', 'complete', 'sign',
+        'attract', 'retain', 'engage', 'convert', 'close', 'open', 'receive', 'pass', 'fail', 'score', 'rank', 'rate', 'reflect', 'signal', 'point', 'call', 'ask', 'answer', 'respond',
     ];
 
     private const IRREGULAR = ['grew', 'grown', 'rose', 'risen', 'fell', 'fallen', 'lost', 'won', 'led', 'drove', 'driven', 'met', 'beat', 'beaten', 'made', 'built', 'ran', 'sold', 'bought',
@@ -95,10 +99,19 @@ final class Claims
             return true;
         }
         $verbs = self::verbs();
-        foreach ($words as $w) {
-            if (isset($verbs[$w])) {
-                return true;
+        if (count($words) < 2) {
+            return false;
+        }
+        foreach ($words as $i => $w) {
+            if (! isset($verbs[$w])) {
+                continue;
             }
+            // "Costs overview": a plural noun that looks like a verb in first place is not a statement.
+            if ($i === 0 && str_ends_with($w, 's') && count($words) < 4) {
+                continue;
+            }
+
+            return true;
         }
         // "Costs up 12%" has no listed verb but carries a figure with a direction.
         if (preg_match('/\d/', $title) && count($words) >= 3) {

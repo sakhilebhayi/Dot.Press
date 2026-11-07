@@ -240,6 +240,15 @@ final class Storyteller
                     break;
                 }
             }
+            // A slide whose own title names the beat covers it even when it sits out of order (the order is reported separately).
+            if (! in_array($b, $covered, true)) {
+                foreach ($info as $s) {
+                    if (Frameworks::beatScore($s['titleLower'], $s['titleStems'], $beat) >= 1) {
+                        $covered[] = $b;
+                        break;
+                    }
+                }
+            }
         }
         if ($fid === 'free') {
             $covered = $this->freeCoverage($info);
@@ -310,7 +319,7 @@ final class Storyteller
         }
         $checks[] = $purpose !== null
             ? ['id' => 'purpose_early', 'label' => 'Purpose stated early', 'status' => 'ok', 'detail' => 'Slide '.$purpose['slide']['index'].' states what the talk is for.', 'slides' => [$purpose['slide']['id']]]
-            : ['id' => 'purpose_early', 'label' => 'Purpose stated early', 'status' => count($ctx->textEls($info[0]['slide'])) >= 2 ? 'weak' : 'missing', 'detail' => 'None of the first three slides says what the talk is for or why it matters now. Add one sentence stating the purpose near the start.', 'slides' => [$info[0]['slide']['id']]];
+            : ['id' => 'purpose_early', 'label' => 'Purpose stated early', 'status' => ($info[0]['slide']['layout'] === 'title' && count($ctx->textEls($info[0]['slide'])) >= 2) ? 'weak' : 'missing', 'detail' => 'None of the first three slides says what the talk is for or why it matters now. Add one sentence stating the purpose near the start.', 'slides' => [$info[0]['slide']['id']]];
 
         // Progression (details filled in by the caller from the ordering analysis)
         $checks[] = ['id' => 'logical_progression', 'label' => 'Logical progression', 'status' => 'ok', 'detail' => 'The slides follow the order of the structure.', 'slides' => []];
@@ -346,9 +355,7 @@ final class Storyteller
         $terms = fn (array $items) => array_count_values(array_merge(...array_map(fn ($s) => Text::contentWords($s['title'].' '.$s['body']), $items) ?: [[]]));
         $open = $terms(array_slice($info, 0, 2));
         $close = $terms(array_slice($info, -2));
-        arsort($open);
-        $openTop = array_keys(array_slice($open, 0, 6, true));
-        $shared = array_values(array_intersect($openTop, array_keys($close)));
+        $shared = array_values(array_intersect(array_keys($open), array_keys($close)));
         $checks[] = $n < 4
             ? ['id' => 'consistent_messaging', 'label' => 'Consistent messaging', 'status' => 'ok', 'detail' => 'Too short to compare the opening with the close.', 'slides' => []]
             : ['id' => 'consistent_messaging', 'label' => 'Consistent messaging', 'status' => $shared !== [] ? 'ok' : 'weak',
@@ -443,7 +450,21 @@ final class Storyteller
                 }
             }
             if ($target === null) {
-                continue;
+                // No slide of its beat to follow: go just before the first slide that belongs to a later beat.
+                $ob = $this->beatIndex($beats, $o['beat']);
+                foreach ($titleBeat as $i => $b) {
+                    if ($b !== null && $b > $ob && $slides[$i]['id'] !== $o['slide']) {
+                        $target = $i === 0 ? false : $slides[$i - 1]['id'];
+                        if ($target === $o['slide']) {
+                            $target = $i - 1 > 0 ? $slides[$i - 2]['id'] : false;
+                        }
+                        break;
+                    }
+                }
+                if ($target === null) {
+                    continue;
+                }
+                $target = $target === false ? null : $target;
             }
             $moves[] = Ops::slideMove($o['slide'], $target);
         }

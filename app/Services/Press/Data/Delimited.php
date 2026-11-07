@@ -38,7 +38,7 @@ final class Delimited
             if (count($lines) === 1 && $d !== "\t") {
                 $consistency *= 0.5;
             }
-            if (count($lines) >= 2 && $consistency < 0.6) {
+            if (count($lines) >= 2 && $consistency < 0.8) {
                 continue;
             }
             $score = $consistency * (1 + min($modal, 6) / 10);

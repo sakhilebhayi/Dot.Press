@@ -114,7 +114,7 @@ final class Spine
                 if (in_array($s['layout'], ['section', 'closing'], true) || $prev['layout'] === 'title') {
                     $startsNew = true;
                 } elseif ($prev['layout'] !== 'section' && $terms !== [] && $vocab !== []) {
-                    $startsNew = count(array_intersect_key($terms, $vocab)) / min(count($terms), count($vocab)) < 0.1;
+                    $startsNew = count(array_intersect_key($terms, $vocab)) / min(count($terms), count($vocab)) < 0.2;
                 }
                 if (! $startsNew && count($cur) >= 6) {
                     $startsNew = true;

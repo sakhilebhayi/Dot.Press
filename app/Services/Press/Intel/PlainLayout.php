@@ -99,7 +99,7 @@ final class PlainLayout
                     $add(['type' => 'shape', 'kind' => 'round', 'x' => $x, 'y' => $y0, 'w' => $cardW, 'h' => round($ch * 0.5), 'fill' => '@surface', 'radius' => 16]);
                     $add($text([$card['value']], $x, $y0 + round($ch * 0.08), $cardW, round($ch * 0.22), $H * 0.07, ['role' => 'kpi', 'font' => '@heading', 'weight' => 700, 'align' => 'center', 'valign' => 'middle']));
                     $label = $card['label'].(isset($card['delta']) ? ' ('.$card['delta'].')' : '');
-                    $add($text([$label], $x, $y0 + round($ch * 0.31), $cardW, round($ch * 0.16), $H * 0.03, ['role' => 'caption', 'color' => '@muted', 'align' => 'center']));
+                    $add($text([$label], $x, $y0 + round($ch * 0.31), $cardW, round($ch * 0.16), $H * 0.03, ['role' => 'caption', 'color' => '@ink', 'align' => 'center']));
                 }
                 if (($slots['bullets'] ?? []) !== []) {
                     $add($text($bullets($slots['bullets']), $mx, $y0 + round($ch * 0.56), $cw, round($ch * 0.44), $bodySize * 0.9, ['role' => 'body']));

@@ -9,6 +9,7 @@ use App\Services\Press\Intel\Frameworks;
 use App\Services\Press\Intel\Numbers;
 use App\Services\Press\Intel\OutlineGenerator;
 use App\Services\Press\Intel\Text;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class OutlineGeneratorTest extends TestCase
@@ -291,13 +292,13 @@ class OutlineGeneratorTest extends TestCase
     {
         config()->set('ai.provider', 'anthropic');
         config()->set('ai.anthropic.api_key', 'sk-test');
-        \Illuminate\Support\Facades\Http::fake(['api.anthropic.com/*' => \Illuminate\Support\Facades\Http::response(['error' => 'overloaded'], 529)]);
+        Http::fake(['api.anthropic.com/*' => Http::response(['error' => 'overloaded'], 529)]);
         $o = app(OutlineGenerator::class)->generate(['brief' => 'Investor pitch', 'source' => $this->fixture('pitch.txt'), 'length' => 6]);
         $this->assertSame('local', $o['mode']);
         $this->assertTrue($o['degraded']);
         $this->assertStringContainsString('529', $o['degraded_reason']);
         $this->assertTrue($o['model_called']);
-        \Illuminate\Support\Facades\Http::assertSentCount(2);
+        Http::assertSentCount(2);
         $this->assertNoInventedNumbers($o, $this->fixture('pitch.txt'), 'Investor pitch');
     }
 
@@ -310,7 +311,7 @@ class OutlineGeneratorTest extends TestCase
             ['id' => 'market', 'slides' => [['title' => 'Nine and a half thousand sites are ready', 'kind' => 'hologram', 'slots' => ['bullets' => ['9,500 sites ready in three years']]]]],
             ['id' => 'financials', 'slides' => [['title' => 'Financials', 'kind' => 'bullets', 'slots' => ['bullets' => []], 'notes' => 'Needs your evidence: revenue figures']]],
         ]];
-        \Illuminate\Support\Facades\Http::fake(['api.anthropic.com/*' => \Illuminate\Support\Facades\Http::response(['content' => [['type' => 'text', 'text' => json_encode($reply)]], 'usage' => ['input_tokens' => 100, 'output_tokens' => 50]])]);
+        Http::fake(['api.anthropic.com/*' => Http::response(['content' => [['type' => 'text', 'text' => json_encode($reply)]], 'usage' => ['input_tokens' => 100, 'output_tokens' => 50]])]);
         $o = app(OutlineGenerator::class)->generate(['brief' => 'Investor pitch', 'source' => $this->fixture('pitch.txt'), 'framework' => 'opportunity-market-strategy-financials', 'length' => 8]);
 
         $this->assertSame('ai', $o['mode']);
@@ -331,12 +332,12 @@ class OutlineGeneratorTest extends TestCase
         config()->set('ai.provider', 'anthropic');
         config()->set('ai.anthropic.api_key', 'sk-test');
         $good = ['title' => 'T', 'beats' => [['id' => 'problem', 'slides' => [['title' => 'Delays cost money', 'kind' => 'bullets', 'slots' => ['bullets' => ['Delays']]]]]]];
-        \Illuminate\Support\Facades\Http::fake(['api.anthropic.com/*' => \Illuminate\Support\Facades\Http::sequence()
+        Http::fake(['api.anthropic.com/*' => Http::sequence()
             ->push(['content' => [['type' => 'text', 'text' => 'Sure! Here is your outline...']]])
             ->push(['content' => [['type' => 'text', 'text' => json_encode($good)]]])]);
         $o = app(OutlineGenerator::class)->generate(['brief' => 'Update', 'source' => 'Delays cost money.', 'length' => 5]);
         $this->assertSame('ai', $o['mode']);
-        \Illuminate\Support\Facades\Http::assertSentCount(2);
+        Http::assertSentCount(2);
     }
 
     public function test_model_mode_can_be_switched_off_by_config(): void
@@ -344,11 +345,11 @@ class OutlineGeneratorTest extends TestCase
         config()->set('ai.provider', 'anthropic');
         config()->set('ai.anthropic.api_key', 'sk-test');
         config()->set('press-ai.model_mode', false);
-        \Illuminate\Support\Facades\Http::fake();
+        Http::fake();
         $o = app(OutlineGenerator::class)->generate(['brief' => 'Update', 'source' => 'Delays cost money.', 'length' => 5]);
         $this->assertSame('local', $o['mode']);
         $this->assertFalse($o['degraded']);
-        \Illuminate\Support\Facades\Http::assertNothingSent();
+        Http::assertNothingSent();
     }
 
     public function test_the_mock_provider_never_calls_a_model(): void

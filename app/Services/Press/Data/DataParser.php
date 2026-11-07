@@ -48,7 +48,15 @@ final class DataParser
             ];
         }
 
+        if ($ext === 'xlsx') {
+            throw new DataImportException('This is not an .xlsx file.', 'not_xlsx');
+        }
+
         $raw = (string) file_get_contents($path);
+        $utf16 = str_starts_with($raw, "\xFF\xFE") || str_starts_with($raw, "\xFE\xFF");
+        if (! $utf16 && str_contains($raw, "\0")) {
+            throw new DataImportException('This file looks binary, not text.', 'not_text');
+        }
 
         return $this->parseText($this->toUtf8($raw), $ext === 'tsv' ? "\t" : null, $ext);
     }
