@@ -46,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('decks/{deck}/presence', [PresenceController::class, 'store'])->middleware('throttle:press-presence');
 
     Route::get('decks/{deck}/versions', [DeckVersionController::class, 'index'])->middleware('throttle:press-read');
-    Route::post('decks/{deck}/versions', [DeckVersionController::class, 'store'])->middleware('throttle:press-read');
+    Route::post('decks/{deck}/versions', [DeckVersionController::class, 'store'])->middleware('throttle:10,1,press-version');
     Route::get('decks/{deck}/versions/{version}', [DeckVersionController::class, 'show'])->whereNumber('version')->middleware('throttle:press-read');
     Route::post('decks/{deck}/versions/{version}/restore', [DeckVersionController::class, 'restore'])->whereNumber('version')->middleware('throttle:press-read');
 

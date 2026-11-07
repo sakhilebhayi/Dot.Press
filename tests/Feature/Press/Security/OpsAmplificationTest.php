@@ -74,4 +74,27 @@ class OpsAmplificationTest extends AccessTestCase
         $ops[] = ['op' => 'slide.add', 'tid' => 'n', 'slide' => ['title' => 'Fine']];
         $this->ops($ops, 'k0')->assertOk()->assertJsonPath('skipped', []);
     }
+
+    public function test_saving_named_versions_is_limited_in_rate_and_in_number(): void
+    {
+        // rate: more than 10 a minute from one person is refused
+        $codes = [];
+        for ($i = 0; $i < 14; $i++) {
+            $codes[] = $this->actingAs($this->editor)->postJson("/api/decks/{$this->deck->id}/versions", ['label' => "v{$i}"])->status();
+        }
+        $this->assertSame(10, count(array_filter($codes, fn ($c) => $c === 201)));
+        $this->assertContains(429, $codes);
+    }
+
+    public function test_a_deck_keeps_at_most_two_hundred_named_versions(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        for ($i = 0; $i < 200; $i++) {
+            \App\Services\Press\VersionService::snapshot($this->deck, $this->editor, 'manual', "v{$i}");
+        }
+
+        $this->actingAs($this->editor)->postJson("/api/decks/{$this->deck->id}/versions", ['label' => 'one more'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('label');
+    }
 }
