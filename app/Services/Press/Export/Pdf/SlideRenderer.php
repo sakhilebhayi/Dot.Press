@@ -244,7 +244,9 @@ final class SlideRenderer
         }
         $b = Els::box($el);
         $html = RichTextHtml::render($paras, $style, $this->theme, $scale, $b['op'] >= 0.999 ? 1.0 : 1.0);
-        $pos = 'position:absolute;left:'.self::n($x + $pad).'px;top:'.self::n($y + $pad).'px;width:'.self::n($iw).'px;height:'.self::n($ih).'px;';
+        // DomPDF seats the first baseline lower in the line box than a browser does: move the text up to match the editor.
+        $shift = FontRegistry::baselineShift($style['font'], $style['lh']) * $style['size'] * $scale;
+        $pos = 'position:absolute;left:'.self::n($x + $pad).'px;top:'.self::n($y + $pad + $shift).'px;width:'.self::n($iw).'px;height:'.self::n($ih).'px;';
         if ($style['valign'] === 'top') {
             return '<div style="'.$pos.'">'.$html.'</div>';
         }
@@ -492,11 +494,13 @@ final class SlideRenderer
             'end' => $t['x'] - $boxW,
             default => $t['x'],
         };
-        $top = $t['y'] - $size * 0.96;
+        $m = FontRegistry::vmetrics($this->theme->body);
+        // The line box is 1.25 x size tall and DomPDF puts the baseline at 0.88 x (ascent + descent) x line height.
+        $top = $t['y'] - 0.88 * ($m['asc'] + $m['desc']) * 1.25 * $size;
         $css = 'position:absolute;white-space:nowrap;left:'.self::n($left).'px;top:'.self::n($top).'px;width:'.self::n($boxW).'px;font-size:'.self::n($size).'px;line-height:'.self::n($size * 1.25).'px;text-align:'.($anchor === 'middle' ? 'center' : ($anchor === 'end' ? 'right' : 'left')).';color:'.($this->theme->css($t['color'] ?? '@ink') ?? '#000').';font-family:'.RichTextHtml::family($this->theme->body).';font-weight:'.(! empty($t['bold']) ? 'bold' : 'normal').';';
         if (! empty($t['rot'])) {
             $ox = $anchor === 'middle' ? $boxW / 2 : ($anchor === 'end' ? $boxW : 0);
-            $css .= 'transform:rotate('.self::n((float) $t['rot']).'deg);transform-origin:'.self::n($ox).'px '.self::n($size * 0.96).'px;';
+            $css .= 'transform:rotate('.self::n((float) $t['rot']).'deg);transform-origin:'.self::n($ox).'px '.self::n(($t['y'] - $size * 0.35) - $top).'px;';
         }
 
         return '<div style="'.$css.'">'.htmlspecialchars((string) $t['text'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</div>';

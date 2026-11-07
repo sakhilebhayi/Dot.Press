@@ -17,6 +17,9 @@ final class FontRegistry
     /** @var array<string, array<string, string>>|null */
     private static ?array $manifest = null;
 
+    /** @var array<string, array{asc: float, desc: float}> */
+    private static array $metrics = [];
+
     /** @var array<string, true> */
     private static array $installed = [];
 
@@ -33,10 +36,40 @@ final class FontRegistry
         if (self::$manifest === null) {
             $path = self::ttfDir().'/manifest.json';
             $data = is_file($path) ? json_decode((string) file_get_contents($path), true) : null;
-            self::$manifest = is_array($data) ? $data : [];
+            self::$manifest = is_array($data['families'] ?? null) ? $data['families'] : [];
+            self::$metrics = is_array($data['metrics'] ?? null) ? $data['metrics'] : [];
         }
 
         return self::$manifest;
+    }
+
+    /**
+     * Ascent and descent of a family in em (hhea values), used to put a text baseline where a browser puts it.
+     *
+     * @return array{asc: float, desc: float}
+     */
+    public static function vmetrics(string $family): array
+    {
+        self::manifest();
+        $name = self::canonical($family) ?? self::FALLBACK_FAMILY;
+        $m = self::$metrics[$name] ?? ['asc' => 0.95, 'desc' => 0.225];
+
+        return ['asc' => (float) $m['asc'], 'desc' => (float) $m['desc']];
+    }
+
+    /**
+     * How far (in em) DomPDF puts the first baseline of a line below where a browser would, for the given line height.
+     * DomPDF's baseline sits at 0.88 x (ascent + descent) x line height from the top of the line, a browser's at
+     * half the leading plus the ascent. The text is moved by the difference (a negative number moves it up).
+     */
+    public static function baselineShift(string $family, float $lh): float
+    {
+        $m = self::vmetrics($family);
+        $h = $m['asc'] + $m['desc'];
+        $browser = ($lh - $h) / 2 + $m['asc'];
+        $dompdf = 0.88 * $h * $lh;
+
+        return $browser - $dompdf;
     }
 
     /** The exact bundled family name for any capitalisation ("inter" to "Inter"), or null when the font is not bundled. */

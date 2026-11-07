@@ -1,74 +1,126 @@
 {
-  "Public Sans": {
-    "Regular": "PublicSans-Regular.ttf",
-    "Bold": "PublicSans-Bold.ttf",
-    "Italic": "PublicSans-Italic.ttf",
-    "BoldItalic": "PublicSans-BoldItalic.ttf"
+  "families": {
+    "Public Sans": {
+      "Regular": "PublicSans-Regular.ttf",
+      "Bold": "PublicSans-Bold.ttf",
+      "Italic": "PublicSans-Italic.ttf",
+      "BoldItalic": "PublicSans-BoldItalic.ttf"
+    },
+    "Inter": {
+      "Regular": "Inter-Regular.ttf",
+      "Bold": "Inter-Bold.ttf",
+      "Italic": "Inter-Italic.ttf",
+      "BoldItalic": "Inter-BoldItalic.ttf"
+    },
+    "IBM Plex Sans": {
+      "Regular": "IBMPlexSans-Regular.ttf",
+      "Bold": "IBMPlexSans-Bold.ttf",
+      "Italic": "IBMPlexSans-Italic.ttf",
+      "BoldItalic": "IBMPlexSans-BoldItalic.ttf"
+    },
+    "IBM Plex Serif": {
+      "Regular": "IBMPlexSerif-Regular.ttf",
+      "Bold": "IBMPlexSerif-Bold.ttf",
+      "Italic": "IBMPlexSerif-Italic.ttf",
+      "BoldItalic": "IBMPlexSerif-BoldItalic.ttf"
+    },
+    "IBM Plex Mono": {
+      "Regular": "IBMPlexMono-Regular.ttf",
+      "Bold": "IBMPlexMono-Bold.ttf",
+      "Italic": "IBMPlexMono-Italic.ttf",
+      "BoldItalic": "IBMPlexMono-BoldItalic.ttf"
+    },
+    "Literata": {
+      "Regular": "Literata-Regular.ttf",
+      "Bold": "Literata-Bold.ttf",
+      "Italic": "Literata-Italic.ttf",
+      "BoldItalic": "Literata-BoldItalic.ttf"
+    },
+    "DM Sans": {
+      "Regular": "DMSans-Regular.ttf",
+      "Bold": "DMSans-Bold.ttf",
+      "Italic": "DMSans-Italic.ttf",
+      "BoldItalic": "DMSans-BoldItalic.ttf"
+    },
+    "Space Grotesk": {
+      "Regular": "SpaceGrotesk-Regular.ttf",
+      "Bold": "SpaceGrotesk-Bold.ttf",
+      "Italic": "SpaceGrotesk-Regular.ttf",
+      "BoldItalic": "SpaceGrotesk-Bold.ttf"
+    },
+    "Playfair Display": {
+      "Regular": "PlayfairDisplay-Regular.ttf",
+      "Bold": "PlayfairDisplay-Bold.ttf",
+      "Italic": "PlayfairDisplay-Italic.ttf",
+      "BoldItalic": "PlayfairDisplay-BoldItalic.ttf"
+    },
+    "Manrope": {
+      "Regular": "Manrope-Regular.ttf",
+      "Bold": "Manrope-Bold.ttf",
+      "Italic": "Manrope-Regular.ttf",
+      "BoldItalic": "Manrope-Bold.ttf"
+    },
+    "Source Serif 4": {
+      "Regular": "SourceSerif4-Regular.ttf",
+      "Bold": "SourceSerif4-Bold.ttf",
+      "Italic": "SourceSerif4-Italic.ttf",
+      "BoldItalic": "SourceSerif4-BoldItalic.ttf"
+    },
+    "Caveat": {
+      "Regular": "Caveat-Regular.ttf",
+      "Bold": "Caveat-Bold.ttf",
+      "Italic": "Caveat-Regular.ttf",
+      "BoldItalic": "Caveat-Bold.ttf"
+    }
   },
-  "Inter": {
-    "Regular": "Inter-Regular.ttf",
-    "Bold": "Inter-Bold.ttf",
-    "Italic": "Inter-Italic.ttf",
-    "BoldItalic": "Inter-BoldItalic.ttf"
-  },
-  "IBM Plex Sans": {
-    "Regular": "IBMPlexSans-Regular.ttf",
-    "Bold": "IBMPlexSans-Bold.ttf",
-    "Italic": "IBMPlexSans-Italic.ttf",
-    "BoldItalic": "IBMPlexSans-BoldItalic.ttf"
-  },
-  "IBM Plex Serif": {
-    "Regular": "IBMPlexSerif-Regular.ttf",
-    "Bold": "IBMPlexSerif-Bold.ttf",
-    "Italic": "IBMPlexSerif-Italic.ttf",
-    "BoldItalic": "IBMPlexSerif-BoldItalic.ttf"
-  },
-  "IBM Plex Mono": {
-    "Regular": "IBMPlexMono-Regular.ttf",
-    "Bold": "IBMPlexMono-Bold.ttf",
-    "Italic": "IBMPlexMono-Italic.ttf",
-    "BoldItalic": "IBMPlexMono-BoldItalic.ttf"
-  },
-  "Literata": {
-    "Regular": "Literata-Regular.ttf",
-    "Bold": "Literata-Bold.ttf",
-    "Italic": "Literata-Italic.ttf",
-    "BoldItalic": "Literata-BoldItalic.ttf"
-  },
-  "DM Sans": {
-    "Regular": "DMSans-Regular.ttf",
-    "Bold": "DMSans-Bold.ttf",
-    "Italic": "DMSans-Italic.ttf",
-    "BoldItalic": "DMSans-BoldItalic.ttf"
-  },
-  "Space Grotesk": {
-    "Regular": "SpaceGrotesk-Regular.ttf",
-    "Bold": "SpaceGrotesk-Bold.ttf",
-    "Italic": "SpaceGrotesk-Regular.ttf",
-    "BoldItalic": "SpaceGrotesk-Bold.ttf"
-  },
-  "Playfair Display": {
-    "Regular": "PlayfairDisplay-Regular.ttf",
-    "Bold": "PlayfairDisplay-Bold.ttf",
-    "Italic": "PlayfairDisplay-Italic.ttf",
-    "BoldItalic": "PlayfairDisplay-BoldItalic.ttf"
-  },
-  "Manrope": {
-    "Regular": "Manrope-Regular.ttf",
-    "Bold": "Manrope-Bold.ttf",
-    "Italic": "Manrope-Regular.ttf",
-    "BoldItalic": "Manrope-Bold.ttf"
-  },
-  "Source Serif 4": {
-    "Regular": "SourceSerif4-Regular.ttf",
-    "Bold": "SourceSerif4-Bold.ttf",
-    "Italic": "SourceSerif4-Italic.ttf",
-    "BoldItalic": "SourceSerif4-BoldItalic.ttf"
-  },
-  "Caveat": {
-    "Regular": "Caveat-Regular.ttf",
-    "Bold": "Caveat-Bold.ttf",
-    "Italic": "Caveat-Regular.ttf",
-    "BoldItalic": "Caveat-Bold.ttf"
+  "metrics": {
+    "Public Sans": {
+      "asc": 0.95,
+      "desc": 0.225
+    },
+    "Inter": {
+      "asc": 0.9688,
+      "desc": 0.2412
+    },
+    "IBM Plex Sans": {
+      "asc": 1.025,
+      "desc": 0.275
+    },
+    "IBM Plex Serif": {
+      "asc": 1.025,
+      "desc": 0.275
+    },
+    "IBM Plex Mono": {
+      "asc": 1.025,
+      "desc": 0.275
+    },
+    "Literata": {
+      "asc": 1.177,
+      "desc": 0.308
+    },
+    "DM Sans": {
+      "asc": 0.992,
+      "desc": 0.31
+    },
+    "Space Grotesk": {
+      "asc": 0.984,
+      "desc": 0.292
+    },
+    "Playfair Display": {
+      "asc": 1.082,
+      "desc": 0.251
+    },
+    "Manrope": {
+      "asc": 1.066,
+      "desc": 0.3
+    },
+    "Source Serif 4": {
+      "asc": 1.036,
+      "desc": 0.335
+    },
+    "Caveat": {
+      "asc": 0.96,
+      "desc": 0.3
+    }
   }
 }

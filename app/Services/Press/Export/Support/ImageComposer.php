@@ -175,7 +175,7 @@ final class ImageComposer
         if (self::hasAdj($adj)) {
             self::adjust($out, $adj, $density);
         }
-        $mask = in_array($el['mask'] ?? 'none', ShapeGeometry::MASKS, true) ? $el['mask'] : 'none';
+        $mask = in_array($el['mask'] ?? null, ShapeGeometry::MASKS, true) ? $el['mask'] : 'none';
         $alpha = $hasBoxFill ? false : ($dx > 0.5 || $dy > 0.5 || self::hasTransparency($bytes));
         if ($mask !== 'none') {
             $radius = $mask === 'round' ? min($w, $h) * 0.12 : 0;
