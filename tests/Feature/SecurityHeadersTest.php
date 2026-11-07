@@ -136,4 +136,12 @@ class SecurityHeadersTest extends TestCase
         $this->call('POST', '/csp-report', [], [], [], ['CONTENT_TYPE' => 'application/csp-report'], json_encode(['csp-report' => ['effective-directive' => 'img-src', 'blocked-uri' => 'inline']]))
             ->assertNoContent();
     }
+
+    public function test_no_other_origin_is_allowed_to_call_the_api(): void
+    {
+        $answer = $this->call('OPTIONS', '/api/decks', [], [], [], ['HTTP_ORIGIN' => 'https://evil.example', 'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'POST']);
+        $this->assertNull($answer->headers->get('Access-Control-Allow-Origin'));
+
+        $this->withHeaders(['Origin' => 'https://evil.example'])->getJson('/api/decks')->assertUnauthorized()->assertHeaderMissing('Access-Control-Allow-Origin');
+    }
 }
