@@ -28,6 +28,12 @@ class DeckImportController extends Controller
             throw ValidationException::withMessages(['file' => 'The upload could not be read.']);
         }
         @set_time_limit(120);
+        // Up to 150 MB of pictures are held in memory while a file is read; the default limit of a shared host (128 MB)
+        // would end the request in a fatal error with no message. Exports raise it the same way.
+        $limit = \App\Services\Press\Assets\AssetLimits::iniBytes((string) ini_get('memory_limit'));
+        if ($limit > 0 && $limit < 512 * 1048576) {
+            @ini_set('memory_limit', '512M');
+        }
 
         try {
             $result = PptxImporter::import($path, ['name' => pathinfo((string) $file->getClientOriginalName(), PATHINFO_FILENAME)]);
