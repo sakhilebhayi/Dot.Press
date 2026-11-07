@@ -1,12 +1,12 @@
 {
  "name": "resize-scale-text-doc-font-sizes",
- "description": "scale halves fontSize marks in the text document: a number stays a number, \"18px\" stays a px string",
+ "description": "halving scales fontSize marks in the text document: a number stays a number, \"18px\" stays a px string",
  "doc": {
   "deck": {
    "id": "d1",
    "title": "Deck",
-   "w": 1000,
-   "h": 500,
+   "w": 1600,
+   "h": 800,
    "theme": {
     "id": "slate"
    },
@@ -84,8 +84,8 @@
  "ops": [
   {
    "op": "deck.resize",
-   "w": 500,
-   "h": 250,
+   "w": 800,
+   "h": 400,
    "mode": "scale"
   }
  ],
@@ -94,8 +94,8 @@
    "deck": {
     "id": "d1",
     "title": "Deck",
-    "w": 500,
-    "h": 250,
+    "w": 800,
+    "h": 400,
     "theme": {
      "id": "slate"
     },

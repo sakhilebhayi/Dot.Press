@@ -30,6 +30,8 @@
  *     429 honours retryAfter). Pending ops are never dropped. 413/422: the batch is split to find the
  *     bad op; a single op the server refuses stops saving (status 'error', fatal) until retry() or
  *     discardInflight(). 401/403/419 pause saving (needsAuth) until retry().
+ *   - a slide.add whose tid is a real id (undo of a slide removal) is re-sent under a temporary id
+ *   - after a batch with deck.resize the feed is polled at once: the server logs deck.reload and we reload
  *   - ops the server reports as skipped are not applied to base (they were not applied there)
  *   - temporary slide ids are replaced by the real ids from the response (onIdMap)
  *   - pending ops are persisted after every change; recover() / restore() bring them back after a crash
@@ -41,6 +43,8 @@
  */
 import { applyOps, remapOps, dupToAdd } from './ops.js';
 import { createDoc } from './doc.js';
+import { uniqueId } from './util.js';
+import { createPersistence } from './sync-storage.js';
 
 export const realClock = {
   now: () => Date.now(),
@@ -71,8 +75,7 @@ export function createSync(opts) {
   const { transport, storage, clock = realClock, clientId } = opts;
   const cfg = { ...DEFAULTS, ...(opts.config || {}), pollMs: { ...DEFAULTS.pollMs, ...(opts.config?.pollMs || {}) } };
   const uuid = opts.uuid || defaultUuid;
-  const skey = `press:sync:${opts.deckId}:${clientId}`;
-  const ikey = `press:sync:${opts.deckId}:clients`;
+  const store = createPersistence({ storage, clientId, deckId: opts.deckId });
 
   let base = null;
   let view = null;
@@ -94,7 +97,6 @@ export function createSync(opts) {
   let reloading = false;
   let pollFailing = false;
   let destroyed = false;
-  let storageChain = Promise.resolve();
   let sendDone = [];
   const st = { lastError: null, lastSavedAt: null, retryAt: null, fatal: false, needsAuth: false, failKind: null };
   const subs = { change: new Set(), state: new Set(), idmap: new Set(), skipped: new Set() };
@@ -137,26 +139,12 @@ export function createSync(opts) {
   }
 
   // ---- persistence ------------------------------------------------------------------------------
-  function enqueueStorage(fn) {
-    storageChain = storageChain.then(fn).catch(() => { st.lastError = st.lastError || { message: 'storage unavailable' }; });
-    return storageChain;
-  }
   function persist() {
     const has = !!(inflight || queue.length);
-    const rec = has ? JSON.stringify({
+    store.write(has ? {
       v: 1, client: clientId, deckId: opts.deckId, baseSeq: base.seq, savedAt: clock.now(),
       inflight: inflight ? { key: inflight.key, ops: inflight.ops } : null, queue,
-    }) : null;
-    enqueueStorage(async () => {
-      const idx = JSON.parse((await storage.get(ikey)) || '[]');
-      if (rec) {
-        await storage.set(skey, rec);
-        if (!idx.includes(clientId)) await storage.set(ikey, JSON.stringify([...idx, clientId]));
-      } else {
-        await storage.remove(skey);
-        if (idx.includes(clientId)) await storage.set(ikey, JSON.stringify(idx.filter((c) => c !== clientId)));
-      }
-    });
+    } : null);
     if (has && !hbTimer) hbTimer = clock.setTimeout(() => { hbTimer = null; if (!destroyed) persist(); }, cfg.heartbeatMs);
     if (!has && hbTimer) { clock.clearTimeout(hbTimer); hbTimer = null; }
   }
@@ -165,8 +153,8 @@ export function createSync(opts) {
   function scheduleFlush() {
     if (destroyed) return;
     if (debounceTimer) clock.clearTimeout(debounceTimer);
-    debounceTimer = clock.setTimeout(() => { debounceTimer = null; flush(); }, cfg.debounceMs);
-    if (!maxTimer) maxTimer = clock.setTimeout(() => { maxTimer = null; flush(); }, cfg.maxWaitMs);
+    debounceTimer = clock.setTimeout(() => { debounceTimer = null; api.flush(); }, cfg.debounceMs);
+    if (!maxTimer) maxTimer = clock.setTimeout(() => { maxTimer = null; api.flush(); }, cfg.maxWaitMs);
   }
   function clearFlushTimers() {
     if (debounceTimer) { clock.clearTimeout(debounceTimer); debounceTimer = null; }
@@ -264,7 +252,10 @@ export function createSync(opts) {
     settling = settling.map((s) => ({ ...s, ops: remapOps(s.ops, map) }));
     const seq = Number(res?.seq) || 0;
     let nextBase = base;
-    if (sent.covered || seq <= base.seq) {
+    if (!ops.length) {
+      // every op was skipped: nothing was logged, `seq` is just the current end of the log
+      queueMicrotaskSafe(() => pollNow());
+    } else if (sent.covered || seq <= base.seq) {
       // the feed or a reload already delivered this batch
     } else if (seq === base.seq + 1) {
       nextBase = { ...applyOps(base, ops).doc, seq };
@@ -279,6 +270,8 @@ export function createSync(opts) {
     if (list.length) emit('skipped', list);
     persist();
     recompute('ack');
+    // the server follows a resize with a deck.reload entry: fetch it
+    if (sent.ops.some((o) => o?.op === 'deck.resize')) queueMicrotaskSafe(() => pollNow());
   }
   function withRevs(doc, res) {
     if (!res?.slides && res?.deck_rev === undefined) return doc;
@@ -390,6 +383,23 @@ export function createSync(opts) {
           cur = applyOps(cur, [op]).doc;
         }
       }
+      // The server refuses a slide.add whose tid is a real (all digit) id, which is what undoing a slide
+      // removal produces. Re-add under a temporary id and tell the store, which remaps history and selection.
+      const alias = {};
+      const taken = new Set(view.slides.map((x) => x.id));
+      for (const op of list) {
+        if (op.op === 'slide.add' && /^\d+$/.test(String(op.tid))) {
+          const t = uniqueId(taken, 's');
+          taken.add(t);
+          alias[String(op.tid)] = t;
+        }
+      }
+      if (Object.keys(alias).length) {
+        const rewritten = remapOps(list, alias);
+        list.length = 0;
+        list.push(...rewritten);
+        emit('idmap', alias);
+      }
       const result = applyOps(view, list);
       view = result.doc;
       queue.push(...result.applied);
@@ -455,16 +465,7 @@ export function createSync(opts) {
 
     /** Unsent changes left by a closed or crashed tab, or null. */
     async recover() {
-      const idx = JSON.parse((await storage.get(ikey)) || '[]');
-      let best = null;
-      for (const cid of idx) {
-        const raw = await storage.get(`press:sync:${opts.deckId}:${cid}`);
-        if (!raw) continue;
-        let rec;
-        try { rec = JSON.parse(raw); } catch { continue; }
-        if (cid !== clientId && clock.now() - rec.savedAt < cfg.aliveMs) continue; // another live tab
-        if (!best || rec.savedAt > best.savedAt) best = rec;
-      }
+      const best = await store.read(clock.now(), cfg.aliveMs);
       if (!best) return null;
       const ops = [...(best.inflight ? best.inflight.ops : []), ...best.queue];
       if (!ops.length) return null;
@@ -476,27 +477,14 @@ export function createSync(opts) {
       if (rec.inflight && !inflight) inflight = { key: rec.inflight.key, ops: rec.inflight.ops, covered: false, uncertain: false };
       else if (rec.inflight) queue = [...rec.inflight.ops, ...queue];
       queue = [...queue, ...rec.queue];
-      if (rec.clientId && rec.clientId !== clientId) {
-        await enqueueStorage(async () => {
-          await storage.remove(`press:sync:${opts.deckId}:${rec.clientId}`);
-          const idx = JSON.parse((await storage.get(ikey)) || '[]');
-          await storage.set(ikey, JSON.stringify(idx.filter((c) => c !== rec.clientId)));
-        });
-      }
+      if (rec.clientId && rec.clientId !== clientId) await store.forget(rec.clientId);
       persist();
       recompute('restore');
       sendNext();
       return rec.ops.length;
     },
-    async discardRecovery(rec) {
-      if (!rec) return;
-      await enqueueStorage(async () => {
-        await storage.remove(`press:sync:${opts.deckId}:${rec.clientId}`);
-        const idx = JSON.parse((await storage.get(ikey)) || '[]');
-        await storage.set(ikey, JSON.stringify(idx.filter((c) => c !== rec.clientId)));
-      });
-    },
-    persisted: () => storageChain,
+    async discardRecovery(rec) { if (rec) await store.forget(rec.clientId); },
+    persisted: () => store.settled(),
 
     getView: () => view,
     getBase: () => base,

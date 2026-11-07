@@ -41,7 +41,7 @@ for (const f of files) {
   test(`vector ${v.name}`, () => {
     assert.equal(f, `${v.name}.json`);
     const input = JSON.stringify(v.doc);
-    const r = applyOps(v.doc, v.ops, { makeId: counterIds() });
+    const r = applyOps(v.doc, v.ops, { makeId: counterIds(), strictTid: true });
     assert.equal(JSON.stringify(v.doc), input, 'input document must not be mutated');
     assert.deepEqual(comparable(r.doc, v.normalize), comparable(v.expected.doc, v.normalize));
     assert.deepEqual(r.skipped.map((s) => ({ index: s.index, reason: s.reason })), v.expected.skipped);

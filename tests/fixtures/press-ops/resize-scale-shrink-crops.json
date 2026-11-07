@@ -1,6 +1,6 @@
 {
- "name": "resize-scale-shrink-letterbox",
- "description": "scale 1000x500 to 500x500: s=0.5 and the content sits in the middle band (offset y 125)",
+ "name": "resize-scale-shrink-crops",
+ "description": "scale 1000x500 to 500x500: s = max(0.5, 1) = 1, only the offset (-250, 0) applies",
  "doc": {
   "deck": {
    "id": "d1",
@@ -89,18 +89,18 @@
       {
        "id": "a",
        "type": "text",
-       "x": 50,
-       "y": 150,
-       "w": 100,
-       "h": 50,
+       "x": -150,
+       "y": 50,
+       "w": 200,
+       "h": 100,
        "rot": 0,
        "op": 1,
        "lock": false,
        "hide": false,
-       "size": 20,
-       "sw": 1.5,
-       "radius": 2.5,
-       "pad": 5
+       "size": 40,
+       "sw": 3,
+       "radius": 5,
+       "pad": 10
       }
      ]
     }

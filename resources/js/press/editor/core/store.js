@@ -129,6 +129,7 @@ export function createStore(opts = {}) {
     if (!ops.length) return null;
     const selBefore = state.selection;
     const result = engine.dispatch(ops);
+    if (!result.applied.length) return null;
     if (record && result.inverse.length) {
       history.record({ inverse: result.inverse, guards: result.guards, label, key: undoKey, meta: meta || { selection: selBefore, slideId: state.slideId } });
     }
@@ -167,7 +168,7 @@ export function createStore(opts = {}) {
     // selection
     select(idList, mode = 'replace') { set({ selection: selSelect(state.doc, state.selection, state.slideId, idList, mode) }); },
     clickElement(elId, mods = {}) { set({ selection: clickSelect(state.doc, state.selection, state.slideId, elId, mods) }); },
-    clearSelection() { set({ selection: emptySelection(state.slideId) }); },
+    clearSelection() { if (state.selection.ids.length) set({ selection: emptySelection(state.slideId) }); },
     selectAll() { set({ selection: selAll(state.doc, state.slideId) }); },
     selectStep(dir = 1) { set({ selection: selStep(state.doc, state.selection, dir) }); },
     marquee(rect, { shift = false, meta = false, contain = false } = {}) {

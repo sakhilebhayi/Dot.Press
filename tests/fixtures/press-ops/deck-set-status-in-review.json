@@ -1,6 +1,6 @@
 {
- "name": "resize-too-small",
- "description": "a width under 16 is invalid",
+ "name": "deck-set-status-in-review",
+ "description": "draft and in_review are accepted",
  "doc": {
   "deck": {
    "id": "d1",
@@ -88,10 +88,8 @@
  },
  "ops": [
   {
-   "op": "deck.resize",
-   "w": 8,
-   "h": 500,
-   "mode": "scale"
+   "op": "deck.set",
+   "status": "in_review"
   }
  ],
  "expected": {
@@ -104,7 +102,7 @@
     "theme": {
      "id": "slate"
     },
-    "status": "draft",
+    "status": "in_review",
     "visibility": "private",
     "sections": [],
     "slide_order": [
@@ -180,11 +178,6 @@
     }
    ]
   },
-  "skipped": [
-   {
-    "index": 0,
-    "reason": "invalid"
-   }
-  ]
+  "skipped": []
  }
 }

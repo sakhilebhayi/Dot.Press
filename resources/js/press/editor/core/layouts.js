@@ -42,6 +42,7 @@ const PROMPTS = {
   title: 'Title', subtitle: 'Subtitle', body: 'Text', caption: 'Caption', footer: 'Footer', number: '#', kpi: '0',
 };
 
+const r4 = (v) => Math.round(v * 10000) / 10000;
 const readingOrder = (a, b) => (a.y - b.y > 24 ? 1 : b.y - a.y > 24 ? -1 : a.x - b.x);
 const px = (def, deck) => ({
   x: round2(def.x * deck.w), y: round2(def.y * deck.h), w: round2(def.w * deck.w), h: round2(def.h * deck.h),
@@ -143,14 +144,14 @@ export function saveLayoutFromSlide(slide, deck, { id, name } = {}) {
     const type = el.type === 'text' ? 'text' : el.type === 'shape' ? 'shape' : 'media';
     const def = {
       role, type,
-      x: round2(el.x / deck.w * 10000) / 10000, y: round2(el.y / deck.h * 10000) / 10000,
-      w: round2(el.w / deck.w * 10000) / 10000, h: round2(el.h / deck.h * 10000) / 10000,
+      x: r4(el.x / deck.w), y: r4(el.y / deck.h),
+      w: r4(el.w / deck.w), h: r4(el.h / deck.h),
     };
     if (el.name) def.name = el.name;
     if (type === 'text') {
       const text = docText(el.doc).trim();
       if (text) def.text = text.slice(0, 60);
-      if (el.size) def.sizeF = round2(el.size / deck.h * 10000) / 10000;
+      if (el.size) def.sizeF = r4(el.size / deck.h);
       const style = {};
       for (const k of ['font', 'weight', 'color', 'align', 'valign', 'fit', 'lh']) if (el[k] !== undefined) style[k] = el[k];
       if (Object.keys(style).length) def.style = style;

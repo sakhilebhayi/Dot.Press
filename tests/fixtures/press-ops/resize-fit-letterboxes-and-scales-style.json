@@ -1,6 +1,6 @@
 {
- "name": "resize-fit-keeps-style-sizes",
- "description": "fit has the scale geometry but leaves size, sw, radius and pad alone",
+ "name": "resize-fit-letterboxes-and-scales-style",
+ "description": "fit 1000x500 to 2000x1500: s = min(2, 3) = 2, content centred (y offset 250), style sizes doubled",
  "doc": {
   "deck": {
    "id": "d1",
@@ -97,10 +97,10 @@
        "op": 1,
        "lock": false,
        "hide": false,
-       "size": 40,
-       "sw": 3,
-       "radius": 5,
-       "pad": 10
+       "size": 80,
+       "sw": 6,
+       "radius": 10,
+       "pad": 20
       }
      ]
     }

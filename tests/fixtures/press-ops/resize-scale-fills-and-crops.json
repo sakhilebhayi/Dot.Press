@@ -1,6 +1,6 @@
 {
- "name": "resize-anchor-clamps-offslide",
- "description": "an element hanging off the old slide is pulled inside: centre 1010 -> 505 at 500 wide, x = 400 (max)",
+ "name": "resize-scale-fills-and-crops",
+ "description": "scale 1000x500 to 2000x1500: s = max(2, 3) = 3, content centred (x offset -500), style sizes tripled",
  "doc": {
   "deck": {
    "id": "d1",
@@ -31,17 +31,19 @@
     "els": [
      {
       "id": "a",
-      "type": "shape",
-      "kind": "rect",
-      "x": 960,
-      "y": 0,
-      "w": 100,
+      "type": "text",
+      "x": 100,
+      "y": 50,
+      "w": 200,
       "h": 100,
       "rot": 0,
       "op": 1,
       "lock": false,
       "hide": false,
-      "fill": "@accent"
+      "size": 40,
+      "sw": 3,
+      "radius": 5,
+      "pad": 10
      }
     ]
    }
@@ -50,9 +52,9 @@
  "ops": [
   {
    "op": "deck.resize",
-   "w": 500,
-   "h": 500,
-   "mode": "anchor"
+   "w": 2000,
+   "h": 1500,
+   "mode": "scale"
   }
  ],
  "expected": {
@@ -60,8 +62,8 @@
    "deck": {
     "id": "d1",
     "title": "Deck",
-    "w": 500,
-    "h": 500,
+    "w": 2000,
+    "h": 1500,
     "theme": {
      "id": "slate"
     },
@@ -86,17 +88,19 @@
      "els": [
       {
        "id": "a",
-       "type": "shape",
-       "kind": "rect",
-       "x": 400,
-       "y": 0,
-       "w": 100,
-       "h": 100,
+       "type": "text",
+       "x": -200,
+       "y": 150,
+       "w": 600,
+       "h": 300,
        "rot": 0,
        "op": 1,
        "lock": false,
        "hide": false,
-       "fill": "@accent"
+       "size": 120,
+       "sw": 9,
+       "radius": 15,
+       "pad": 30
       }
      ]
     }

@@ -186,7 +186,7 @@ function placeEls(els, payload, doc, offsetSteps, clampInside = true) {
   const to = { w: doc.deck.w, h: doc.deck.h };
   let list = els;
   if (from.w !== to.w || from.h !== to.h) {
-    list = list.map((el) => ({ ...el, ...resizePatch(el, from, to, 'scale') }));
+    list = list.map((el) => ({ ...el, ...resizePatch(el, from, to, 'fit') }));
   }
   const step = 24 * (doc.deck.w / 1920);
   const d = step * offsetSteps;

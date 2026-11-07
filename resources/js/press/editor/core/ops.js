@@ -17,7 +17,7 @@
  *   skipped   [{index, op, reason}] ops that were not applied. Never thrown.
  *   opts      { makeId(taken: Set, prefix) } id source for slide.dup (tests inject a counter)
  *
- * Skip reasons: unknown_op, invalid, forbidden (deck.reload from a client), missing_slide,
+ * Skip reasons: unknown_op, invalid, forbidden (deck.reload from a client, status approved), use_deck_resize, missing_slide,
  * missing_element, missing_section, duplicate_id, last_slide, limit.
  *
  * Semantics worth knowing (the PHP side must match):
@@ -27,8 +27,15 @@
  *    value would not change are not applied and not recorded in the inverse.
  *  - el.order: ids not in the slide are ignored; elements missing from the list stay on top in
  *    their old order.
- *  - slide.set only accepts title, notes, section_id, hidden, layout, bg, transition. deck.set only
- *    title, theme, status (w and h are ignored: use deck.resize).
+ *  - slide.set only accepts title, notes, section_id, hidden, layout, bg, transition. deck.set accepts
+ *    title, theme, status. A deck.set that carries w or h is skipped entirely (reason use_deck_resize:
+ *    sizes change only through deck.resize), and so is one that sets status 'approved' (forbidden).
+ *  - deck.resize needs w and h within 320..7680 and a mode in scale, anchor, fit (see resize.js), else
+ *    it is skipped as invalid. The server logs a deck.reload after a resize; clients reload.
+ *  - slide.add needs a `tid` that is not all digits (digits are real database ids). The server is strict;
+ *    here the rule applies only with opts.strictTid (the shared vectors use it), because the client
+ *    legitimately holds real ids (undoing a slide removal re-adds a slide under its old real id). sync.js
+ *    swaps such a tid for a temporary id before anything is sent.
  *  - slide.dup gives the copy fresh element and group ids; an element without `morph` gets
  *    morph = the source element id so a morph transition between a slide and its copy still pairs.
  *  - Limits: 600 slides, 400 elements per slide.
@@ -40,7 +47,7 @@ export const MAX_SLIDES = 600;
 export const MAX_ELS = 400;
 const SLIDE_KEYS = ['title', 'notes', 'section_id', 'hidden', 'layout', 'bg', 'transition'];
 const DECK_KEYS = ['title', 'theme', 'status'];
-const STATUSES = ['draft', 'in_review', 'approved'];
+const STATUSES = ['draft', 'in_review', 'approved']; // 'approved' is valid but refused in deck.set
 const EL_TYPES = ['text', 'shape', 'image', 'video', 'audio', 'icon', 'chart', 'table'];
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -97,6 +104,8 @@ function cleanEls(els) {
 const H = {};
 
 H['deck.set'] = (doc, op) => {
+  if (has(op, 'w') || has(op, 'h')) return skip('use_deck_resize');
+  if (op.status === 'approved') return skip('forbidden');
   const patch = {};
   const inv = {};
   let valid = 0;
@@ -181,9 +190,9 @@ H['section.remove'] = (doc, op) => {
   return done(next, inv);
 };
 
-H['slide.add'] = (doc, op) => {
+H['slide.add'] = (doc, op, ctx) => {
   const tid = sid(op.tid);
-  if (!tid) return skip('invalid');
+  if (!tid || (/^\d+$/.test(tid) && ctx.strictTid)) return skip('invalid');
   if (slideIdx(doc, tid) >= 0) return skip('duplicate_id');
   if (doc.slides.length >= MAX_SLIDES) return skip('limit');
   const src = isObj(op.slide) ? op.slide : {};
@@ -394,7 +403,7 @@ H['deck.reload'] = () => skip('forbidden');
 // ---- the entry point --------------------------------------------------------------------------
 
 export function applyOps(doc, ops, opts = {}) {
-  const ctx = { makeId: opts.makeId || ((taken, prefix) => uniqueId(taken, prefix)) };
+  const ctx = { makeId: opts.makeId || ((taken, prefix) => uniqueId(taken, prefix)), strictTid: !!opts.strictTid };
   let cur = doc;
   const applied = [];
   const skipped = [];
