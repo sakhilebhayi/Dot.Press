@@ -200,10 +200,12 @@ class ExportPptxTest extends TestCase
         $zip = new ZipArchive;
         $zip->open($this->file);
         $slide3 = $zip->getFromName('ppt/slides/slide3.xml');
-        foreach (['rect', 'roundRect', 'ellipse', 'triangle', 'star5', 'hexagon', 'chevron', 'rightArrow', 'leftArrow', 'wedgeRectCallout', 'plus', 'heart', 'diamond', 'pentagon'] as $prst) {
+        foreach (['roundRect', 'ellipse', 'triangle', 'star5', 'hexagon', 'chevron', 'rightArrow', 'leftArrow', 'wedgeRectCallout', 'plus', 'heart', 'diamond', 'pentagon'] as $prst) {
             $this->assertStringContainsString('prst="'.$prst.'"', $slide3, $prst.' is missing');
         }
         $this->assertStringContainsString('prst="line"', $slide3);
+        // the sample deck's check icon is a real vector path when the editor's icon file is there, a dashed square when not
+        $this->assertTrue(str_contains($slide3, '<a:custGeom>') || str_contains($slide3, 'prst="rect"'));
         $this->assertStringContainsString('<a:tailEnd type="triangle"', $slide3);
         $this->assertStringContainsString('<a:headEnd type="oval"', $slide3);
         $this->assertStringContainsString('<a:gradFill', $slide3);
