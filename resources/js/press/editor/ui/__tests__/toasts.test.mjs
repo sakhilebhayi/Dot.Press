@@ -88,3 +88,18 @@ test('subscribers hear every change', () => {
   t.push('b');
   assert.deepEqual(seen, ['a', null]);
 });
+
+test('a warning pre-empts an information toast that is still on screen, an error is never pre-empted', () => {
+  const c = clock();
+  const t = createToasts({ ...c, defaultMs: 1000 });
+  t.push('Slide deleted', { action: { label: 'Undo', run() {} } });
+  t.push('A deck needs at least one slide', { kind: 'warn' });
+  assert.equal(t.current().message, 'A deck needs at least one slide');
+  assert.equal(t.pending(), 0);
+  c.advance(1001);
+  assert.equal(t.current(), null);
+  t.push('Could not save', { kind: 'error' });
+  t.push('Something else', { kind: 'warn' });
+  assert.equal(t.current().message, 'Could not save');
+  assert.equal(t.pending(), 1);
+});

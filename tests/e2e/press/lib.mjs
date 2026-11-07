@@ -48,6 +48,7 @@ export async function login(page, email = 'owner@demo.test', password = 'passwor
 export async function newContext(browser, email, opts = {}) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, ...opts });
     const page = await ctx.newPage();
+    page.setDefaultTimeout(+(process.env.E2E_TIMEOUT || 8000));
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
@@ -84,7 +85,7 @@ export function suite(name) {
         async step(id, title, fn) {
             const t = Date.now();
             try { await fn(); results.push({ id, title, ok: true }); console.log(`PASS  ${id}  ${title}  (${Date.now() - t} ms)`); }
-            catch (e) { results.push({ id, title, ok: false, err: e.message.split('\n')[0] }); console.log(`FAIL  ${id}  ${title}\n      ${e.message.split('\n').slice(0, 3).join('\n      ')}`); }
+            catch (e) { if (api.page) await shot(api.page, `${name}-FAIL-${id}`).catch(() => {}); results.push({ id, title, ok: false, err: e.message.split('\n')[0] }); console.log(`FAIL  ${id}  ${title}\n      ${e.message.split('\n').slice(0, 3).join('\n      ')}`); }
         },
         summary() {
             const bad = results.filter((r) => !r.ok);
@@ -99,3 +100,31 @@ export function ok(cond, msg) { if (!cond) throw new Error(msg || 'assertion fai
 export function eq(a, b, msg) { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg || 'not equal'}: got ${JSON.stringify(a)} expected ${JSON.stringify(b)}`); }
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function shot(page, name) { const f = path.join(SHOTS, name + '.png'); await page.screenshot({ path: f }); return f; }
+
+/** The saved document of a deck, read through the API as the signed in user. */
+export async function savedDoc(page, id) {
+    return page.evaluate(async (deckId) => {
+        const r = await fetch(`/api/decks/${deckId}/document`, { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+        return r.json();
+    }, id);
+}
+export async function apiGet(page, url) {
+    return page.evaluate(async (u) => { const r = await fetch(u, { credentials: 'same-origin', headers: { Accept: 'application/json' } }); return { status: r.status, body: await r.json().catch(() => null) }; }, url);
+}
+export async function openDeck(page, id, qs = '') {
+    await page.goto(`${BASE}/decks/${id}${qs}`);
+    await page.waitForSelector('.es-viewport');
+    await page.waitForFunction(() => document.fonts?.status !== 'loading');
+}
+/** Waits until the save bead says Saved and the server has everything (pending is empty). */
+export async function saved(page, timeout = 15000) {
+    await page.waitForFunction(() => document.querySelector('.tb-save')?.classList.contains('is-saved'), null, { timeout });
+}
+export const slideEls = (d, i = 0) => d.slides[i].els;
+/** Screen centre of an element of the current slide, from its rendered node. */
+export async function elBox(page, id) {
+    const b = await page.locator(`.es-sheet-in [data-eid="${id}"]`).boundingBox();
+    if (!b) throw new Error('element not on screen: ' + id);
+    return b;
+}
+export const MOD = process.platform === 'darwin' ? 'Meta' : 'Control';

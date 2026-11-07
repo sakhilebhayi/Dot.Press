@@ -82,6 +82,7 @@ const announced = computed(() => modeLabel(outline.value?.mode || props.ai.mode)
 
 async function fetchOutline(extra = {}) {
     const body = { brief: brief.text.trim(), source: brief.source.trim() || undefined, framework: brief.framework === 'auto' ? undefined : brief.framework, ...extra };
+    if (body.source === undefined) delete body.source;
     const res = await api.post('/api/ai/outline', body);
     const out = normalizeOutline(res);
     if (!out) throw Object.assign(new Error('The outline writer answered with something that is not an outline.'), { status: 502 });
@@ -102,8 +103,9 @@ async function regenerateBeat(beat) {
     if (regen.value) return;
     regen.value = beat.id; error.value = '';
     try {
-        const out = await fetchOutline({ only: beat.beat });
-        const fresh = out.beats.find((b) => b.beat === beat.beat) || out.beats[0];
+        const out = await fetchOutline();
+        const fresh = out.beats.find((b) => b.beat === beat.beat);
+        if (!fresh) throw new Error('That section did not come back in the new draft. Your version is kept.');
         outline.value = { ...outline.value, beats: outline.value.beats.map((b) => (b.id === beat.id ? { ...fresh, id: beat.id, label: beat.label } : b)) };
     } catch (e) { fail(e, 'The outline writer is not available in this build yet.'); }
     regen.value = null;
@@ -304,14 +306,17 @@ onBeforeUnmount(() => { document.documentElement.style.overflow = ''; });
                                     <div class="ns-beat-tools">
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="bi === 0" :aria-label="`Move ${b.label} up`" @click="shiftBeat(b.id, -1)"><Ico name="chevronUp" size="sm" /></button>
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="bi === outline.beats.length - 1" :aria-label="`Move ${b.label} down`" @click="shiftBeat(b.id, 1)"><Ico name="chevronDown" size="sm" /></button>
-                                        <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="!!regen" :aria-label="`Write ${b.label} again`" data-tip="Write again" @click="regenerateBeat(b)"><Ico name="refresh" size="sm" /></button>
+                                        <button v-if="outline.mode === 'ai'" type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="!!regen" :aria-label="`Write ${b.label} again`" data-tip="Write again" @click="regenerateBeat(b)"><Ico name="refresh" size="sm" /></button>
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :aria-label="`Delete ${b.label}`" @click="removeBeat(b.id)"><Ico name="trash" size="sm" /></button>
                                     </div>
                                 </div>
                                 <ul class="ns-claims">
                                     <li v-for="s in b.slides" :key="s.id" class="ns-claim">
                                         <span class="pr-bead pr-bead--sm" aria-hidden="true"></span>
-                                        <input :value="s.title" type="text" class="pr-field" maxlength="200" aria-label="Claim" placeholder="Say what is true" @input="setSlide(b.id, s.id, $event.target.value)" />
+                                        <span class="ns-claim-f">
+                                            <input :value="s.title" type="text" class="pr-field" maxlength="200" aria-label="Claim" placeholder="Say what is true" @input="setSlide(b.id, s.id, $event.target.value)" />
+                                            <span v-if="s.need && s.title === b.label" class="ns-need pr-small pr-muted">Placeholder. {{ s.need }} Write the claim, or delete the slide.</span>
+                                        </span>
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" aria-label="Delete this slide" @click="removeSlide(b.id, s.id)"><Ico name="close" size="sm" /></button>
                                     </li>
                                 </ul>
@@ -321,7 +326,8 @@ onBeforeUnmount(() => { document.documentElement.style.overflow = ''; });
                         <p v-if="!outline.beats.length" class="pr-muted">Nothing on this line yet. Go back and draft it again.</p>
                         <div class="ns-foot">
                             <button type="button" class="pr-btn" :disabled="busy" @click="step = 'brief'">Back</button>
-                            <button type="button" class="pr-btn" :disabled="busy" @click="draftOutline"><Ico name="refresh" size="sm" />Write it all again</button>
+                            <button v-if="outline.mode === 'ai'" type="button" class="pr-btn" :disabled="busy" @click="draftOutline"><Ico name="refresh" size="sm" />Write it all again</button>
+                            <button v-else type="button" class="pr-btn" :disabled="busy" data-tip="Local rules give the same draft every time" @click="draftOutline"><Ico name="refresh" size="sm" />Reset my edits</button>
                             <button type="button" class="pr-btn pr-btn--primary ns-grow" :disabled="busy || !slideCount" @click="generateDeck">{{ busy ? 'Making it' : `Make ${slideCount} ${slideCount === 1 ? 'slide' : 'slides'}` }}</button>
                         </div>
                     </div>

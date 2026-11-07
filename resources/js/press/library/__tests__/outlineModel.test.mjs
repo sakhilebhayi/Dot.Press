@@ -107,3 +107,19 @@ test('normalizeImport finds the deck and flattens the report', () => {
 test('document ids from core newId are valid for outline ops', () => {
   assert.match(newId(['s1'], 's'), /^[A-Za-z0-9_-]{1,40}$/);
 });
+
+test('normalizeOutline reads the real POST /api/ai/outline shape: beats with slots and needs', () => {
+  const out = normalizeOutline({
+    mode: 'local',
+    beats: [
+      { id: 'title', label: 'Title', slides: [{ title: 'Why churn doubled', claim: '', kind: 'title', slots: { bullets: [] }, notes: '', needs: [] }] },
+      { id: 'opening', label: 'Opening and purpose', slides: [{ title: 'Churn rose to 4.4 percent', claim: 'Churn rose to 4.4 percent.', kind: 'bullets', slots: { bullets: ['Legacy plan', 'Support doubled'] }, notes: 'n', needs: [] }] },
+      { id: 'points', label: 'Key points', slides: [{ title: 'Key points', claim: '', kind: 'bullets', slots: { bullets: [] }, needs: [{ slot: 'bullets', label: 'Needs your evidence', question: 'What are the main things you want people to remember?' }] }] },
+    ],
+  });
+  assert.equal(out.beats.length, 3);
+  assert.equal(out.beats[1].beat, 'opening');
+  assert.deepEqual(out.beats[1].slides[0].points, ['Legacy plan', 'Support doubled']);
+  assert.equal(out.beats[2].slides[0].need, 'What are the main things you want people to remember?');
+  assert.equal(out.beats[0].slides[0].need, '');
+});
