@@ -75,11 +75,18 @@ const exportItems = computed(() => [
     { separator: true },
     { label: 'Import PowerPoint', icon: 'upload', run: () => openExport('pdf', 'import') },
 ]);
+// Every other panel of the inspector, reachable without first selecting something (the tab strip only shows once the inspector is open).
+const MORE_PANELS = [
+    ['notes', 'Speaker notes', 'pen'], ['motion', 'Transitions', 'present'], ['comments', 'Comments', 'review'], ['history', 'Version history', 'restore'],
+    ['theme', 'Theme', 'sparkle'], ['size', 'Slide size', 'layout'], ['background', 'Background', 'image'], ['story', 'Story', 'spine'], ['assistant', 'Assistant', 'sparkle'],
+];
+const panelItems = computed(() => MORE_PANELS.filter(([id]) => editor.hasPanel(id)).map(([id, label, icon]) => ({ label, icon, run: () => editor.openPanel(id) })));
 const overflowItems = computed(() => [
     ...(editor.hasPanel('share') ? [{ label: 'Share', icon: 'share', run: () => editor.openPanel('share') }] : []),
     ...(editor.hasPanel('review') ? [{ label: 'Review', icon: 'review', run: () => editor.openPanel('review') }] : []),
     ...(canExport.value ? [{ label: 'Export', icon: 'export', run: () => openExport('pdf') }] : []),
     ...(editor.hasPanel('approval') ? [{ label: 'Approval', icon: 'review', run: () => editor.openPanel('approval') }] : []),
+    ...(panelItems.value.length ? [{ separator: true }, ...panelItems.value] : []),
     { separator: true },
     { label: 'Keyboard shortcuts', icon: 'help', run: () => { ui.help = true; } },
 ]);

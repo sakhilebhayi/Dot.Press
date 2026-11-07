@@ -85,7 +85,9 @@ export function layerFrames(t) {
             return { out: [{ transform: 'translate(0%, 0%)' }, { transform: `translate(${-ox}%, ${-oy}%)` }], in: [{ opacity: 1 }, { opacity: 1 }], inFront: false };
         case 'zoom':
             return {
-                out: [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.18)', opacity: 0 }],
+                // The leaving layer stays opaque underneath: fading both layers lets the dark stage show through and the
+                // screen dips to grey half way. The arriving layer fades in on top.
+                out: [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.18)', opacity: 1 }],
                 in: [{ transform: 'scale(0.84)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
                 inFront: true,
             };
