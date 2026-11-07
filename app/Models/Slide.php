@@ -19,6 +19,11 @@ class Slide extends Model
         'sort_order',
         'canvas_state',
         'revision',
+        'els',
+        'bg',
+        'transition',
+        'section_id',
+        'hidden',
     ];
 
     protected function casts(): array
@@ -26,6 +31,10 @@ class Slide extends Model
         return [
             'canvas_state' => 'array',
             'revision' => 'integer',
+            'els' => 'array',
+            'bg' => 'array',
+            'transition' => 'array',
+            'hidden' => 'boolean',
         ];
     }
 
