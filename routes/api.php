@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Api\AiController;
+use App\Http\Controllers\Api\AiOutlineController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\BrandKitController;
+use App\Http\Controllers\Api\DataParseController;
 use App\Http\Controllers\Api\DeckActivityController;
 use App\Http\Controllers\Api\DeckCommentController;
 use App\Http\Controllers\Api\DeckController;
 use App\Http\Controllers\Api\DeckDocumentController;
+use App\Http\Controllers\Api\DeckIntelController;
 use App\Http\Controllers\Api\DeckPeopleController;
 use App\Http\Controllers\Api\DeckReviewController;
 use App\Http\Controllers\Api\DeckShareController;
@@ -92,6 +95,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('decks/{deck}/generate-slide', [AiController::class, 'generateSlide']);
         Route::post('decks/{deck}/generate-deck', [AiController::class, 'generateDeck']);
         Route::post('slides/{slide}/rewrite-text', [AiController::class, 'rewriteText']);
+        // R-40 intelligence: brief to outline. Local rules by default; the model only with a key.
+        Route::post('outline', AiOutlineController::class);
     });
 
     // R-40 presenting: live sessions and the offline present package.
@@ -99,4 +104,19 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::put('present-sessions/{token}', [PresentSessionController::class, 'update'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-push');
     Route::delete('present-sessions/{token}', [PresentSessionController::class, 'destroy'])->where('token', '[A-Za-z0-9]{40}');
     Route::get('decks/{deck}/present-package', [PresentSessionController::class, 'package'])->middleware('throttle:export');
+
+    // R-40 intelligence over a stored deck. analyze, story and spine are local rules and free;
+    // suggest spends AI quota only when a language model answers.
+    Route::prefix('decks/{deck}/intel')->group(function (): void {
+        Route::middleware('throttle:120,1')->group(function (): void {
+            Route::post('analyze', [DeckIntelController::class, 'analyze']);
+            Route::post('story', [DeckIntelController::class, 'story']);
+            Route::get('spine', [DeckIntelController::class, 'spine']);
+            Route::post('spine', [DeckIntelController::class, 'spineEdit']);
+        });
+        Route::post('suggest', [DeckIntelController::class, 'suggest'])->middleware('throttle:ai');
+    });
+
+    Route::post('data/parse', DataParseController::class)->middleware('throttle:30,1');
+
 });
