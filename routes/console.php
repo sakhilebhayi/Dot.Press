@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\BackupSqliteDatabase;
+use App\Console\Commands\PruneDeckChanges;
 use App\Console\Commands\ScanDependencyAdvisories;
 use App\Http\Controllers\SchedulerProbeController;
 use App\Jobs\QueueHeartbeat;
@@ -32,3 +33,6 @@ Schedule::job(new QueueHeartbeat)->everyFiveMinutes()->name('queue-heartbeat');
 // data. The SQLite-backed Dot apps share one host, so each one backs up at its
 // own minute. No-op on other database drivers.
 Schedule::command(BackupSqliteDatabase::class)->dailyAt('02:55')->onOneServer();
+
+// The operations log keeps 14 days; older rows collapse into one tombstone per deck (see PruneDeckChanges).
+Schedule::command(PruneDeckChanges::class)->dailyAt('03:20')->name('press-prune-changes');

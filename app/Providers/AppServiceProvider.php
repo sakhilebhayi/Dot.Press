@@ -35,10 +35,15 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($key !== '' ? $key : $request->ip());
         });
 
-        RateLimiter::for('collab', function (Request $request): Limit {
-            $key = (string) optional($request->user())->id;
+        // Dot.Press document traffic is limited per person and deck, so one busy deck cannot starve another.
+        foreach (['press-ops' => 300, 'press-changes' => 240, 'press-presence' => 150, 'press-read' => 120] as $name => $perMinute) {
+            RateLimiter::for($name, function (Request $request) use ($perMinute): Limit {
+                $deck = $request->route('deck');
+                $deckKey = is_object($deck) ? $deck->getKey() : (string) $deck;
+                $key = (string) optional($request->user())->id;
 
-            return Limit::perMinute(120)->by($key !== '' ? $key : $request->ip());
-        });
+                return Limit::perMinute($perMinute)->by(($key !== '' ? $key : $request->ip()).'|'.$deckKey);
+            });
+        }
     }
 }
