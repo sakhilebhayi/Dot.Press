@@ -9,9 +9,11 @@ use App\Models\DeckChange;
 use App\Services\Press\DeckDocument;
 use App\Services\Press\DocumentAssets;
 use App\Services\Press\DocumentSanitizer;
+use App\Services\Press\JsonStream;
 use App\Services\Press\OpApplier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * The presentation document and its operations (docs/programme/R40_DOCUMENT_SPEC.md sections 8 and 9).
@@ -21,14 +23,15 @@ class DeckDocumentController extends Controller
     /** Changes returned per request; a longer gap comes back in pages (`more`). */
     private const PAGE = 500;
 
-    public function show(Deck $deck, DocumentAssets $assets): JsonResponse
+    /**
+     * The whole document, streamed: the stored JSON of every slide is passed through without being decoded, so a 600
+     * slide deck needs a few megabytes of memory instead of more than the host's limit, and is gzipped on the way out.
+     */
+    public function show(Request $request, Deck $deck, DocumentAssets $assets): StreamedResponse
     {
         $this->authorize('view', $deck);
 
-        $document = DeckDocument::toArray($deck);
-        $document['assets'] = (object) $assets->forDocument($document);
-
-        return response()->json($document);
+        return JsonStream::response($request, DeckDocument::chunks($deck, fn (array $ids) => $assets->forIds($ids)));
     }
 
     public function ops(Request $request, Deck $deck, OpApplier $applier): JsonResponse
@@ -73,6 +76,11 @@ class DeckDocumentController extends Controller
 
         if ($after > $head || ($tombstone !== null && $after < $tombstone)) {
             return response()->json(['stale' => true, 'seq' => $head]);
+        }
+
+        // The common poll: nothing happened since the tab last looked. One probe of the (deck_id, id) index answered it.
+        if ($after === $head) {
+            return response()->json(['seq' => $head, 'more' => false, 'changes' => []]);
         }
 
         $rows = DeckChange::query()

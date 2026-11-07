@@ -34,7 +34,7 @@ class Deck extends Model
     ];
 
     /** Never mass assigned: the sharing secrets and the approval stamp are only set by their own services. */
-    protected $hidden = ['share_password', 'share_token'];
+    protected $hidden = ['share_password', 'share_token', 'preview', 'content_hash'];
 
     protected function casts(): array
     {

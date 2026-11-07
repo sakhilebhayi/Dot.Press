@@ -39,8 +39,9 @@ class VersionService
             throw new RuntimeException("Unknown version kind {$kind}");
         }
 
-        $document = DeckDocument::toArray($deck);
-        $snapshot = (string) json_encode($document, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        // The snapshot is the stored JSON of every slide, joined, never decoded (see DeckDocument::chunks), then packed by
+        // the model. Taking one used to need 190 MB of PHP memory for a 300 slide deck.
+        $snapshot = DeckDocument::json($deck);
 
         $version = DeckVersion::create([
             'deck_id' => $deck->id,
@@ -48,8 +49,8 @@ class VersionService
             'kind' => $kind,
             'label' => $label === null ? null : Str::limit(trim($label), 120, ''),
             'snapshot' => $snapshot,
-            'hash' => DeckHash::compute($deck),
-            'slide_count' => count($document['slides']),
+            'hash' => DeckHash::current($deck),
+            'slide_count' => DB::table('slides')->where('deck_id', $deck->id)->count(),
             'size' => strlen($snapshot),
             'created_at' => now(),
         ]);
@@ -70,7 +71,7 @@ class VersionService
         if ($last !== null && $last->created_at->gt(now()->subMinutes(self::AUTO_INTERVAL_MINUTES))) {
             return null;
         }
-        if ($last !== null && $last->hash === DeckHash::compute($deck)) {
+        if ($last !== null && $last->hash === DeckHash::current($deck)) {
             return null;
         }
 

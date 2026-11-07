@@ -10,6 +10,7 @@ use App\Services\Press\ActivityRecorder;
 use App\Services\Press\DeckAccess;
 use App\Services\Press\DeckCloner;
 use App\Services\Press\DeckDocument;
+use App\Services\Press\DeckPreview;
 use App\Services\Press\DocumentSanitizer;
 use App\Services\Press\InvalidDocument;
 use App\Services\Press\OpApplier;
@@ -26,9 +27,6 @@ class DeckController extends Controller
     public const SIZES = ['16:9' => [1920, 1080], '4:3' => [1440, 1080], 'portrait' => [1080, 1920]];
 
     public const FILTERS = ['mine', 'team', 'shared', 'favourites', 'recent', 'archived', 'templates'];
-
-    /** The library card thumbnail: at most this many bytes of the first slide's elements. */
-    private const PREVIEW_BYTES = 60000;
 
     /**
      * The library. Team scoping comes from Deck's own global scope (every team the person belongs to); the filters
@@ -107,9 +105,10 @@ class DeckController extends Controller
         $query->orderBy('decks.id', $ascending ? 'asc' : 'desc');
 
         $page = $query->cursorPaginate((int) ($v['per_page'] ?? 24))->withQueryString();
+        $previews = DeckPreview::forDecks($page->getCollection());
 
         return response()->json([
-            'data' => $page->getCollection()->map(fn (Deck $deck) => $this->row($deck))->values(),
+            'data' => $page->getCollection()->map(fn (Deck $deck) => $this->row($deck, $previews[$deck->id]))->values(),
             'next_cursor' => $page->nextCursor()?->encode(),
             'per_page' => $page->perPage(),
         ]);
@@ -328,10 +327,8 @@ class DeckController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function row(Deck $deck): array
+    private function row(Deck $deck, array $preview): array
     {
-        $first = Slide::withoutGlobalScopes()->where('deck_id', $deck->id)->orderBy('sort_order')->orderBy('id')->first(['id', 'bg', 'els']);
-
         return [
             'id' => $deck->id,
             'title' => $deck->title,
@@ -347,32 +344,9 @@ class DeckController extends Controller
             'updated_at' => $deck->updated_at?->toIso8601String(),
             'archived_at' => $deck->archived_at?->toIso8601String(),
             'is_template' => (bool) $deck->is_template,
-            'first_slide' => $first?->id,
-            'preview' => $first ? ['bg' => $first->bg, 'els' => $this->previewElements($first->els ?? [])] : ['bg' => null, 'els' => []],
+            'first_slide' => $preview['first_slide'],
+            'preview' => ['bg' => $preview['bg'], 'els' => $preview['els']],
         ];
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $els
-     * @return list<array<string, mixed>>
-     */
-    private function previewElements(array $els): array
-    {
-        $out = [];
-        $bytes = 2;
-        foreach ($els as $el) {
-            if (! empty($el['hide'])) {
-                continue;
-            }
-            $size = strlen((string) json_encode($el)) + 1;
-            if ($bytes + $size > self::PREVIEW_BYTES) {
-                continue;
-            }
-            $bytes += $size;
-            $out[] = $el;
-        }
-
-        return $out;
     }
 
     /**

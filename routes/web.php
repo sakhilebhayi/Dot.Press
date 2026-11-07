@@ -99,6 +99,8 @@ Route::middleware([
     Route::get('/decks/{deck}/present', [PresentSessionController::class, 'player'])->name('press.player');
     Route::get('/decks/{deck}/presenter', [PresentSessionController::class, 'presenter'])->name('press.presenter');
     Route::get('/decks/{deck}/audience', [PresentSessionController::class, 'audienceWindow'])->name('press.audience');
+    // The slides of a big deck, streamed, for the player pages that cannot carry them in the HTML (DeferredPage).
+    Route::get('/decks/{deck}/slides-payload', [PresentSessionController::class, 'payload'])->whereNumber('deck')->middleware('throttle:press-read')->name('press.payload');
 
     // R-40 print view: all slides, one per page, for the browser's Save as PDF.
     Route::get('/decks/{deck}/print', [PrintController::class, 'show'])->whereNumber('deck')->name('press.print');
@@ -135,6 +137,7 @@ Route::middleware('throttle:present-public')->group(function () {
     Route::get('/remote/{token}', [PresentSessionController::class, 'remote'])->where('token', '[A-Za-z0-9]{40}')->name('press.remote');
 });
 Route::withoutMiddleware('web')->group(function () {
+    Route::get('/live/{token}/payload', [PresentSessionController::class, 'followPayload'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-public')->name('press.live.payload');
     Route::get('/live/{token}/state', [PresentSessionController::class, 'state'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-state')->name('press.live.state');
     Route::post('/live/{token}/command', [PresentSessionController::class, 'command'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-command')->name('press.live.command');
     Route::get('/present-asset/{asset}', [PresentSessionController::class, 'asset'])->whereNumber('asset')->middleware(['signed:relative', 'throttle:present-asset'])->name('press.asset');

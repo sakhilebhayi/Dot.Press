@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Deck;
+use App\Services\Press\DeckDocument;
+use App\Services\Press\DeferredPage;
 use App\Services\Press\PresentPayload;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,6 +28,15 @@ class PrintController extends Controller
 
         $hidden = $request->boolean('hidden');
         $notes = $request->boolean('notes');
+        $options = ['hidden' => $hidden, 'notes' => $notes];
+
+        if (! DeckDocument::isInlineSized($deck)) {
+            return DeferredPage::render('Print', [
+                'deck' => PresentPayload::deckHeader($deck),
+                'options' => $options,
+                'backUrl' => route('press.editor', $deck, absolute: false),
+            ], route('press.payload', ['deck' => $deck, 'kind' => 'print', 'hidden' => (int) $hidden, 'notes' => (int) $notes], absolute: false));
+        }
 
         $slides = array_values(array_filter(
             PresentPayload::slides($deck, notes: $notes),
@@ -36,7 +47,7 @@ class PrintController extends Controller
             'deck' => PresentPayload::deckHeader($deck),
             'slides' => $slides,
             'assets' => PresentPayload::assetMap($deck, $slides, now()->addHours(self::ASSET_HOURS)),
-            'options' => ['hidden' => $hidden, 'notes' => $notes],
+            'options' => $options,
             'backUrl' => route('press.editor', $deck, absolute: false),
         ]);
     }

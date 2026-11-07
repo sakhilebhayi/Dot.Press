@@ -36,6 +36,17 @@ class DocumentAssets
             }
         }
 
+        return $this->forIds($ids);
+    }
+
+    /**
+     * The same map for asset ids already collected (the streamed document finds them without decoding the slides).
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function forIds(array $ids): array
+    {
         $ids = array_values(array_unique($ids));
         if ($ids === []) {
             return [];

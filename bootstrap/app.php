@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\CompressResponse;
 use App\Http\Middleware\EnsurePlatformOperator;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\MemoizeDeckAccess;
 use App\Http\Middleware\SecurityHeaders;
 use App\Services\Guardian\ErrorCounter;
 use Illuminate\Foundation\Application;
@@ -23,6 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Every response, including /up, the API and error pages: baseline security headers.
         $middleware->append(SecurityHeaders::class);
+
+        // Gzip big JSON and HTML answers (R-40 performance): the outermost layer, so it sees the finished response.
+        $middleware->prepend(CompressResponse::class);
+
+        // Deck grants are worked out once per request instead of once per question (R-40 performance).
+        $middleware->append(MemoizeDeckAccess::class);
 
         // The editor and the library call /api/* from the signed-in browser with the session cookie and the XSRF header.
         // Requests whose Origin or Referer is one of SANCTUM_STATEFUL_DOMAINS (the app's own host by default) get the

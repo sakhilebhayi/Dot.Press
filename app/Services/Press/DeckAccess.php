@@ -6,7 +6,6 @@ use App\Models\Asset;
 use App\Models\Deck;
 use App\Models\DeckShare;
 use App\Models\Project;
-use App\Models\Scopes\DeckAccessScope;
 use App\Models\Slide;
 use App\Models\Team;
 use App\Models\User;
@@ -46,14 +45,50 @@ class DeckAccess
         return self::grantFor($user, $deck)?->can($ability) ?? false;
     }
 
+    /**
+     * Grants worked out during the current HTTP request (null = not remembering). A single request asks several times
+     * (route binding, the policy, the controller, the page's ability list), and each ask was four queries. The memo is
+     * switched on by MemoizeDeckAccess for the length of one request only, so queue jobs, console commands and tests that
+     * change a role between two calls always see the change; a share written during the request clears it.
+     *
+     * @var array<string, ?DeckAccessGrant>|null
+     */
+    private static ?array $memo = null;
+
+    public static function remember(bool $on): void
+    {
+        self::$memo = $on ? [] : null;
+    }
+
+    public static function forgetRemembered(): void
+    {
+        if (self::$memo !== null) {
+            self::$memo = [];
+        }
+    }
+
     public static function grantFor(User $user, Deck $deck): ?DeckAccessGrant
     {
+        $key = null;
+        if (self::$memo !== null) {
+            $key = $user->id.':'.$deck->id.':'.$deck->visibility.':'.(int) $deck->user_id.':'.(int) $deck->project_id;
+            if (array_key_exists($key, self::$memo)) {
+                return self::$memo[$key];
+            }
+        }
+
         $team = self::teamOf($deck);
         $teamKey = $team ? self::teamRoleKey($user, $team) : null;
         $shareRole = DB::table('deck_shares')
             ->where('deck_id', $deck->id)->where('user_id', $user->id)->value('role');
 
-        return self::combine($deck->visibility, (int) $deck->user_id === $user->id, $teamKey, $shareRole);
+        $grant = self::combine($deck->visibility, (int) $deck->user_id === $user->id, $teamKey, $shareRole);
+
+        if ($key !== null) {
+            self::$memo[$key] = $grant;
+        }
+
+        return $grant;
     }
 
     /**
@@ -185,16 +220,25 @@ class DeckAccess
         return in_array($assetId, self::assetIdsOfDeck($deck), true);
     }
 
-    /** @return list<int> Every asset id the deck's slides and theme point at (`{asset: id}` references). */
+    /**
+     * @return list<int> Every asset id the deck's slides and theme point at (`{asset: id}` references).
+     *
+     * Read from the stored JSON text with a pattern, without decoding any slide: this runs for every picture a shared
+     * link serves, and decoding a 300 slide deck for each of its 100 pictures was 100 times the work.
+     */
     public static function assetIdsOfDeck(Deck $deck): array
     {
         $ids = self::assetIdsIn($deck->theme ?? []);
 
-        DeckAccessScope::without(function () use ($deck, &$ids): void {
-            foreach (Slide::where('deck_id', $deck->id)->get(['id', 'els', 'bg']) as $slide) {
-                $ids = [...$ids, ...self::assetIdsIn($slide->els ?? []), ...self::assetIdsIn($slide->bg ?? [])];
+        foreach (DB::table('slides')->where('deck_id', $deck->id)->select(['els', 'bg'])->cursor() as $row) {
+            foreach ([$row->els, $row->bg] as $json) {
+                if (is_string($json) && str_contains($json, '"asset"') && preg_match_all('/"asset":(\d+)/', $json, $m) > 0) {
+                    foreach ($m[1] as $id) {
+                        $ids[] = (int) $id;
+                    }
+                }
             }
-        });
+        }
 
         return array_values(array_unique($ids));
     }

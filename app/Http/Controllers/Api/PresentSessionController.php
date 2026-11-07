@@ -7,6 +7,9 @@ use App\Models\Asset;
 use App\Models\Deck;
 use App\Models\PresentSession;
 use App\Models\Slide;
+use App\Services\Press\DeckDocument;
+use App\Services\Press\DeferredPage;
+use App\Services\Press\JsonStream;
 use App\Services\Press\PresentPackage;
 use App\Services\Press\PresentPayload;
 use Illuminate\Http\JsonResponse;
@@ -46,7 +49,7 @@ class PresentSessionController extends Controller
     {
         $this->authorize('view', $deck);
 
-        return Inertia::render('Press/Player', $this->pageProps($request, $deck, notes: true) + [
+        return $this->page($request, $deck, 'Player', 'player', true, [
             'mode' => 'present',
             'exitUrl' => $this->exitUrl($request),
         ]);
@@ -56,7 +59,7 @@ class PresentSessionController extends Controller
     {
         $this->authorize('view', $deck);
 
-        return Inertia::render('Press/Presenter', $this->pageProps($request, $deck, notes: true) + [
+        return $this->page($request, $deck, 'Presenter', 'player', true, [
             'exitUrl' => $this->exitUrl($request),
             'audienceUrl' => route('press.audience', $deck, absolute: false),
         ]);
@@ -69,10 +72,39 @@ class PresentSessionController extends Controller
 
         $key = (string) $request->query('c', '');
 
-        return Inertia::render('Press/Audience', $this->pageProps($request, $deck, notes: false) + [
+        return $this->page($request, $deck, 'Audience', 'audience', false, [
             'follow' => null,
             'channelKey' => preg_match('/^[a-z0-9]{6,24}$/', $key) === 1 ? $key : null,
         ]);
+    }
+
+    /**
+     * The slides and asset map of a deck for the player pages, streamed as `{slides, assets}`. The pages of a big deck
+     * fetch this instead of carrying the slides inside the HTML (see DeferredPage). `kind` picks the shape: `player`
+     * (speaker notes, every slide), `audience` (no notes), `print` (hidden slides and notes only when asked for).
+     */
+    public function payload(Request $request, Deck $deck): SymfonyResponse
+    {
+        $this->authorize('view', $deck);
+
+        $kind = (string) $request->query('kind', 'player');
+        abort_unless(in_array($kind, ['player', 'audience', 'print'], true), 422);
+
+        $chunks = match ($kind) {
+            'player' => PresentPayload::chunks($deck, notes: true, blankHidden: false, includeHidden: true, expires: now()->addHours(self::TTL_HOURS)),
+            'audience' => PresentPayload::chunks($deck, notes: false, blankHidden: false, includeHidden: true, expires: now()->addHours(self::TTL_HOURS)),
+            'print' => PresentPayload::chunks($deck, notes: $request->boolean('notes'), blankHidden: false, includeHidden: $request->boolean('hidden'), expires: now()->addHours(3)),
+        };
+
+        return JsonStream::response($request, $chunks);
+    }
+
+    /** The audience link's slides, streamed (see payload()). The session token is the permission. */
+    public function followPayload(Request $request, string $token): SymfonyResponse
+    {
+        $session = $this->liveSession($token);
+
+        return JsonStream::response($request, PresentPayload::chunks($this->deckOf($session), notes: false, blankHidden: true, includeHidden: true, expires: $this->expiresAt($session)));
     }
 
     // ---- sessions (signed-in, API) ---------------------------------------------------------------------------
@@ -163,6 +195,15 @@ class PresentSessionController extends Controller
     {
         $session = $this->liveSession($token);
         $deck = $this->deckOf($session);
+
+        if (! DeckDocument::isInlineSized($deck)) {
+            return DeferredPage::render('Audience', [
+                'deck' => PresentPayload::deckHeader($deck),
+                'follow' => ['token' => $session->token],
+                'channelKey' => null,
+            ], route('press.live.payload', ['token' => $session->token], absolute: false));
+        }
+
         $slides = PresentPayload::slides($deck, notes: false, blankHidden: true);
         $expires = $this->expiresAt($session);
 
@@ -308,6 +349,24 @@ class PresentSessionController extends Controller
     }
 
     // ---- helpers -----------------------------------------------------------------------------------------------
+
+    /**
+     * A signed-in player page. A deck too big for the HTML is sent as a small page that fetches its slides from
+     * payload() (see DeferredPage); the start index is worked out here either way.
+     *
+     * @param  array<string, mixed>  $extra
+     */
+    private function page(Request $request, Deck $deck, string $component, string $kind, bool $notes, array $extra)
+    {
+        if (DeckDocument::isInlineSized($deck)) {
+            return Inertia::render('Press/'.$component, $this->pageProps($request, $deck, notes: $notes) + $extra);
+        }
+
+        return DeferredPage::render($component, [
+            'deck' => PresentPayload::deckHeader($deck),
+            'startIndex' => PresentPayload::startIndex($deck, (int) $request->query('from', 0), $request->filled('slide') ? (string) $request->query('slide') : null),
+        ] + $extra, route('press.payload', ['deck' => $deck, 'kind' => $kind], absolute: false));
+    }
 
     private function pageProps(Request $request, Deck $deck, bool $notes): array
     {

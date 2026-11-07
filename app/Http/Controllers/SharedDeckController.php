@@ -7,6 +7,8 @@ use App\Models\Deck;
 use App\Models\Scopes\DeckAccessScope;
 use App\Services\Press\DeckAccess;
 use App\Services\Press\DeckDocument;
+use App\Services\Press\DeferredPage;
+use App\Services\Press\JsonStream;
 use App\Services\Press\RangeStream;
 use App\Services\Press\Sharing;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * The public, no-login view of a deck behind a share token. A guest sees the slides and their assets and nothing
@@ -33,14 +36,20 @@ class SharedDeckController extends Controller
         $deck = $this->deck($token);
         $locked = $this->locked($request, $deck);
 
-        return Inertia::render('Press/Shared', [
+        $props = [
             'title' => $locked ? 'Protected presentation' : $deck->title,
             'needsPassword' => $locked,
             'error' => $request->session()->pull('share_error'),
-            'doc' => $locked ? null : $this->buildDocument($deck, $token),
             'allowDownload' => (bool) $deck->share_allow_download,
             'token' => $token,
-        ]);
+        ];
+
+        // A big deck is fetched by the page from the streaming document route instead of being written into the HTML.
+        if (! $locked && ! DeckDocument::isInlineSized($deck)) {
+            return DeferredPage::render('Shared', $props + ['doc' => null], route('shared.document', ['token' => $token], absolute: false), 'doc');
+        }
+
+        return Inertia::render('Press/Shared', $props + ['doc' => $locked ? null : $this->buildDocument($deck, $token)]);
     }
 
     public function unlock(Request $request, string $token): RedirectResponse|JsonResponse
@@ -75,12 +84,25 @@ class SharedDeckController extends Controller
             : redirect()->route('shared.show', ['token' => $token], 303);
     }
 
-    public function document(Request $request, string $token): JsonResponse
+    public function document(Request $request, string $token): StreamedResponse
     {
         $deck = $this->deck($token);
         abort_if($this->locked($request, $deck), 403, 'This presentation needs its password.');
 
-        return response()->json($this->buildDocument($deck, $token));
+        // Streamed: the stored JSON of each slide is passed through, so a big deck costs a few MB of memory.
+        $assets = function (array $ids) use ($deck, $token): array {
+            $map = [];
+            foreach (Asset::withoutGlobalScopes()->where('project_id', $deck->project_id)->whereIn('id', $ids)->get() as $asset) {
+                $url = route('shared.asset', ['token' => $token, 'asset' => $asset->id]);
+                $map[$asset->id] = ['url' => $url, 'thumb' => $asset->thumb_path ? $url.'?size=thumb' : null, 'w' => $asset->width, 'h' => $asset->height, 'mime' => $asset->mime_type, 'name' => $asset->original_name];
+            }
+
+            return $map;
+        };
+
+        return JsonStream::response($request, DeckDocument::chunks($deck, $assets, [
+            'notes' => false, 'seq' => 0, 'deck_keys' => ['id', 'title', 'w', 'h', 'theme', 'sections', 'slide_order', 'updated_at'],
+        ]));
     }
 
     public function asset(Request $request, string $token, int $asset): Response

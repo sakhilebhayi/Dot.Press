@@ -7,6 +7,7 @@ use App\Models\Deck;
 use App\Models\Slide;
 use DateTimeInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 /**
@@ -60,6 +61,72 @@ class PresentPayload
                 ];
             })
             ->all();
+    }
+
+    /**
+     * The same payload as slides() + assetMap() as JSON text in pieces: `{"slides":[...],"assets":{...}}`, with each
+     * slide's stored element JSON passed through undecoded (see DeckDocument::chunks). Used when the page would
+     * otherwise have to hold the whole deck as PHP arrays.
+     *
+     * @param  bool  $notes  include speaker notes
+     * @param  bool  $blankHidden  hidden slides keep their place but lose their content
+     * @param  bool  $includeHidden  false leaves hidden slides out altogether (the print view)
+     * @return \Generator<int, string>
+     */
+    public static function chunks(Deck $deck, bool $notes, bool $blankHidden, bool $includeHidden, DateTimeInterface $expires): \Generator
+    {
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION | JSON_INVALID_UTF8_SUBSTITUTE;
+        $assetIds = [];
+        $raw = fn ($v, string $fallback) => is_string($v) && $v !== '' && $v !== 'null' && json_validate($v) ? $v : $fallback;
+
+        yield '{"slides":[';
+        $first = true;
+        $rows = DB::table('slides')->where('deck_id', $deck->id)->orderBy('sort_order')->orderBy('id')
+            ->select(['id', 'title', 'notes', 'hidden', 'layout', 'bg', 'transition', 'els'])->cursor();
+        foreach ($rows as $row) {
+            if ($row->hidden && ! $includeHidden) {
+                continue;
+            }
+            $blank = $blankHidden && $row->hidden;
+            $els = $blank ? '[]' : $raw($row->els, '[]');
+            $bg = $blank ? 'null' : $raw($row->bg, 'null');
+            foreach ([$els, $bg] as $json) {
+                if (str_contains($json, '"asset"') && preg_match_all('/"asset":(\d+)/', $json, $m) > 0) {
+                    foreach ($m[1] as $id) {
+                        $assetIds[(int) $id] = true;
+                    }
+                }
+            }
+            yield ($first ? '' : ',').'{"id":'.(int) $row->id
+                .',"title":'.($blank ? 'null' : json_encode($row->title, $flags))
+                .',"notes":'.json_encode($notes ? (string) $row->notes : '', $flags)
+                .',"hidden":'.($row->hidden ? 'true' : 'false')
+                .',"layout":'.json_encode($row->layout ?: 'blank', $flags)
+                .',"bg":'.$bg
+                .',"transition":'.$raw($row->transition, 'null')
+                .',"els":'.$els.'}';
+            $first = false;
+        }
+
+        $map = self::assetMapForIds($deck, array_keys($assetIds), $expires);
+        yield '],"assets":'.($map === [] ? '{}' : json_encode($map, $flags)).'}';
+    }
+
+    /**
+     * Index of the slide to start on: the one named by `slide` when it is in the deck, else `from`, kept in range.
+     */
+    public static function startIndex(Deck $deck, int $from, ?string $slideId): int
+    {
+        $ids = DB::table('slides')->where('deck_id', $deck->id)->orderBy('sort_order')->orderBy('id')->pluck('id')->all();
+        $index = max(0, $from);
+        if ($slideId !== null && $slideId !== '') {
+            $found = array_search((int) $slideId, $ids, true);
+            if ($found !== false && (string) $ids[$found] === $slideId) {
+                $index = $found;
+            }
+        }
+
+        return min($index, max(0, count($ids) - 1));
     }
 
     /**
@@ -122,8 +189,17 @@ class PresentPayload
      */
     public static function assetMap(Deck $deck, array $slides, DateTimeInterface $expires): array
     {
+        return self::assetMapForIds($deck, self::assetIds($slides), $expires);
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @return array<string, array{url: string, thumb: string, w: int|null, h: int|null, mime: string|null, name: string|null}>
+     */
+    public static function assetMapForIds(Deck $deck, array $ids, DateTimeInterface $expires): array
+    {
         $map = [];
-        foreach (self::assets($deck, self::assetIds($slides)) as $asset) {
+        foreach (self::assets($deck, $ids) as $asset) {
             $map[(string) $asset->id] = [
                 'url' => URL::temporarySignedRoute('press.asset', $expires, ['asset' => $asset->id, 'v' => 'web'], absolute: false),
                 'thumb' => URL::temporarySignedRoute('press.asset', $expires, ['asset' => $asset->id, 'v' => 'thumb'], absolute: false),

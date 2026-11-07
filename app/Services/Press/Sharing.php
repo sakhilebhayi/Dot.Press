@@ -144,6 +144,8 @@ class Sharing
             ['role' => $role, 'invited_by' => $actor->id],
         ));
 
+        DeckAccess::forgetRemembered();
+
         ActivityRecorder::record($deck, $actor, 'shared', [
             'action' => $share->wasRecentlyCreated ? 'added' : 'changed',
             'user_id' => $person->id,
@@ -157,6 +159,7 @@ class Sharing
     public static function removePerson(Deck $deck, User $actor, User $person): bool
     {
         $removed = DeckAccessScope::without(fn () => DeckShare::where('deck_id', $deck->id)->where('user_id', $person->id)->delete());
+        DeckAccess::forgetRemembered();
 
         if ($removed) {
             ActivityRecorder::record($deck, $actor, 'shared', ['action' => 'removed', 'user_id' => $person->id, 'name' => $person->name]);

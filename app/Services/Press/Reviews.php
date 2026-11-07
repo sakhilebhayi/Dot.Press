@@ -172,7 +172,7 @@ class Reviews
             return;
         }
 
-        if ($deck->approved_hash === null || DeckHash::compute($deck) !== $deck->approved_hash) {
+        if ($deck->approved_hash === null || DeckHash::current($deck) !== $deck->approved_hash) {
             $deck->forceFill(['status' => 'draft'])->save();
         }
     }
@@ -187,13 +187,13 @@ class Reviews
             return $deck->status;
         }
 
-        return DeckHash::compute($deck) === $deck->approved_hash ? $deck->status : 'changed_since_approval';
+        return DeckHash::current($deck) === $deck->approved_hash ? $deck->status : 'changed_since_approval';
     }
 
     /** @return array<string, mixed> */
     public static function describe(Deck $deck): array
     {
-        $hash = DeckHash::compute($deck);
+        $hash = DeckHash::current($deck);
         $reviews = DeckReview::where('deck_id', $deck->id)->orderByDesc('id')->get();
         $users = User::whereIn('id', $reviews->flatMap(fn ($r) => [$r->reviewer_id, $r->requested_by])->unique())->get(['id', 'name'])->keyBy('id');
 

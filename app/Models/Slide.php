@@ -6,6 +6,7 @@ use App\Models\Concerns\HasScopeThroughDeck;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Slide extends Model
 {
@@ -36,6 +37,32 @@ class Slide extends Model
             'transition' => 'array',
             'hidden' => 'boolean',
         ];
+    }
+
+    /**
+     * True while DeckBatch writes a whole batch: OpApplier bumps the deck's `rev` once at the end, which is what
+     * invalidates the cached hash and library preview, so the per slide hook below stays quiet.
+     */
+    public static bool $quiet = false;
+
+    protected static function booted(): void
+    {
+        $forget = function (Slide $slide): void {
+            if (! self::$quiet && $slide->deck_id) {
+                self::forgetDeckCaches((int) $slide->deck_id);
+            }
+        };
+        static::saved($forget);
+        static::deleted($forget);
+    }
+
+    /**
+     * The deck's content hash and library preview are remembered against its `rev` (DeckHash::current, DeckPreview).
+     * A slide written without going through an operations batch, which does not bump `rev`, forgets both here.
+     */
+    public static function forgetDeckCaches(int $deckId): void
+    {
+        DB::table('decks')->where('id', $deckId)->where(fn ($q) => $q->whereNotNull('hash_rev')->orWhereNotNull('preview_rev'))->update(['hash_rev' => null, 'preview_rev' => null]);
     }
 
     public function deck(): BelongsTo

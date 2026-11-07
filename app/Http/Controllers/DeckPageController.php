@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Deck;
 use App\Services\Press\DeckAccess;
 use App\Services\Press\DeckDocument;
+use App\Services\Press\DeferredPage;
 use App\Services\Press\DocumentAssets;
 use App\Services\Press\ThemeLibrary;
 use Illuminate\Http\RedirectResponse;
@@ -43,11 +44,7 @@ class DeckPageController extends Controller
         $user = $request->user();
         DB::table('deck_user')->upsert([['deck_id' => $deck->id, 'user_id' => $user->id, 'last_opened_at' => now()]], ['deck_id', 'user_id'], ['last_opened_at']);
 
-        $document = DeckDocument::toArray($deck);
-        $document['assets'] = (object) $assets->forDocument($document);
-
-        return Inertia::render('Press/Editor', [
-            'document' => $document,
+        $props = [
             'role' => DeckAccess::roleFor($user, $deck),
             'can' => collect(['update', 'comment', 'manage', 'present', 'export'])
                 ->mapWithKeys(fn (string $ability) => [$ability => DeckAccess::can($user, $deck, $ability)])
@@ -55,7 +52,17 @@ class DeckPageController extends Controller
             'me' => ['id' => $user->id, 'name' => $user->name],
             'ai' => ['mode' => config('ai.provider', 'mock') === 'anthropic' ? 'ai' : 'local'],
             'startSlide' => $request->query('slide'),
-        ]);
+        ];
+
+        // A deck that is too big to write into the page is fetched by the page from the streaming document endpoint.
+        if (! DeckDocument::isInlineSized($deck)) {
+            return DeferredPage::render('Editor', $props, '/api/decks/'.$deck->id.'/document', 'document');
+        }
+
+        $document = DeckDocument::toArray($deck);
+        $document['assets'] = (object) $assets->forDocument($document);
+
+        return Inertia::render('Press/Editor', ['document' => $document] + $props);
     }
 
     /** Links from before R-40 (one page per slide) land on the new editor. */

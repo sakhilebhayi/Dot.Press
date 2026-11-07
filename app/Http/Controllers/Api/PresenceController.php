@@ -39,7 +39,12 @@ class PresenceController extends Controller
 
         $user = $request->user();
 
-        DeckPresence::query()->where('deck_id', $deck->id)->where('seen_at', '<', now()->subSeconds(self::KEEP_SECONDS))->delete();
+        // Look before deleting: a read does not queue behind the other writers, and a delete that removes nothing still
+        // takes the database write lock, which every tab would otherwise do every few seconds.
+        $stale = DeckPresence::query()->where('deck_id', $deck->id)->where('seen_at', '<', now()->subSeconds(self::KEEP_SECONDS));
+        if ($stale->exists()) {
+            $stale->delete();
+        }
 
         $row = DeckPresence::query()->where('deck_id', $deck->id)->where('client', $v['client'])->first();
         if ($row !== null && $row->user_id !== $user->id) {
@@ -47,7 +52,8 @@ class PresenceController extends Controller
         }
 
         // The slide must belong to this deck; anything else is stored as "no slide".
-        $slideId = isset($v['slide']) && Slide::withoutGlobalScopes()->where('deck_id', $deck->id)->whereKey($v['slide'])->exists() ? $v['slide'] : null;
+        // A slide id this tab already sent and we already checked is not looked up again.
+        $slideId = isset($v['slide']) && ($row?->slide_id === $v['slide'] || Slide::withoutGlobalScopes()->where('deck_id', $deck->id)->whereKey($v['slide'])->exists()) ? $v['slide'] : null;
 
         $attributes = [
             'user_id' => $user->id,

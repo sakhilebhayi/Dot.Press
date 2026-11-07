@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\BackupSqliteDatabase;
+use App\Console\Commands\CompressDeckVersions;
 use App\Console\Commands\PressAssetsGc;
 use App\Console\Commands\PruneDeckChanges;
 use App\Console\Commands\PruneDeckExports;
@@ -43,3 +44,6 @@ Schedule::command(PruneDeckChanges::class)->dailyAt('03:20')->name('press-prune-
 
 // Export files live for 24 hours; this removes them and tidies the history.
 Schedule::command(PruneDeckExports::class)->hourly()->name('press-exports-prune')->onOneServer();
+
+// Old plain-JSON version snapshots are packed a few at a time (new ones are packed when they are written).
+Schedule::command(CompressDeckVersions::class)->dailyAt('03:40')->name('press-versions-compress')->onOneServer();

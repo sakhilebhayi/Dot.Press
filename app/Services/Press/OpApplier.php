@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\Deck;
 use App\Models\DeckChange;
 use App\Models\Project;
+use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,10 @@ class OpApplier
      */
     public function apply(Deck $deck, ?User $user, string $client, string $key, array $ops): array
     {
+        // The deck's `rev` is bumped once per batch and that is what makes the cached hash and library preview stale;
+        // the per slide hook (Slide::booted) would only repeat it for every slide written.
+        $quiet = Slide::$quiet;
+        Slide::$quiet = true;
         try {
             return DB::transaction(fn () => $this->applyLocked($deck, $user, $client, $key, $ops));
         } catch (UniqueConstraintViolationException $e) {
@@ -39,6 +44,8 @@ class OpApplier
             }
 
             return $this->replay($stored, $user);
+        } finally {
+            Slide::$quiet = $quiet;
         }
     }
 

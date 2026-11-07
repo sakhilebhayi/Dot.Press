@@ -62,6 +62,7 @@ class PressBench extends Command
         {--compare= : Print a previous JSON result beside this run}
         {--use-current-db : Use the configured database instead of the throw-away benchmark file}
         {--seed-only : Only create the benchmark decks (for the browser benchmark) and print their ids}
+        {--tokens=0 : With --seed-only: also create this many editor users with bearer tokens, written to storage/app/bench/tokens.txt}
         {--worker= : Internal: run as a child worker (ops, presence, export, import, asset)}
         {--args= : Internal: JSON arguments for the worker}';
 
@@ -111,6 +112,23 @@ class PressBench extends Command
                 $file = storage_path("app/bench/doc-{$size}.json");
                 file_put_contents($file, json_encode(DeckDocument::toArray($deck), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
                 $this->line("  document written to {$file}");
+            }
+
+            // A bearer token for scripts/bench/http.mjs (a test token for this throw-away benchmark user).
+            $this->line('token '.$this->user->createToken('bench-'.uniqid())->plainTextToken);
+            $count = (int) $this->option('tokens');
+            if ($count > 0) {
+                $lines = [];
+                for ($i = 0; $i < $count; $i++) {
+                    $editor = User::query()->firstOrCreate(['email' => "bench-ed-{$i}@press.test"], ['name' => "Bench Editor {$i}", 'password' => bcrypt('password'), 'email_verified_at' => now()]);
+                    if (! $this->user->currentTeam->hasUser($editor)) {
+                        $this->user->currentTeam->users()->attach($editor, ['role' => 'editor']);
+                    }
+                    $editor->forceFill(['current_team_id' => $this->user->currentTeam->id])->save();
+                    $lines[] = $editor->createToken('bench-'.uniqid())->plainTextToken;
+                }
+                file_put_contents(storage_path('app/bench/tokens.txt'), implode("\n", $lines)."\n");
+                $this->line("{$count} editor tokens written to storage/app/bench/tokens.txt");
             }
 
             return self::SUCCESS;
@@ -241,11 +259,14 @@ class PressBench extends Command
      * @param  array<string, mixed>|null  $json
      * @return array{status: int, ms: float, bytes: int, gz: int, queries: int, sql_ms: float, peak_mb: float, nplus1: list<string>, body: string, request_bytes: int}
      */
-    private function hit(string $method, string $uri, ?array $json = null, bool $inertia = false, ?User $as = null): array
+    private function hit(string $method, string $uri, ?array $json = null, bool $inertia = false, ?User $as = null, bool $gzip = false): array
     {
         Auth::guard('web')->setUser($as ?? $this->user);
         Cache::flush();
         $server = ['HTTP_ACCEPT' => $inertia ? 'text/html' : 'application/json', 'HTTP_HOST' => 'localhost'];
+        if ($gzip) {
+            $server['HTTP_ACCEPT_ENCODING'] = 'gzip';
+        }
         $content = null;
         if ($json !== null) {
             $server['CONTENT_TYPE'] = 'application/json';
@@ -261,9 +282,21 @@ class PressBench extends Command
         $t = hrtime(true);
         $kernel = app(HttpKernel::class);
         $response = $kernel->handle($request);
+        $streamed = $response instanceof StreamedResponse;
+        $streamedBytes = 0;
+        if ($streamed) {
+            // A streamed answer is produced while it is sent: count its bytes as they leave, without keeping them.
+            ob_start(function (string $chunk) use (&$streamedBytes): string {
+                $streamedBytes += strlen($chunk);
+
+                return '';
+            }, 65536);
+            $response->sendContent();
+            ob_end_clean();
+        }
         $ms = (hrtime(true) - $t) / 1e6;
         $peak = (memory_get_peak_usage() - $before) / 1048576;
-        $body = $response instanceof StreamedResponse ? '' : (string) $response->getContent();
+        $body = $streamed ? '' : (string) $response->getContent();
         $queries = $this->queries;
         $kernel->terminate($request, $response);
 
@@ -281,7 +314,7 @@ class PressBench extends Command
         }
 
         return [
-            'status' => $response->getStatusCode(), 'ms' => $ms, 'bytes' => strlen($body), 'gz' => $body === '' ? 0 : strlen((string) gzencode($body, 6)),
+            'status' => $response->getStatusCode(), 'ms' => $ms, 'bytes' => $streamed ? $streamedBytes : strlen($body), 'gz' => $streamed ? ($response->headers->get('Content-Encoding') === 'gzip' ? $streamedBytes : 0) : ($body === '' ? 0 : strlen((string) gzencode($body, 6))),
             'queries' => count($queries), 'sql_ms' => array_sum(array_column($queries, 'ms')), 'peak_mb' => $peak, 'nplus1' => $nplus1, 'body' => $body,
             'request_bytes' => $content === null ? 0 : strlen($content),
         ];
@@ -340,12 +373,21 @@ class PressBench extends Command
             $r = $this->repeat(fn () => $this->hit('GET', "/api/decks/{$deck->id}/document"), $runs);
             $this->putCall('doc', "{$size}.get_document", $r);
             $this->put('doc', "{$size}.get_document.ms_range", round($r['ms_min']).'-'.round($r['ms_max']));
+            $g = $this->hit('GET', "/api/decks/{$deck->id}/document", null, false, null, true);
+            $this->put('doc', "{$size}.get_document.gzip_stream_bytes", $g['bytes']);
+            $this->put('doc', "{$size}.get_document.gzip_stream_ms", $g['ms']);
 
             $r = $this->repeat(fn () => $this->hit('GET', "/decks/{$deck->id}", null, true), max(1, min($runs, 3)));
             $this->putCall('doc', "{$size}.editor_page", $r);
 
             $r = $this->repeat(fn () => $this->hit('GET', "/api/decks/{$deck->id}"), $runs);
             $this->putCall('doc', "{$size}.deck_summary", $r);
+
+            // The pages that hand the whole deck to the browser at once.
+            foreach (['present' => 'present', 'presenter' => 'presenter', 'print' => 'print', 'audience' => 'audience'] as $name => $path) {
+                $r = $this->repeat(fn () => $this->hit('GET', "/decks/{$deck->id}/{$path}", null, true), 1);
+                $this->putCall('doc', "{$size}.page_{$name}", $r);
+            }
 
             $t = hrtime(true);
             $json = json_encode(DeckDocument::toArray($deck), JSON_UNESCAPED_SLASHES);

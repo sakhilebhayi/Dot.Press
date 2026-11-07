@@ -122,6 +122,7 @@ final class DeckBatch
         }
 
         $revs = [];
+        $reordered = [];
         foreach ($this->order as $position => $id) {
             $slide = $this->slides[$id];
             $slide->sort_order = $position;
@@ -134,14 +135,42 @@ final class DeckBatch
                 $revs[$id] = $slide->revision;
             }
 
-            if ($slide->isDirty()) {
+            if (! $slide->isDirty()) {
+                continue;
+            }
+
+            // A slide that only moved is written together with the others that moved: inserting one slide near the top
+            // of a 300 slide deck shifts the sort_order of every slide below it, and that was 299 UPDATE statements.
+            if (array_keys($slide->getDirty()) === ['sort_order']) {
+                $reordered[$id] = $position;
+                $slide->syncOriginal();
+            } else {
                 $slide->save();
             }
         }
+        $this->writeOrder($reordered);
 
         $this->deck->sections = $this->sections;
 
         return $revs;
+    }
+
+    /**
+     * @param  array<int, int>  $positions  slide id => sort_order
+     */
+    private function writeOrder(array $positions): void
+    {
+        foreach (array_chunk($positions, 400, true) as $chunk) {
+            $cases = '';
+            $bindings = [];
+            foreach ($chunk as $id => $position) {
+                $cases .= ' when ? then ?';
+                $bindings[] = $id;
+                $bindings[] = $position;
+            }
+            $ids = array_keys($chunk);
+            DB::update('update slides set sort_order = case id'.$cases.' end where id in ('.implode(',', array_fill(0, count($ids), '?')).')', [...$bindings, ...$ids]);
+        }
     }
 
     // ------------------------------------------------------------------ dispatch

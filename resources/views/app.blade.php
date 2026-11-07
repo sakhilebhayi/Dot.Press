@@ -76,7 +76,15 @@
         @endif
 
         @routes
-        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+        {{-- A page for a big deck (Press/Deferred) names the real page; its code is preloaded now so it loads beside the data. --}}
+        @php
+            $entries = ['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"];
+            $target = ($page['component'] ?? '') === 'Press/Deferred' ? ($page['props']['target'] ?? null) : null;
+            if (is_string($target) && preg_match('/^[A-Za-z]+$/', $target) === 1) {
+                $entries[] = "resources/js/Pages/Press/{$target}.vue";
+            }
+        @endphp
+        @vite($entries)
         @inertiaHead
     </head>
     <body>
