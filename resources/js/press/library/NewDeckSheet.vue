@@ -154,7 +154,7 @@ async function importPptx() {
         if (!out.deckId) { error.value = 'The import finished but did not say which presentation it made.'; return; }
         if (!out.notes.length) { open(out.deckId); return; }
         imported.value = out;
-    } catch (e) { fail(e, 'PowerPoint import is not available in this build yet.'); }
+    } catch (e) { fail(e, 'The PowerPoint file could not be imported. Try again, or save it as .pptx from PowerPoint first.'); }
 }
 
 // ---- templates ----------------------------------------------------------------------------------------
