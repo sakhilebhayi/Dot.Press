@@ -40,8 +40,8 @@
 //   table `rows` is a full grid: every row holds a cell for every column, and a spanning cell's covered
 //   neighbours are skipped.
 //   transition `dir` is the side the new slide enters from; default "r".
-//   the chart module is called as chartToSvg(chart, { w, h, theme, font, reduced, animate, idPrefix }) where `font`
-//   is a css font-family stack.
+//   charts are drawn by ../charts (chartToSvg with a css font-family stack as `font`, chartToTable, describeChart);
+//   the chart CSS is added to the page once.
 
 export { default as SlideView } from './SlideView.vue';
 export { default as TextBox } from './TextBox.vue';

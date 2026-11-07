@@ -82,7 +82,7 @@
 .pp-root.pp-lasering, .pp-root.pp-lasering * { cursor: none !important; }
 
 /* overview grid */
-.pp-grid { position: absolute; inset: 0; background: rgb(7 8 10 / 0.97); overflow: auto; padding: 56px clamp(16px, 4vw, 56px) 40px; opacity: 0; transform: scale(0.985); pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); overscroll-behavior: contain; }
+.pp-grid { position: absolute; inset: 0; background: rgb(7 8 10 / 0.985); overflow: auto; padding: 56px clamp(16px, 4vw, 56px) 40px; opacity: 0; transform: scale(0.985); pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); overscroll-behavior: contain; }
 .pp-grid.is-on { opacity: 1; transform: none; pointer-events: auto; }
 .pp-grid-head { position: fixed; left: clamp(16px, 4vw, 56px); right: clamp(16px, 4vw, 56px); top: 14px; display: flex; align-items: center; justify-content: space-between; font: 500 13px var(--pp-font); color: var(--pp-ink-2); pointer-events: none; }
 .pp-grid-head button { pointer-events: auto; }
