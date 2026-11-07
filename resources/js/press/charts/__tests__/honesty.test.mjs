@@ -248,3 +248,23 @@ test('the default palettes keep the colour-blind separation recorded in index.js
     assert.ok(!/fail/i.test(String(byName['Normal-vision floor'][1])) && byName['Normal-vision floor'][1] !== false, mode + ' normal vision');
   }
 });
+
+test('waterfall draws only series[0]: no stray line, no extra labels or legend items', () => {
+  const base = sampleChart('waterfall');
+  const two = JSON.parse(JSON.stringify(base));
+  two.data.series.push({ name: 'Second', values: [2, 5, 6, 1, 3, 4, 2] });
+  const a = chartToSvg(base, { w: 960, h: 540, idPrefix: 'w' });
+  const b = chartToSvg(two, { w: 960, h: 540, idPrefix: 'w' });
+  const rootB = parseXml(b);
+  assert.equal(marks(rootB).length, marks(parseXml(a)).length);
+  assert.ok(!texts(rootB).includes('Second'));
+  const labelsA = texts(parseXml(a)).filter((t) => t !== 'Only the first series is used for a waterfall.');
+  const labelsB = texts(rootB).filter((t) => t !== 'Only the first series is used for a waterfall.');
+  assert.deepEqual(labelsB, labelsA);
+  assert.ok(texts(rootB).includes('Only the first series is used for a waterfall.'));
+  let dots = 0;
+  walk(rootB, (n) => {
+    if (cls(n, 'pc-dot') || (cls(n, 'pc-mark') && n.attrs['data-series'] === '1')) dots++;
+  });
+  assert.equal(dots, 0);
+});

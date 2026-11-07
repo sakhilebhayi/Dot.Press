@@ -220,7 +220,8 @@ export function renderCartesian(ctx) {
   const horizontal = type === 'bar';
   const wf = type === 'waterfall';
   const n = data.categories.length;
-  const series = data.series;
+  // a waterfall draws series[0] only; later series are ignored (the PHP exporter follows the same rule)
+  const series = wf ? data.series.slice(0, 1) : data.series;
   const roles = wf ? ['bar'] : rolesFor(chart);
   const hasData = n > 0 && series.some((s) => s.values.some((v) => isNum(v)));
 
@@ -240,7 +241,7 @@ export function renderCartesian(ctx) {
   const provisional = hasData ? pickDomain(ctx, roles, 5) : { truncated: false };
   if (provisional.truncated) ctx.notes.push('Value axis does not start at zero.');
   if (hasData && !wf && series.every((s) => s.values.every((v) => v === null || v === 0))) ctx.notes.push('All values are zero.');
-  if (wf && series.length > 1) ctx.notes.push('Only the first series is used for a waterfall.');
+  if (wf && data.series.length > 1) ctx.notes.push('Only the first series is used for a waterfall.');
   const totalsSet = new Set(data.totals || []);
   const dropped = (wf ? series.slice(0, 1) : series).reduce((a, s) => a + s.values.filter((v, i) => v === null && !(wf && totalsSet.has(i))).length, 0);
   if (dropped > 0 && hasData) ctx.notes.push(`${dropped} missing value${dropped === 1 ? '' : 's'} not drawn.`);
