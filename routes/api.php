@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\DeckActivityController;
 use App\Http\Controllers\Api\DeckCommentController;
 use App\Http\Controllers\Api\DeckController;
 use App\Http\Controllers\Api\DeckDocumentController;
+use App\Http\Controllers\Api\DeckExportController;
+use App\Http\Controllers\Api\DeckImportController;
 use App\Http\Controllers\Api\DeckIntelController;
 use App\Http\Controllers\Api\DeckPeopleController;
 use App\Http\Controllers\Api\DeckReviewController;
@@ -117,6 +119,13 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('suggest', [DeckIntelController::class, 'suggest'])->middleware('throttle:ai');
     });
 
-    Route::post('data/parse', DataParseController::class)->middleware('throttle:30,1');
+    // R-40 export and import (PDF, PPTX): the preflight says what each element becomes before anything is written.
+    Route::post('decks/{deck}/exports/preflight', [DeckExportController::class, 'preflight'])->middleware('throttle:press-export');
+    Route::post('decks/{deck}/exports', [DeckExportController::class, 'store'])->middleware('throttle:press-export');
+    Route::get('decks/{deck}/exports', [DeckExportController::class, 'index']);
+    Route::get('exports/{export}', [DeckExportController::class, 'show'])->whereNumber('export');
+    Route::get('exports/{export}/download', [DeckExportController::class, 'download'])->whereNumber('export')->name('press.exports.download');
+    Route::post('imports/pptx', [DeckImportController::class, 'store'])->middleware('throttle:press-import');
 
+    Route::post('data/parse', DataParseController::class)->middleware('throttle:30,1');
 });

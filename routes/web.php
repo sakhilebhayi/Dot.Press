@@ -5,7 +5,6 @@ use App\Http\Controllers\Auth\EcosystemAuthController;
 use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\DeckPageController;
 use App\Http\Controllers\DependencyPatchController;
-use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GuardianHealthController;
 use App\Http\Controllers\SchedulerProbeController;
 use App\Http\Controllers\SharedDeckController;
@@ -77,12 +76,6 @@ Route::middleware([
     Route::get('/editor', [DeckPageController::class, 'legacyEditor'])->name('editor.start');
     Route::get('/editor/decks/{deck}/slides/{slide}', [DeckPageController::class, 'legacyEditor'])->name('editor.slides.show');
     Route::get('/present/decks/{deck}/slides/{slide}', [DeckPageController::class, 'legacyPresent'])->name('presentation.slides.show');
-    Route::get('/export/decks/{deck}/pdf', [ExportController::class, 'pdf'])
-        ->middleware('throttle:export')
-        ->name('export.decks.pdf');
-    Route::get('/export/decks/{deck}/pptx', [ExportController::class, 'pptx'])
-        ->middleware('throttle:export')
-        ->name('export.decks.pptx');
 
     // R-40 presenting (signed in): full screen player, presenter console, audience window.
     Route::get('/decks/{deck}/present', [PresentSessionController::class, 'player'])->name('press.player');

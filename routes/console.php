@@ -3,6 +3,7 @@
 use App\Console\Commands\BackupSqliteDatabase;
 use App\Console\Commands\PressAssetsGc;
 use App\Console\Commands\PruneDeckChanges;
+use App\Console\Commands\PruneDeckExports;
 use App\Console\Commands\ScanDependencyAdvisories;
 use App\Http\Controllers\SchedulerProbeController;
 use App\Jobs\QueueHeartbeat;
@@ -39,3 +40,6 @@ Schedule::command(BackupSqliteDatabase::class)->dailyAt('02:55')->onOneServer();
 Schedule::command(PressAssetsGc::class)->dailyAt('03:25')->onOneServer();
 // The operations log keeps 14 days; older rows collapse into one tombstone per deck (see PruneDeckChanges).
 Schedule::command(PruneDeckChanges::class)->dailyAt('03:20')->name('press-prune-changes');
+
+// Export files live for 24 hours; this removes them and tidies the history.
+Schedule::command(PruneDeckExports::class)->hourly()->name('press-exports-prune')->onOneServer();

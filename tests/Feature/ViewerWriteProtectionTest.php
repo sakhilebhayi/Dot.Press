@@ -282,8 +282,7 @@ class ViewerWriteProtectionTest extends TestCase
         $this->postJson('/api/decks/'.$this->deck->id.'/presence', ['client' => 'tab-v', 'cursor' => ['x' => 1, 'y' => 1]])->assertOk();
         $this->get(route('dashboard'))->assertOk();
         $this->get(route('press.player', $this->deck))->assertOk();
-        $this->get(route('export.decks.pdf', [$this->deck]))->assertSuccessful();
-        $this->get(route('export.decks.pptx', [$this->deck]))->assertSuccessful();
+        $this->postJson('/api/decks/'.$this->deck->id.'/exports/preflight', ['format' => 'pdf'])->assertOk();
         $this->get(route('press.editor', $this->deck))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('Press/Editor')->where('can.update', false)->where('can.comment', true));
