@@ -18,6 +18,8 @@ const props = defineProps({
     deck: { type: Object, required: true },
     slides: { type: Array, required: true },
     assets: { type: Object, default: () => ({}) },
+    // sent for every presenting page; an audience window follows the presenter instead of starting anywhere
+    startIndex: { type: Number, default: 0 },
     follow: { type: Object, default: null },
     channelKey: { type: String, default: null },
 });

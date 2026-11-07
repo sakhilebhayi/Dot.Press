@@ -1,51 +1,46 @@
 <script setup>
-// Public viewer for a shared deck: read only, no editing affordances, and no speaker notes. When the link is
-// protected the page asks for the password first; the deck content is not even sent until it is unlocked.
+// Public viewer for a shared deck: read only, no editing affordances, and no speaker notes. The server sends the
+// document (spec section 9) as `doc`, or, when the link is protected and not yet unlocked, no document at all and
+// `needsPassword`: the deck content is not even sent until the password is right (SharedDeckController).
+import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import '../../../css/press-player.css';
 import PresentPlayer from '../../press/player/PresentPlayer.vue';
 
 const props = defineProps({
-    deck: { type: Object, default: null },
-    slides: { type: Array, default: () => [] },
-    assets: { type: Object, default: () => ({}) },
-    startIndex: { type: Number, default: 0 },
+    /** the document the guest may read: {deck, slides, assets} */
+    doc: { type: Object, default: null },
     needsPassword: { type: Boolean, default: false },
-    /** where the password is posted. Defaults to the current address. */
-    unlockUrl: { type: String, default: null },
+    /** the reason the last password was refused (flashed by the server) */
+    error: { type: String, default: null },
+    /** the link's own token: the password is posted to /s/{token}/unlock */
+    token: { type: String, required: true },
     title: { type: String, default: 'Shared presentation' },
-    /** set when the link cannot be used: 'expired' | 'revoked' | 'unavailable' */
-    problem: { type: String, default: null },
 });
 
 const form = useForm({ password: '' });
+const problem = computed(() => props.error || form.errors.password || '');
 function unlock() {
-    form.post(props.unlockUrl || window.location.pathname + window.location.search, {
+    form.post(`/s/${encodeURIComponent(props.token)}/unlock`, {
         preserveScroll: true,
         onFinish: () => form.reset('password'),
     });
 }
-const PROBLEMS = {
-    expired: 'This link has expired. Ask the owner for a new one.',
-    revoked: 'This link was turned off by the owner.',
-    unavailable: 'This presentation is not available.',
-};
 </script>
 
 <template>
-    <Head :title="deck?.title || title" />
-    <div v-if="problem" class="pp-root"><div class="pp-gate"><div class="pp-card"><h1>{{ title }}</h1><p>{{ PROBLEMS[problem] || PROBLEMS.unavailable }}</p></div></div></div>
-    <div v-else-if="needsPassword || !deck" class="pp-root">
+    <Head :title="doc?.deck?.title || title" />
+    <div v-if="needsPassword || !doc" class="pp-root">
         <div class="pp-gate">
             <form class="pp-card" @submit.prevent="unlock">
                 <h1>{{ title }}</h1>
                 <p>This presentation is protected. Enter the password you were given.</p>
                 <label class="pp-sr" for="share-pass">Password</label>
-                <input id="share-pass" v-model="form.password" class="pp-field" type="password" autocomplete="off" autofocus required placeholder="Password" :aria-invalid="!!form.errors.password" aria-describedby="share-err" />
-                <p id="share-err" class="pp-error" role="alert">{{ form.errors.password }}</p>
+                <input id="share-pass" v-model="form.password" class="pp-field" type="password" autocomplete="off" autofocus required placeholder="Password" :aria-invalid="!!problem" aria-describedby="share-err" />
+                <p id="share-err" class="pp-error" role="alert">{{ problem }}</p>
                 <button class="pp-primary" type="submit" :disabled="form.processing || !form.password">Open presentation</button>
             </form>
         </div>
     </div>
-    <PresentPlayer v-else :deck="deck" :slides="slides" :assets="assets" :start-index="startIndex" mode="shared" />
+    <PresentPlayer v-else :deck="doc.deck" :slides="doc.slides" :assets="doc.assets" :title="doc.deck.title" mode="shared" />
 </template>
