@@ -19,7 +19,7 @@
 //                                     {kind: 'insert', what, ...} from the Insert panel: the stage emits 'insert:drop' {drag, point} on the bus
 // What it gives the shell
 //   editor.stage                      {fit, zoomToSelection, zoomToRect, focus, toScreen, toSlide, beginTextEdit, beginCrop,
-//                                      replacePicture, pickFiles, addFiles, announce}; also the exposed API of the component
+//                                      replacePicture, pickFiles, addFiles, announce, openLink, format}; also the exposed API of the component
 //   ui.zoomValue                      the effective zoom as a number (ui.zoom may be 'fit'); ui.panX/panY follow the store
 //   editor.setCursor(x, y)            the pointer in slide units (null when it leaves), for the presence heartbeat
 //   ui.dragging                       {kind: 'elements', ids, x, y, copy, overSlide} while elements are dragged. A Spine row is any
@@ -839,6 +839,7 @@ const api = {
     addFiles: (files, opts) => uploads.addFiles(files, opts),
     announce,
     openLink: () => barRef.value?.openLink?.(),
+    format, // get/set/toggle/session: the inspector's Text panel formats the selected words through it while a text session is open
 };
 defineExpose(api);
 
