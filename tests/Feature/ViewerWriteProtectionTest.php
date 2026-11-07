@@ -220,23 +220,14 @@ class ViewerWriteProtectionTest extends TestCase
         $decks = Deck::withoutGlobalScopes()->count();
         $slides = Slide::withoutGlobalScopes()->count();
 
-        $this->actingAs($viewer)->get(route('editor.start'))->assertForbidden();
+        // R-40: the old entry point no longer creates anything for anyone. It only sends people to the library.
+        foreach ([$viewer, $this->member('editor', $fresh)] as $person) {
+            $this->actingAs($person)->get(route('editor.start'))->assertRedirect(route('dashboard'));
+        }
 
         $this->assertSame($projects, Project::withoutGlobalScopes()->count());
         $this->assertSame($decks, Deck::withoutGlobalScopes()->count());
         $this->assertSame($slides, Slide::withoutGlobalScopes()->count());
-
-        // An editor in the same team still gets the workspace made for them.
-        $editor = $this->member('editor', $fresh);
-        $this->actingAs($editor)->get(route('editor.start'))->assertRedirect();
-        $this->assertSame($projects + 1, Project::withoutGlobalScopes()->count());
-
-        // Now it exists, the viewer is sent to the existing first slide.
-        $workspaceDeck = Deck::withoutGlobalScopes()->where('title', 'Main Deck')->firstOrFail();
-        $workspaceSlide = $workspaceDeck->slides()->firstOrFail();
-        $this->actingAs($viewer)->get(route('editor.start'))
-            ->assertRedirect(route('editor.slides.show', [$workspaceDeck, $workspaceSlide]));
-        $this->assertSame($projects + 1, Project::withoutGlobalScopes()->count());
     }
 
     // ---- team management ------------------------------------------------
@@ -290,32 +281,29 @@ class ViewerWriteProtectionTest extends TestCase
         $this->getJson('/api/decks/'.$this->deck->id.'/versions')->assertOk();
         $this->postJson('/api/decks/'.$this->deck->id.'/presence', ['client' => 'tab-v', 'cursor' => ['x' => 1, 'y' => 1]])->assertOk();
         $this->get(route('dashboard'))->assertOk();
-        $this->get(route('presentation.slides.show', [$this->deck, $this->slide]))->assertOk();
+        $this->get(route('press.player', $this->deck))->assertOk();
         $this->get(route('export.decks.pdf', [$this->deck]))->assertSuccessful();
         $this->get(route('export.decks.pptx', [$this->deck]))->assertSuccessful();
-        $this->get(route('editor.slides.show', [$this->deck, $this->slide]))
+        $this->get(route('press.editor', $this->deck))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('Canvas/Editor')->where('canEdit', false));
+            ->assertInertia(fn ($page) => $page->component('Press/Editor')->where('can.update', false)->where('can.comment', true));
     }
 
     public function test_editors_and_admins_get_the_editable_canvas(): void
     {
         foreach ([$this->editor, $this->admin, $this->owner] as $writer) {
             $this->actingAs($writer)
-                ->get(route('editor.slides.show', [$this->deck, $this->slide]))
-                ->assertInertia(fn ($page) => $page->where('canEdit', true));
+                ->get(route('press.editor', $this->deck))
+                ->assertInertia(fn ($page) => $page->where('can.update', true));
         }
     }
 
-    public function test_the_dashboard_tells_the_page_which_projects_a_person_may_change(): void
+    public function test_the_library_tells_the_page_whether_a_person_may_create(): void
     {
-        $own = Project::create(['user_id' => $this->viewer->id, 'team_id' => $this->team->id, 'name' => 'Mine', 'slug' => 'mine']);
-
         $this->actingAs($this->viewer)->get(route('dashboard'))
-            ->assertInertia(fn ($page) => $page->where('projects.0.can_edit', false));
-        $this->actingAs($this->editor)->get(route('dashboard'))->assertOk();
-
-        $this->assertNotNull($own);
+            ->assertInertia(fn ($page) => $page->component('Press/Library')->where('canCreate', false));
+        $this->actingAs($this->editor)->get(route('dashboard'))
+            ->assertInertia(fn ($page) => $page->where('canCreate', true));
     }
 
     // ---- roles are per team ---------------------------------------------
