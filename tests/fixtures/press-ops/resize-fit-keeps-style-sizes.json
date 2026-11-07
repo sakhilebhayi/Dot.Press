@@ -1,0 +1,111 @@
+{
+ "name": "resize-fit-keeps-style-sizes",
+ "description": "fit has the scale geometry but leaves size, sw, radius and pad alone",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1000,
+   "h": 500,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 100,
+      "y": 50,
+      "w": 200,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "size": 40,
+      "sw": 3,
+      "radius": 5,
+      "pad": 10
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "deck.resize",
+   "w": 2000,
+   "h": 1500,
+   "mode": "fit"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 2000,
+    "h": 1500,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 200,
+       "y": 350,
+       "w": 400,
+       "h": 200,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "size": 40,
+       "sw": 3,
+       "radius": 5,
+       "pad": 10
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

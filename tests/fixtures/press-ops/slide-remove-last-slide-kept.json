@@ -1,0 +1,80 @@
+{
+ "name": "slide-remove-last-slide-kept",
+ "description": "the document keeps at least one slide",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "slide.remove",
+   "id": "s1"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    }
+   ]
+  },
+  "skipped": [
+   {
+    "index": 0,
+    "reason": "last_slide"
+   }
+  ]
+ }
+}

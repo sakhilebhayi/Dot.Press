@@ -1,0 +1,119 @@
+{
+ "name": "resize-scale-shadow-keeps-rotation",
+ "description": "shadow offsets and blur scale; rotation is never touched",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1000,
+   "h": 500,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "shape",
+      "kind": "rect",
+      "x": 100,
+      "y": 100,
+      "w": 200,
+      "h": 200,
+      "rot": 30,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "fill": "@accent",
+      "shadow": {
+       "x": 4,
+       "y": 8,
+       "blur": 20,
+       "c": "#00000040"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "deck.resize",
+   "w": 500,
+   "h": 250,
+   "mode": "scale"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 500,
+    "h": 250,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "shape",
+       "kind": "rect",
+       "x": 50,
+       "y": 50,
+       "w": 100,
+       "h": 100,
+       "rot": 30,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "fill": "@accent",
+       "shadow": {
+        "x": 2,
+        "y": 4,
+        "blur": 10,
+        "c": "#00000040"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

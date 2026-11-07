@@ -1,0 +1,133 @@
+{
+ "name": "resize-scale-table-row-heights",
+ "description": "table rowh scale with the geometry; table font size scales in scale mode",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1000,
+   "h": 500,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "tb",
+      "type": "table",
+      "x": 100,
+      "y": 100,
+      "w": 600,
+      "h": 200,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "rows": [
+       [
+        {
+         "t": "a"
+        }
+       ]
+      ],
+      "colw": [
+       1
+      ],
+      "rowh": [
+       100,
+       100
+      ],
+      "size": 30
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "deck.resize",
+   "w": 500,
+   "h": 250,
+   "mode": "scale"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 500,
+    "h": 250,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "tb",
+       "type": "table",
+       "x": 50,
+       "y": 50,
+       "w": 300,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "rows": [
+        [
+         {
+          "t": "a"
+         }
+        ]
+       ],
+       "colw": [
+        1
+       ],
+       "rowh": [
+        50,
+        50
+       ],
+       "size": 15
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

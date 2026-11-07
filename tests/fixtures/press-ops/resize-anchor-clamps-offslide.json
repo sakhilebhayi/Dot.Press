@@ -1,0 +1,107 @@
+{
+ "name": "resize-anchor-clamps-offslide",
+ "description": "an element hanging off the old slide is pulled inside: centre 1010 -> 505 at 500 wide, x = 400 (max)",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1000,
+   "h": 500,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "shape",
+      "kind": "rect",
+      "x": 960,
+      "y": 0,
+      "w": 100,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "fill": "@accent"
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "deck.resize",
+   "w": 500,
+   "h": 500,
+   "mode": "anchor"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 500,
+    "h": 500,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "shape",
+       "kind": "rect",
+       "x": 400,
+       "y": 0,
+       "w": 100,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "fill": "@accent"
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}
