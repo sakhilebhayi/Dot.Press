@@ -59,15 +59,16 @@ class DeckPolicy
         return DeckAccess::can($user, $deck, 'export');
     }
 
-    /** Sharing, visibility, review requests, renaming. */
+    /** Sharing, visibility, review requests, deleting. */
     public function manage(User $user, Deck $deck): bool
     {
         return DeckAccess::can($user, $deck, 'manage');
     }
 
+    /** Renaming is an editing right: whoever can update can rename. */
     public function rename(User $user, Deck $deck): bool
     {
-        return $this->manage($user, $deck);
+        return DeckAccess::can($user, $deck, 'rename');
     }
 
     public function delete(User $user, Deck $deck): bool

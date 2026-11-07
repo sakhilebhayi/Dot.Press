@@ -26,7 +26,7 @@ use Laravel\Jetstream\Jetstream;
  *  - A share (viewer, commenter, editor) raises a role and never lowers a team role. It may name any existing user,
  *    inside the team or not.
  *
- * Abilities: view, comment, update, manage (share, visibility, review requests, rename, delete), present, export.
+ * Abilities: view, comment, update, rename (same as update), manage (share, visibility, review requests, delete), present, export.
  */
 class DeckAccess
 {
@@ -34,7 +34,7 @@ class DeckAccess
 
     public const SHARE_ROLES = ['viewer', 'commenter', 'editor'];
 
-    public const ABILITIES = ['view', 'comment', 'update', 'manage', 'present', 'export'];
+    public const ABILITIES = ['view', 'comment', 'update', 'rename', 'manage', 'present', 'export'];
 
     public static function roleFor(User $user, Deck $deck): ?string
     {

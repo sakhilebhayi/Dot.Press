@@ -104,4 +104,39 @@ abstract class AccessTestCase extends TestCase
             'size' => 4,
         ]);
     }
+
+    /** @return array<string, array{0: ?string, 1: bool, 2: bool, 3: bool}> */
+    protected function expectations(): array
+    {
+        // person => [role, comment, update, manage]
+        return [
+            'creator' => ['owner', true, true, true],
+            'owner' => ['owner', true, true, true],
+            'admin' => ['owner', true, true, true],
+            'editor' => ['editor', true, true, false],   // an editor who did not create the deck
+            'viewer' => ['viewer', true, false, false],  // team viewers may comment
+            'share_viewer' => ['viewer', false, false, false],
+            'share_commenter' => ['commenter', true, false, false],
+            'share_editor' => ['editor', true, true, false],
+            'outsider' => [null, false, false, false],
+        ];
+    }
+
+    /** @return array<string, User> */
+    protected function people(Deck $deck): array
+    {
+        $other = $this->member('editor', 'Other Editor');
+
+        return [
+            'creator' => $this->editor,
+            'owner' => $this->owner,
+            'admin' => $this->admin,
+            'editor' => $other,
+            'viewer' => $this->viewer,
+            'share_viewer' => $this->sharedWith('viewer', $deck, 'Share Viewer'),
+            'share_commenter' => $this->sharedWith('commenter', $deck, 'Share Commenter'),
+            'share_editor' => $this->sharedWith('editor', $deck, 'Share Editor'),
+            'outsider' => $this->outsider,
+        ];
+    }
 }

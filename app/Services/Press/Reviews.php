@@ -233,14 +233,8 @@ class Reviews
 
     private static function storeApprovedSnapshot(Deck $deck, ?User $actor): void
     {
-        $service = 'App\\Services\\Press\\VersionService';
-
-        if (! class_exists($service) || ! method_exists($service, 'snapshot')) {
-            return;
-        }
-
         try {
-            $service::snapshot($deck, $actor, 'approved', 'Approved');
+            VersionService::snapshot($deck, $actor, 'approved', 'Approved');
         } catch (\Throwable $e) {
             report($e);
         }

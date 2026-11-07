@@ -6,7 +6,6 @@ use App\Models\Asset;
 use App\Models\Deck;
 use App\Models\DeckShare;
 use App\Models\Slide;
-use App\Models\User;
 use App\Services\Press\DeckAccess;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,41 +15,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class AccessRoleMatrixTest extends AccessTestCase
 {
-    /** @return array<string, array{0: ?string, 1: bool, 2: bool, 3: bool}> */
-    private function expectations(): array
-    {
-        // person => [role, comment, update, manage]
-        return [
-            'creator' => ['owner', true, true, true],
-            'owner' => ['owner', true, true, true],
-            'admin' => ['owner', true, true, true],
-            'editor' => ['editor', true, true, false],   // an editor who did not create the deck
-            'viewer' => ['viewer', true, false, false],  // team viewers may comment
-            'share_viewer' => ['viewer', false, false, false],
-            'share_commenter' => ['commenter', true, false, false],
-            'share_editor' => ['editor', true, true, false],
-            'outsider' => [null, false, false, false],
-        ];
-    }
-
-    /** @return array<string, User> */
-    private function people(Deck $deck): array
-    {
-        $other = $this->member('editor', 'Other Editor');
-
-        return [
-            'creator' => $this->editor,
-            'owner' => $this->owner,
-            'admin' => $this->admin,
-            'editor' => $other,
-            'viewer' => $this->viewer,
-            'share_viewer' => $this->sharedWith('viewer', $deck, 'Share Viewer'),
-            'share_commenter' => $this->sharedWith('commenter', $deck, 'Share Commenter'),
-            'share_editor' => $this->sharedWith('editor', $deck, 'Share Editor'),
-            'outsider' => $this->outsider,
-        ];
-    }
-
     public function test_roles_and_abilities_for_every_kind_of_person(): void
     {
         $people = $this->people($this->deck);
@@ -78,10 +42,11 @@ class AccessRoleMatrixTest extends AccessTestCase
             $this->actingAs($person);
 
             // reads need view; an outsider gets 404 (the deck does not exist for them), not 403
-            foreach (["/api/decks/{$id}", "/api/decks/{$id}/people", "/api/decks/{$id}/comments", "/api/decks/{$id}/reviews", "/api/decks/{$id}/activity", "/api/slides?deck_id={$id}"] as $url) {
+            foreach (["/api/decks/{$id}", "/api/decks/{$id}/people", "/api/decks/{$id}/comments", "/api/decks/{$id}/reviews", "/api/decks/{$id}/activity", "/api/decks/{$id}/document", "/api/decks/{$id}/changes", "/api/decks/{$id}/versions"] as $url) {
                 $see ? $this->getJson($url)->assertOk() : $this->getJson($url)->assertNotFound();
             }
             $this->getJson("/api/slides/{$this->slide->id}")->assertStatus($see ? 200 : 404);
+            $this->assertSame($see, in_array($id, collect($this->getJson('/api/decks?per_page=60')->assertOk()->json('data'))->pluck('id')->all(), true), "library for {$key}");
 
             // manage-only reads
             foreach (["/api/decks/{$id}/sharing", "/api/decks/{$id}/sharing/people"] as $url) {
@@ -92,13 +57,17 @@ class AccessRoleMatrixTest extends AccessTestCase
             $this->postJson("/api/decks/{$id}/comments", ['body' => "hello from {$key}"])
                 ->assertStatus($comment ? 201 : ($see ? 403 : 404));
 
-            // update: slide create and the deck update route
-            $this->postJson('/api/slides', ['deck_id' => $id, 'title' => "s {$key}"])
-                ->assertStatus($update ? 201 : ($see ? 403 : 404));
+            // update: operations, renaming (an editing right), versions
+            $this->postJson("/api/decks/{$id}/ops", ['client' => 'tab-1', 'key' => 'k'.uniqid(), 'ops' => [['op' => 'slide.set', 'id' => $this->slide->id, 'title' => 'Slide one']]])
+                ->assertStatus($update ? 200 : ($see ? 403 : 404));
             $this->patchJson("/api/decks/{$id}", ['title' => 'Quarterly deck'])
                 ->assertStatus($update ? 200 : ($see ? 403 : 404));
-            $this->patchJson("/api/slides/{$this->slide->id}", ['title' => 'Slide one'])
-                ->assertStatus($update ? 200 : ($see ? 403 : 404));
+            $this->postJson("/api/decks/{$id}/versions", ['label' => 'v'])
+                ->assertStatus($update ? 201 : ($see ? 403 : 404));
+
+            // presence is a read: anyone who can open the deck
+            $this->postJson("/api/decks/{$id}/presence", ['client' => 'c'.$person->id])
+                ->assertStatus($see ? 200 : 404);
 
             // manage: sharing change and review request
             $this->putJson("/api/decks/{$id}/sharing", ['allow_download' => false])
@@ -167,18 +136,22 @@ class AccessRoleMatrixTest extends AccessTestCase
         $this->assertNull(DeckAccess::roleFor($this->outsider, $this->deck));
     }
 
-    public function test_the_deck_list_and_slide_list_only_hold_what_the_person_can_see(): void
+    public function test_the_deck_list_and_slide_count_only_hold_what_the_person_can_see(): void
     {
         $shared = $this->makeDeck('private', 'Shared private');
         $sharee = $this->sharedWith('viewer', $shared);
-        $this->makeDeck('private', 'Hidden private');
-
-        $titles = fn (User $u) => Deck::query()->pluck('title')->all();
+        $hidden = $this->makeDeck('private', 'Hidden private');
 
         $this->actingAs($sharee);
-        $this->assertSame(['Shared private'], $titles($sharee));
+        $this->assertSame(['Shared private'], Deck::query()->pluck('title')->all());
         $this->assertSame(1, Slide::count());
-        $this->getJson('/api/decks')->assertOk()->assertJsonPath('total', 1);
+        $this->assertSame(['Shared private'], collect($this->getJson('/api/decks')->assertOk()->json('data'))->pluck('title')->all());
+        $this->getJson("/api/decks/{$hidden->id}/document")->assertNotFound();
         $this->getJson('/api/projects')->assertOk();
+
+        // a team admin sees the team decks and neither private deck
+        $this->actingAs($this->admin);
+        $this->assertSame(['Quarterly deck'], collect($this->getJson('/api/decks')->json('data'))->pluck('title')->all());
+        $this->assertSame(1, Slide::count());
     }
 }

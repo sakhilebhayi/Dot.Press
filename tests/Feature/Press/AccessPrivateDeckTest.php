@@ -17,11 +17,14 @@ class AccessPrivateDeckTest extends AccessTestCase
 {
     private Deck $private;
 
+    private int $privateSlideId;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->private = $this->makeDeck('private', 'Secret plan');
+        $this->privateSlideId = $this->private->slides()->first()->id;
         DeckComment::create(['deck_id' => $this->private->id, 'user_id' => $this->editor->id, 'body' => 'private note']);
         DeckReview::create(['deck_id' => $this->private->id, 'requested_by' => $this->editor->id, 'reviewer_id' => $this->editor->id]);
         DeckActivity::create(['deck_id' => $this->private->id, 'user_id' => $this->editor->id, 'event' => 'created', 'created_at' => now()]);
@@ -46,8 +49,14 @@ class AccessPrivateDeckTest extends AccessTestCase
             $this->getJson("/api/decks/{$this->private->id}/comments")->assertNotFound();
             $this->getJson("/api/decks/{$this->private->id}/activity")->assertNotFound();
             $this->getJson("/api/decks/{$this->private->id}/sharing")->assertNotFound();
-            $this->getJson("/api/slides?deck_id={$this->private->id}")->assertNotFound();
-            $this->getJson('/api/slides')->assertOk()->assertJsonPath('total', 1);
+            $this->getJson("/api/decks/{$this->private->id}/document")->assertNotFound();
+            $this->getJson("/api/decks/{$this->private->id}/changes")->assertNotFound();
+            $this->getJson("/api/decks/{$this->private->id}/versions")->assertNotFound();
+            $this->postJson("/api/decks/{$this->private->id}/presence", ['client' => 'c1'])->assertNotFound();
+            $this->postJson("/api/decks/{$this->private->id}/ops", ['client' => 'c1', 'key' => 'k1', 'ops' => [['op' => 'deck.set', 'title' => 'x']]])->assertNotFound();
+            $this->getJson('/api/slides/'.$this->privateSlideId)->assertNotFound();
+            $this->assertSame(1, Slide::count());
+            $this->assertSame(['Quarterly deck'], collect($this->getJson('/api/decks?per_page=60')->assertOk()->json('data'))->pluck('title')->all());
             $this->deleteJson("/api/decks/{$this->private->id}")->assertNotFound();
         }
     }

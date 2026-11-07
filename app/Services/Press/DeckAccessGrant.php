@@ -24,7 +24,7 @@ final class DeckAccessGrant
         return match ($ability) {
             'view', 'present', 'export' => true,
             'comment' => $this->rank() >= DeckAccess::RANK['commenter'] || $this->viaTeamViewer,
-            'update' => $this->rank() >= DeckAccess::RANK['editor'],
+            'update', 'rename' => $this->rank() >= DeckAccess::RANK['editor'],
             'manage' => $this->role === 'owner',
             default => false,
         };
