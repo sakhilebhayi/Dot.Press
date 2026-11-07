@@ -49,6 +49,8 @@ import { marginLines } from '../core/margins.js';
 import { classifyText } from '../core/clipboard.js';
 import { rotatedBounds, unionBounds } from '../core/geometry.js';
 import { useViewport } from './useViewport.js';
+import BeadChip from './BeadChip.vue';
+import { chipPlacement } from './lib/beadChip.js';
 import { useGestures } from './useGestures.js';
 import { useUploads } from './useUploads.js';
 import { createFormat } from './format.js';
@@ -167,6 +169,12 @@ const spaceStyle = computed(() => ({
     '--z': zoom.value,
     ...themeVars(deck.value.theme),
 }));
+
+// ---- the bead chip: this slide's Spine state, outside the slide's box ------------------------------------
+const chipOff = ref(new Set()); // slides whose hint was dismissed, until the page is reloaded
+const chipPos = computed(() => chipPlacement(origin.value, zoom.value, deck.value, vp.size.value));
+const chipShown = computed(() => !!vp.size.value.w && !chipOff.value.has(slide.value.id) && !dragging.value && !draft.value && !outgoing.value);
+const dismissChip = () => { chipOff.value = new Set([...chipOff.value, slide.value.id]); };
 
 // ---- the sheet and travelling between slides -------------------------------------------------------
 const sheetStyle = computed(() => ({
@@ -1063,6 +1071,8 @@ onBeforeUnmount(() => {
             <p :id="'es-help-' + slide.id" class="es-sr">Arrow keys move the element, Shift with arrows moves by ten, Alt with arrows resizes, Enter edits, Delete removes, Alt F10 moves to the formatting bar.</p>
             <div class="es-sr" role="status" aria-live="polite" aria-atomic="true">{{ liveText }}</div>
         </div>
+
+        <BeadChip v-if="chipShown" :slide="slide" :placement="chipPos" @dismiss="dismissChip" />
 
         <input ref="picker" type="file" class="es-sr" tabindex="-1" aria-hidden="true" @change="onPicked" />
     </div>

@@ -184,7 +184,11 @@
 .c-empty-a { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
 .c-empty.is-compact { padding: 16px 4px; gap: 12px; }
 .c-empty.is-compact .c-empty-rail { height: 56px; }
-.c-empty.is-compact .c-empty-h { font-size: var(--t-lg); }
+.c-empty.is-compact { gap: 10px; padding: 14px 8px 18px; }
+/* inside a panel the empty state is a quiet line under its section heading, never louder than the heading */
+.c-empty.is-compact .c-empty-h { font-family: var(--f-ui); font-size: var(--t-md); font-weight: 600; letter-spacing: 0; font-variation-settings: normal; color: var(--ink-2); }
+.c-empty.is-compact .c-empty-b { margin-top: 4px; color: var(--muted); max-width: 40ch; }
+.c-empty.is-compact .c-empty-rail { height: 40px; width: 16px; }
 .c-prog { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 20px; }
 .c-prog-rail { position: relative; display: block; height: 12px; }
 .c-prog-rail::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 1.5px; background: var(--line-strong); }

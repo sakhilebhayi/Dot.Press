@@ -349,6 +349,8 @@ function onKey(e) {
 }
 
 // ---- hover preview ----------------------------------------------------------------------------------
+// Small and slow on purpose: it is a glance at another slide, and it must not cover the canvas the author is working on.
+const PREVIEW_W = 216; // keep in step with .sp-preview in spine.css
 let previewTimer = null;
 function onHover(e, id, on) {
     clearTimeout(previewTimer);
@@ -358,12 +360,19 @@ function onHover(e, id, on) {
         const r = el.getBoundingClientRect();
         const slide = slides.value.find((s) => s.id === id);
         if (!slide || drag.state.active) return;
-        const h = 300 * (deck.value.h / deck.value.w) + 54;
-        preview.value = { slide, top: Math.max(8, Math.min(window.innerHeight - h - 8, r.top - 4)), left: r.right + 10 };
-    }, 420);
+        const h = (PREVIEW_W - 12) * (deck.value.h / deck.value.w) + 44;
+        preview.value = { slide, top: Math.max(8, Math.min(window.innerHeight - h - 8, r.top - 4)), left: r.right + 6 };
+    }, 650);
 }
 watch(() => drag.state.active, (a) => { if (a) preview.value = null; });
 onBeforeUnmount(() => clearTimeout(previewTimer));
+
+// The rail never scrolls sideways. A focus or scrollIntoView on something wider than the column (a hovered thumbnail, a long
+// title) can move an overflow:hidden box by a few pixels, and the whole column then sits off its grid. Put it back.
+function keepSquare(e) {
+    const t = e.currentTarget;
+    if (t.scrollLeft !== 0) t.scrollLeft = 0;
+}
 
 // the list is the keyboard owner; the first row in view takes the tab stop when nothing is current
 const tabStopId = computed(() => (slides.value.some((s) => s.id === currentId.value) ? currentId.value : slides.value[0]?.id));
@@ -398,7 +407,7 @@ onMounted(() => {
             <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm sp-close" aria-label="Close the slide list" @click="ui.spine.open = false"><Ico name="close" /></button>
         </header>
 
-        <div ref="scroller" class="sp-scroll pr-scroll">
+        <div ref="scroller" class="sp-scroll pr-scroll" @scroll.passive="keepSquare">
             <ul
                 ref="listEl" class="sp-list" :class="{ 'is-dragging': drag.state.active }" role="listbox" aria-label="Slides, one claim each" aria-multiselectable="true" data-keyscope="spine"
                 @keydown="onKey"

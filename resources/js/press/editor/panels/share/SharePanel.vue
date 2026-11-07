@@ -348,6 +348,7 @@ const initials = (n) => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2
 .shp-add { display: grid; gap: 8px; }
 .shp-add-r { display: flex; gap: 8px; align-items: stretch; }
 .shp-add-r > :first-child { flex: 1; min-width: 0; }
+.shp-add-r .pr-btn { --h: 36px; padding: 0 18px; flex: none; }
 .shp-add .pr-field { height: 36px; font-size: var(--t-sm); }
 .shp-people { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .shp-person { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; min-height: 48px; padding: 4px 0; border-top: 1px solid var(--line); }

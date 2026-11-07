@@ -83,8 +83,8 @@ const submit = () => {
                 <span>Keep me signed in on this device</span>
             </label>
 
-            <div class="gs-foot" style="margin-top: 0;">
-                <PrimaryButton :disabled="form.processing">
+            <div class="gs-foot gs-foot--stack">
+                <PrimaryButton class="gs-submit" :disabled="form.processing">
                     Sign in
                 </PrimaryButton>
 

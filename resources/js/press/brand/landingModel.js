@@ -8,6 +8,8 @@
 //   progress(y, max)        0..1 scroll progress, clamped
 //   applyTitleSize(slide, size)  the slide with its title element at that size (the review proposal, applied)
 //   COMPAT                  the export compatibility table, read from app/Services/Press/Export/ExportPreflight.php
+//   splitCompat(rows)       the four most telling rows (where a format does not simply keep the thing) and the rest
+//   withTextScale(deck, k)  the deck with its theme text scale at k, so a sample drawn small stays legible (hero sheet)
 import { slideEvidence, slideTitle, evidenceSummary } from '../editor/ui/evidence.js';
 
 export const SECTIONS = [
@@ -132,3 +134,21 @@ export const COMPAT = [
 ];
 
 export const LEVEL_WORD = { native: 'native', approximated: 'approximated', flattened: 'flattened', dropped: 'not exported', none: 'not applicable' };
+
+// The rows a reader needs first: the ones where the two formats differ or one of them gives something up. The other rows
+// (text, shapes, pictures, tables) are "kept" in both and sit behind a control.
+export const TELLING_ROWS = ['Video and audio', 'Animation', 'Fonts', 'Hidden slides'];
+
+/** { lead, rest }: the telling rows in their table order, then everything else in its table order. */
+export function splitCompat(rows = COMPAT, telling = TELLING_ROWS) {
+    const lead = rows.filter((r) => telling.includes(r.what));
+    const rest = rows.filter((r) => !telling.includes(r.what));
+    return { lead, rest };
+}
+
+/** The deck with the theme's text scale set to k (never below 1). Charts and tables multiply their type by it. */
+export function withTextScale(deck, k) {
+    const scale = Math.max(1, Number(k) || 1);
+    const theme = deck?.theme || {};
+    return { ...deck, theme: { ...theme, t: { ...(theme.t || {}), scale } } };
+}

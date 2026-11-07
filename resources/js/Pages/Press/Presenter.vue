@@ -398,14 +398,25 @@ onBeforeUnmount(() => {
     <div ref="root" class="pp-root pr" tabindex="0" @keydown="onKey" @keyup="onKeyUp">
         <header class="pr-top">
             <div class="pr-title"><strong>{{ deck.title }}</strong><span>Slide {{ counter.n }} of {{ counter.of }}<template v-if="steps"> &middot; step {{ pos.step }} of {{ steps }}</template></span></div>
-            <div class="pr-time" :class="'is-' + timerState" role="timer" aria-label="Elapsed time">
-                <span class="pr-elapsed">{{ elapsedLabel }}</span>
-                <span v-if="remainingLabel" class="pr-left">{{ remainingLabel }}</span>
-                <span class="pr-clock" title="Time of day">{{ clock }}</span>
-                <button v-if="!timer.running" class="pp-chip" type="button" @click="startTimer">{{ timer.started ? 'Resume' : 'Start' }}</button>
-                <button v-else class="pp-chip" type="button" @click="pauseTimer">Pause</button>
-                <button class="pp-chip" type="button" :disabled="!timer.started && !timer.elapsed" @click="resetTimer">Reset</button>
-                <label class="pr-target">Target <input type="number" min="0" max="600" :value="timer.target || ''" placeholder="min" @change="setTarget" @keydown.stop /></label>
+            <div class="pr-time" :class="'is-' + timerState">
+                <div class="pr-read" role="timer" aria-label="Elapsed time">
+                    <span class="pr-k">Elapsed</span>
+                    <span class="pr-elapsed">{{ elapsedLabel }}</span>
+                </div>
+                <div v-if="remainingLabel" class="pr-read">
+                    <span class="pr-k">Target</span>
+                    <span class="pr-left">{{ remainingLabel }}</span>
+                </div>
+                <div class="pr-read">
+                    <span class="pr-k">Time of day</span>
+                    <span class="pr-clock">{{ clock }}</span>
+                </div>
+                <div class="pr-timer-ctl" role="group" aria-label="Timer controls">
+                    <button v-if="!timer.running" class="pp-chip" type="button" @click="startTimer">{{ timer.started ? 'Resume' : 'Start' }}</button>
+                    <button v-else class="pp-chip" type="button" @click="pauseTimer">Pause</button>
+                    <button class="pp-chip" type="button" :disabled="!timer.started && !timer.elapsed" @click="resetTimer">Reset</button>
+                    <label class="pr-target"><span>Target</span><input type="number" min="0" max="600" :value="timer.target || ''" placeholder="0" aria-label="Target time in minutes" @change="setTarget" @keydown.stop /><span>min</span></label>
+                </div>
             </div>
             <div class="pr-actions">
                 <button class="pp-btn" type="button" title="Open the audience window" aria-label="Open the audience window" @click="openAudience"><ChromeIcon name="window" /></button>
@@ -444,9 +455,11 @@ onBeforeUnmount(() => {
                 <div class="pr-controls">
                     <button class="pr-big" type="button" :disabled="atStart" @click="go.prev()"><ChromeIcon name="prev" /><span>Back</span></button>
                     <button class="pr-big pr-big-primary" type="button" :disabled="atEnd" @click="go.next()"><span>{{ steps && pos.step < steps ? 'Next step' : 'Next slide' }}</span><ChromeIcon name="next" /></button>
-                    <button class="pp-btn" type="button" :aria-pressed="cover === 'black'" title="Black screen (B)" aria-label="Black screen" @click="toggleCover('black')"><ChromeIcon name="black" /></button>
-                    <button class="pp-btn pr-white" type="button" :aria-pressed="cover === 'white'" title="White screen (W)" aria-label="White screen" @click="toggleCover('white')"><ChromeIcon name="black" /></button>
-                    <button class="pp-btn" type="button" :aria-pressed="gridOn" title="All slides (G)" aria-label="All slides" @click="gridOn = !gridOn"><ChromeIcon name="grid" /></button>
+                    <div class="pr-tools" role="group" aria-label="Audience screen">
+                        <button class="pp-chip pr-tool" type="button" :aria-pressed="cover === 'black'" title="Black screen (B)" @click="toggleCover('black')">Black</button>
+                        <button class="pp-chip pr-tool" type="button" :aria-pressed="cover === 'white'" title="White screen (W)" @click="toggleCover('white')">White</button>
+                        <button class="pp-chip pr-tool" type="button" :aria-pressed="gridOn" title="All slides (G)" @click="gridOn = !gridOn">All slides</button>
+                    </div>
                 </div>
             </section>
 
@@ -491,12 +504,16 @@ onBeforeUnmount(() => {
 .pr-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin-right: auto; }
 .pr-title strong { font: 600 15px/1.2 var(--pp-font); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pr-title span { font: 400 12px/1.2 var(--pp-font); color: var(--pp-ink-2); }
-.pr-time { display: flex; align-items: center; gap: 10px; font: 500 13px var(--pp-mono); color: var(--pp-ink-2); flex-wrap: wrap; }
+.pr-time { display: flex; align-items: flex-end; gap: 10px 22px; font: 500 13px var(--pp-mono); color: var(--pp-ink-2); flex-wrap: wrap; }
+.pr-read { display: grid; gap: 4px; }
+.pr-k { font: 500 12px/1 var(--pp-font); color: var(--pp-ink-2); }
+.pr-timer-ctl { display: flex; align-items: center; gap: 6px; padding-left: 22px; border-left: 1px solid var(--pp-line); }
+.pr-left, .pr-clock { font: 500 16px/1.3 var(--pp-mono); font-variant-numeric: tabular-nums; }
 .pr-elapsed { font: 500 26px/1 var(--pp-mono); color: var(--pp-ink); font-variant-numeric: tabular-nums; transition: color 600ms var(--pp-ease); }
 .pr-time.is-near .pr-elapsed, .pr-time.is-near .pr-left { color: var(--pp-warn); }
 .pr-time.is-over .pr-elapsed, .pr-time.is-over .pr-left { color: var(--pp-over); }
-.pr-clock { color: var(--pp-ink-3); }
-.pr-target { display: inline-flex; align-items: center; gap: 6px; font: 400 12px var(--pp-font); color: var(--pp-ink-3); }
+.pr-clock { color: var(--pp-ink-2); }
+.pr-target { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; font: 400 12px var(--pp-font); color: var(--pp-ink-2); }
 .pr-target input { width: 58px; height: 28px; background: transparent; border: 1px solid var(--pp-line); border-radius: 8px; color: var(--pp-ink); font: 500 12px var(--pp-mono); padding: 0 6px; }
 .pr-target input:focus-visible { outline: 2px solid var(--pp-accent); outline-offset: 1px; }
 .pr-actions { display: flex; gap: 2px; }
@@ -515,17 +532,19 @@ onBeforeUnmount(() => {
 .pr-cover { position: absolute; inset: 0; display: grid; place-items: center; font: 500 13px var(--pp-font); color: var(--pp-ink-2); background: transparent; opacity: 0; transition: opacity 160ms var(--pp-ease); pointer-events: none; }
 .pr-cover.is-black { background: rgb(0 0 0 / 0.82); opacity: 1; }
 .pr-cover.is-white { background: rgb(255 255 255 / 0.82); color: #111; opacity: 1; }
-.pr-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.pr-big { appearance: none; display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 20px; border-radius: 12px; border: 1px solid var(--pp-line-2); background: transparent; color: var(--pp-ink); font: 600 15px var(--pp-font); cursor: pointer; transition: background var(--pp-fast) var(--pp-ease), transform var(--pp-fast) var(--pp-ease); }
+.pr-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pr-tools { display: flex; gap: 6px; margin-left: auto; padding-left: 12px; }
+.pr-tool { height: 36px; padding: 0 12px; font: 500 13px var(--pp-font); }
+.pr-tool[aria-pressed='true'] { background: var(--pp-surface-2); border-color: var(--pp-accent); color: var(--pp-accent); }
+.pr-big { appearance: none; display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--pp-line-2); background: transparent; color: var(--pp-ink); font: 600 15px var(--pp-font); cursor: pointer; transition: background var(--pp-fast) var(--pp-ease), transform var(--pp-fast) var(--pp-ease); }
 .pr-big svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 .pr-big:active { transform: scale(0.97); }
 .pr-big:disabled { opacity: 0.3; pointer-events: none; }
 .pr-big:focus-visible { outline: 2px solid var(--pp-accent); outline-offset: 2px; }
-.pr-big-primary { background: var(--pp-ink); color: var(--pp-bg); border-color: var(--pp-ink); margin-right: auto; }
+.pr-big-primary { background: var(--pp-ink); color: var(--pp-bg); border-color: var(--pp-ink); }
 @media (hover: hover) { .pr-big:hover { background: var(--pp-surface-2); } .pr-big-primary:hover { background: #fff; } }
-.pr-white svg { fill: currentColor; }
 .pr-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
-.pr-side h2 { font: 500 11px/1 var(--pp-font); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pp-ink-3); margin: 0 0 8px; }
+.pr-side h2 { font: 600 12px/1 var(--pp-font); letter-spacing: 0.02em; color: var(--pp-ink-2); margin: 0 0 8px; }
 .pr-next-frame { border: 1px solid var(--pp-line); border-radius: 4px; overflow: hidden; background: #000; max-width: 360px; }
 .pr-notes { display: flex; flex-direction: column; min-height: 220px; flex: 1 1 auto; }
 .pr-notes header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -535,7 +554,7 @@ onBeforeUnmount(() => {
 .pr-notes-body:focus-visible { outline: 2px solid var(--pp-accent); outline-offset: 2px; }
 .pr-strip { display: flex; gap: 10px; overflow-x: auto; padding: 10px clamp(12px, 2vw, 24px) 18px; border-top: 1px solid var(--pp-line); scrollbar-width: thin; }
 .pr-strip-item { appearance: none; flex: 0 0 148px; background: transparent; border: 0; padding: 0; color: var(--pp-ink-2); cursor: pointer; text-align: left; border-radius: 4px; }
-.pr-strip-item b { display: block; margin-top: 5px; font: 500 11px var(--pp-mono); }
+.pr-strip-item b { display: block; margin-top: 5px; font: 500 12px var(--pp-mono); }
 .pr-strip-item .pp-thumb-frame { border: 1px solid var(--pp-line); border-radius: 3px; overflow: hidden; display: block; background: #000; }
 .pr-strip-item.is-now .pp-thumb-frame { border-color: var(--pp-accent); box-shadow: 0 0 0 1px var(--pp-accent); }
 .pr-strip-item.is-now b { color: var(--pp-accent); }

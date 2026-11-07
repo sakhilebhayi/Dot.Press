@@ -74,7 +74,7 @@ function up() {
 </script>
 
 <template>
-    <div class="c-num" :class="{ 'is-mixed': mixed, 'is-disabled': disabled, 'has-error': !!error }">
+    <div class="c-num" :class="{ 'is-mixed': mixed, 'is-disabled': disabled, 'has-error': !!error }" :aria-disabled="disabled ? 'true' : undefined">
         <div class="c-num-row">
             <label v-if="label" :for="id" class="c-num-l" :class="{ 'pr-sr': hideLabel }" :title="disabled ? '' : 'Drag sideways to change'" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="up">{{ label }}</label>
             <input

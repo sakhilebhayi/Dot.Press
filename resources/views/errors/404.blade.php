@@ -1,9 +1,9 @@
 @extends('errors._ecosystem-layout', ['code' => 404])
 
 @section('rail')
-    <svg class="er-rail" viewBox="0 0 640 64" fill="none" role="img" aria-label="A line with empty places for beads and no beads on it">
+    <svg class="er-rail" viewBox="0 0 640 64" fill="none" role="img" aria-label="A line with one filled bead, where you are, and five empty places for beads after it">
         <line class="er-line" x1="0" y1="32" x2="640" y2="32"/>
-        <circle class="er-slot" cx="40" cy="32" r="8"/><circle class="er-slot" cx="148" cy="32" r="8"/><circle class="er-slot" cx="256" cy="32" r="8"/>
+        <circle class="er-here" cx="40" cy="32" r="10"/><circle class="er-slot" cx="148" cy="32" r="8"/><circle class="er-slot" cx="256" cy="32" r="8"/>
         <circle class="er-slot" cx="364" cy="32" r="8"/><circle class="er-slot" cx="472" cy="32" r="8"/><circle class="er-slot" cx="580" cy="32" r="8"/>
     </svg>
 @endsection

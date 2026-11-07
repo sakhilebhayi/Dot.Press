@@ -58,6 +58,9 @@
 .pr-btn[disabled], .pr-btn[aria-disabled='true'] { opacity: 0.45; pointer-events: none; }
 .pr-btn--primary { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
 .pr-btn--primary:hover { background: var(--ink-2); border-color: var(--ink-2); }
+/* a primary action that cannot run yet is a quiet outline, not a washed-out copy of the live one */
+.pr-btn--primary[disabled], .pr-btn--primary[aria-disabled='true'] { background: var(--raised); color: var(--muted); border-color: var(--line); opacity: 1; }
+.pr-btn--primary[aria-busy='true'][disabled] { background: var(--ink); color: var(--sheet); border-color: var(--ink); opacity: 0.7; }
 .pr-btn--ghost { background: transparent; border-color: transparent; }
 .pr-btn--ghost:hover { background: var(--raised); border-color: var(--line); }
 .pr-btn--danger { color: var(--bad); }

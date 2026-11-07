@@ -26,7 +26,7 @@ import ProposalDemo from '@/press/brand/ProposalDemo.vue';
 import MiniPlayer from '@/press/brand/MiniPlayer.vue';
 import ThemeToggle from '@/press/editor/ui/ThemeToggle.vue';
 import { SAMPLE_DECK, SAMPLE_PREFLIGHT, SAMPLE_REVIEW } from '@/press/brand/sampleDeck.js';
-import { SECTIONS, currentSection, railFill, sampleBeads } from '@/press/brand/landingModel.js';
+import { SECTIONS, currentSection, railFill, sampleBeads, withTextScale } from '@/press/brand/landingModel.js';
 
 defineProps({
     canLogin: { type: Boolean },
@@ -42,6 +42,8 @@ const ctaHref = computed(() => (signedIn.value ? libraryHref.value : loginHref.v
 const ctaLabel = computed(() => (signedIn.value ? 'Open your library' : 'Sign in to start a deck'));
 
 const deck = SAMPLE_DECK.deck;
+// The hero sheet is drawn at about a third of its size, so its chart and table type is set larger than on the other sheets.
+const heroDeck = withTextScale(deck, 1.35);
 const beads = sampleBeads(SAMPLE_DECK);
 const heroAt = ref(2);
 const heroBeads = computed(() => beads.map((b) => ({ state: b.state, label: `Slide ${b.index + 1}: ${b.title}. ${b.summary}` })));
@@ -145,7 +147,7 @@ onBeforeUnmount(() => {
                     <p class="lp-fine">Accounts come from InfoDot sign-in. There is no separate sign-up.</p>
                 </div>
                 <div class="lp-hero-stage">
-                    <SlideSheet :slide="SAMPLE_DECK.slides[heroAt]" :deck="deck" eager />
+                    <SlideSheet :slide="SAMPLE_DECK.slides[heroAt]" :deck="heroDeck" eager />
                     <SpineLine :beads="heroBeads" :current="heroAt" label="Slides of the sample deck" @select="(i) => (heroAt = i)" />
                     <p class="pr-state lp-hero-state" aria-live="polite">
                         slide {{ heroAt + 1 }} of {{ beads.length }} · {{ hero.state === 'solid' ? 'solid' : 'hollow' }}
