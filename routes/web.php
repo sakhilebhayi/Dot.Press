@@ -6,6 +6,7 @@ use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\DeckPageController;
 use App\Http\Controllers\DependencyPatchController;
 use App\Http\Controllers\GuardianHealthController;
+use App\Http\Controllers\PrintController;
 use App\Http\Controllers\SchedulerProbeController;
 use App\Http\Controllers\SharedDeckController;
 use App\Http\Middleware\AuthenticateGuardian;
@@ -98,6 +99,9 @@ Route::middleware([
     Route::get('/decks/{deck}/present', [PresentSessionController::class, 'player'])->name('press.player');
     Route::get('/decks/{deck}/presenter', [PresentSessionController::class, 'presenter'])->name('press.presenter');
     Route::get('/decks/{deck}/audience', [PresentSessionController::class, 'audienceWindow'])->name('press.audience');
+
+    // R-40 print view: all slides, one per page, for the browser's Save as PDF.
+    Route::get('/decks/{deck}/print', [PrintController::class, 'show'])->whereNumber('deck')->name('press.print');
 
     Route::middleware('operator')->prefix('operator')->name('operator.')->group(function () {
         Route::get('/dependency-patches', [DependencyPatchController::class, 'index'])->name('dependency-patches.index');
