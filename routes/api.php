@@ -3,7 +3,12 @@
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\CollaborationController;
+use App\Http\Controllers\Api\DeckActivityController;
+use App\Http\Controllers\Api\DeckCommentController;
 use App\Http\Controllers\Api\DeckController;
+use App\Http\Controllers\Api\DeckPeopleController;
+use App\Http\Controllers\Api\DeckReviewController;
+use App\Http\Controllers\Api\DeckShareController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SlideController;
 use Illuminate\Http\Request;
@@ -21,6 +26,33 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('assets/{asset}/download', [AssetController::class, 'download'])
         ->middleware('signed')
         ->name('assets.download');
+
+    // R-40 access and collaboration: sharing, people, comments, reviews, activity. Each action authorises through
+    // DeckAccess (see App\Services\Press\DeckAccess for the roles and abilities).
+    Route::prefix('decks/{deck}')->group(function (): void {
+        Route::get('sharing', [DeckShareController::class, 'show']);
+        Route::put('sharing', [DeckShareController::class, 'update'])->middleware('throttle:60,1,press-share');
+        Route::post('sharing/rotate-link', [DeckShareController::class, 'rotate'])->middleware('throttle:20,1,press-rotate');
+        Route::get('sharing/people', [DeckShareController::class, 'people']);
+        Route::post('sharing/people', [DeckShareController::class, 'addPerson'])->middleware('throttle:60,1,press-share');
+        Route::patch('sharing/people/{user}', [DeckShareController::class, 'updatePerson'])->middleware('throttle:60,1,press-share');
+        Route::delete('sharing/people/{user}', [DeckShareController::class, 'removePerson'])->middleware('throttle:60,1,press-share');
+        Route::get('people', [DeckPeopleController::class, 'index']);
+
+        Route::get('comments', [DeckCommentController::class, 'index']);
+        Route::post('comments', [DeckCommentController::class, 'store'])->middleware('throttle:120,1,press-comments');
+        Route::patch('comments/{comment}', [DeckCommentController::class, 'update'])->middleware('throttle:120,1,press-comments');
+        Route::delete('comments/{comment}', [DeckCommentController::class, 'destroy'])->middleware('throttle:120,1,press-comments');
+        Route::post('comments/{comment}/resolve', [DeckCommentController::class, 'resolve'])->middleware('throttle:120,1,press-comments');
+        Route::post('comments/{comment}/reopen', [DeckCommentController::class, 'reopen'])->middleware('throttle:120,1,press-comments');
+
+        Route::get('reviews', [DeckReviewController::class, 'index']);
+        Route::post('reviews', [DeckReviewController::class, 'store'])->middleware('throttle:30,1,press-reviews');
+        Route::post('reviews/{review}/decision', [DeckReviewController::class, 'decide'])->middleware('throttle:60,1,press-reviews');
+        Route::delete('reviews/{review}', [DeckReviewController::class, 'destroy'])->middleware('throttle:60,1,press-reviews');
+
+        Route::get('activity', [DeckActivityController::class, 'index']);
+    });
 
     Route::prefix('ai')->middleware('throttle:ai')->group(function (): void {
         Route::get('usage', [AiController::class, 'usage']);

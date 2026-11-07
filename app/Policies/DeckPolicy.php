@@ -6,30 +6,27 @@ use App\Models\Deck;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\Concerns\ChecksTeamPermissions;
+use App\Services\Press\DeckAccess;
 
+/**
+ * Every ability derives from DeckAccess (see there for the role rules). `create` is the one exception: a deck does
+ * not exist yet, so it is decided by the team role in the project that will own it.
+ */
 class DeckPolicy
 {
     use ChecksTeamPermissions;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
         return $user->exists;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Deck $deck): bool
     {
-        return $user->belongsToTeam($deck->project->team);
+        return DeckAccess::can($user, $deck, 'view');
     }
 
     /**
-     * Determine whether the user can create models.
-     *
      * Class-level (no project) only says the user is real; creating a
      * deck is authorised against the team that owns the project.
      */
@@ -42,35 +39,49 @@ class DeckPolicy
         return $this->mayCreateIn($user, $project->team);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Deck $deck): bool
     {
-        return $this->mayChangeIn($user, $deck->project->team);
+        return DeckAccess::can($user, $deck, 'update');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
+    public function comment(User $user, Deck $deck): bool
+    {
+        return DeckAccess::can($user, $deck, 'comment');
+    }
+
+    public function present(User $user, Deck $deck): bool
+    {
+        return DeckAccess::can($user, $deck, 'present');
+    }
+
+    public function export(User $user, Deck $deck): bool
+    {
+        return DeckAccess::can($user, $deck, 'export');
+    }
+
+    /** Sharing, visibility, review requests, renaming. */
+    public function manage(User $user, Deck $deck): bool
+    {
+        return DeckAccess::can($user, $deck, 'manage');
+    }
+
+    public function rename(User $user, Deck $deck): bool
+    {
+        return $this->manage($user, $deck);
+    }
+
     public function delete(User $user, Deck $deck): bool
     {
-        return $this->mayChangeIn($user, $deck->project->team);
+        return $this->manage($user, $deck);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Deck $deck): bool
     {
-        return $this->mayChangeIn($user, $deck->project->team);
+        return $this->manage($user, $deck);
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Deck $deck): bool
     {
-        return $this->mayChangeIn($user, $deck->project->team);
+        return $this->manage($user, $deck);
     }
 }

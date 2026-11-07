@@ -6,8 +6,10 @@ use App\Http\Controllers\DependencyPatchController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GuardianHealthController;
 use App\Http\Controllers\SchedulerProbeController;
+use App\Http\Controllers\SharedDeckController;
 use App\Http\Controllers\SlideEditorController;
 use App\Http\Middleware\AuthenticateGuardian;
+use App\Http\Middleware\PrivateShareResponse;
 use App\Models\Project;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +52,18 @@ Route::get('/cookies', function () {
         'cookies' => Str::markdown(file_get_contents(Jetstream::localizedMarkdownPath('cookies.md'))),
     ]);
 })->name('cookies');
+
+// Public share links (no sign-in). The token is exactly 40 letters and digits, so anything else is a plain 404 before
+// the database is touched. The pages and assets are never cached or indexed (PrivateShareResponse).
+Route::middleware(PrivateShareResponse::class)
+    ->prefix('s/{token}')
+    ->where(['token' => '[A-Za-z0-9]{40}', 'asset' => '[0-9]+'])
+    ->group(function (): void {
+        Route::get('/', [SharedDeckController::class, 'show'])->name('shared.show');
+        Route::post('unlock', [SharedDeckController::class, 'unlock'])->name('shared.unlock');
+        Route::get('document', [SharedDeckController::class, 'document'])->name('shared.document');
+        Route::get('asset/{asset}', [SharedDeckController::class, 'asset'])->middleware('throttle:600,1,press-share-asset')->name('shared.asset');
+    });
 
 Route::middleware([
     'auth:sanctum',

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasScopeThroughDeck;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeckActivity extends Model
 {
+    use HasScopeThroughDeck;
+
     protected $table = 'deck_activity';
 
     public $timestamps = false;

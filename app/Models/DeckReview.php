@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasScopeThroughDeck;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeckReview extends Model
 {
-    protected $fillable = ['deck_id', 'requested_by', 'reviewer_id', 'status', 'note', 'decision_note', 'version_hash', 'decided_at'];
+    use HasScopeThroughDeck;
+
+    protected $fillable = ['deck_id', 'requested_by', 'reviewer_id', 'status', 'round', 'note', 'decision_note', 'version_hash', 'decided_at'];
 
     protected function casts(): array
     {

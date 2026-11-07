@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasUserScopeThroughOwner;
+use App\Models\Concerns\HasDeckAccessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Deck extends Model
 {
-    use HasUserScopeThroughOwner;
+    use HasDeckAccessScope;
 
     public const STATUSES = ['draft', 'in_review', 'approved'];
 
@@ -110,10 +110,5 @@ class Deck extends Model
     public function presentSessions(): HasMany
     {
         return $this->hasMany(PresentSession::class);
-    }
-
-    protected static function userOwnershipRelation(): string
-    {
-        return 'project';
     }
 }

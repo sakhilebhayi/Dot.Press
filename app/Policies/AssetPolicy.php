@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\Concerns\ChecksTeamPermissions;
+use App\Services\Press\DeckAccess;
 
 class AssetPolicy
 {
@@ -24,7 +25,11 @@ class AssetPolicy
      */
     public function view(User $user, Asset $asset): bool
     {
-        return $user->belongsToTeam($asset->project->team);
+        $team = $asset->project->team;
+
+        // Team members reach the project's assets through the team; anyone else only the ones a deck shared with
+        // them actually uses.
+        return $user->belongsToTeam($team) || DeckAccess::canViewAssetThroughDeck($user, $asset);
     }
 
     /**
