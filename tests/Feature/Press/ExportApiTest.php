@@ -137,6 +137,11 @@ class ExportApiTest extends TestCase
         $this->assertNull($export->fresh()->path);
     }
 
+    public function test_the_prune_command_is_on_the_schedule(): void
+    {
+        $this->artisan('schedule:list')->expectsOutputToContain('press:exports-prune')->assertSuccessful();
+    }
+
     public function test_prune_fails_exports_stuck_in_the_queue(): void
     {
         $user = $this->pressUser();

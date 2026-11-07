@@ -298,6 +298,15 @@ class SupportTest extends TestCase
         $this->assertNull(ImageComposer::decode(''));
     }
 
+    public function test_a_picture_too_big_for_the_memory_limit_is_refused_not_a_fatal_error(): void
+    {
+        $this->assertTrue(\App\Services\Press\Export\Support\Memory::fits(1000));
+        $this->assertFalse(\App\Services\Press\Export\Support\Memory::fits(PHP_INT_MAX >> 4) && \App\Services\Press\Export\Support\Memory::limit() > 0);
+        // a 30 megapixel PNG header is over the pixel cap whatever the memory limit
+        $png = "\x89PNG\r\n\x1a\n".pack('N', 13).'IHDR'.pack('NN', 6000, 5000)."\x08\x02\x00\x00\x00".str_repeat("\0", 4);
+        $this->assertNull(ImageComposer::decode($png));
+    }
+
     /** @return array{0: int, 1: int, 2: int} */
     private function rgb(\GdImage $im, int $x, int $y): array
     {

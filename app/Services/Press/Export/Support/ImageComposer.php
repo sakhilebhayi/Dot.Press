@@ -11,7 +11,7 @@ use GdImage;
 final class ImageComposer
 {
     /** Largest decoded source in pixels. A bigger file is skipped (shared hosts run out of memory decoding it). */
-    public const MAX_SOURCE_PIXELS = 36_000_000;
+    public const MAX_SOURCE_PIXELS = 24_000_000;
 
     /** @return array{0: int, 1: int}|null pixel width and height */
     public static function dimensions(string $bytes): ?array
@@ -110,7 +110,7 @@ final class ImageComposer
     public static function decode(string $bytes): ?GdImage
     {
         $dim = @getimagesizefromstring($bytes);
-        if (! $dim || $dim[0] * $dim[1] > self::MAX_SOURCE_PIXELS) {
+        if (! $dim || $dim[0] * $dim[1] > self::MAX_SOURCE_PIXELS || ! Memory::fits((int) ($dim[0] * $dim[1] * 5))) {
             return null;
         }
         $im = @imagecreatefromstring($bytes);
