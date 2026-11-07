@@ -5,6 +5,7 @@ import '../../../css/press/fonts-ui.css';
 import '../../../css/press/base.css';
 import '../../../css/press/shell.css';
 import '../../../css/press/spine.css';
+import '../../../css/press/controls.css';
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { useEditor } from '@/press/editor/ui/useEditor.js';
