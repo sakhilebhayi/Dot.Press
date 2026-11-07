@@ -232,8 +232,15 @@ final class DeckBatch
      */
     private function deckResize(array $op): void
     {
-        $w = (int) $this->san->num($op['w'] ?? null, 320, 7680, 'w');
-        $h = (int) $this->san->num($op['h'] ?? null, 320, 7680, 'h');
+        // A slide size outside 320..7680 is refused, not clamped: a resize rewrites every element.
+        $w = (int) $this->san->num($op['w'] ?? null, -1e9, 1e9, 'w');
+        $h = (int) $this->san->num($op['h'] ?? null, -1e9, 1e9, 'h');
+        if ($w < 320 || $w > 7680) {
+            throw new InvalidDocument('invalid w');
+        }
+        if ($h < 320 || $h > 7680) {
+            throw new InvalidDocument('invalid h');
+        }
         $mode = $this->san->enum($op['mode'] ?? null, Resize::MODES, 'mode');
         $ow = (int) $this->deck->w;
         $oh = (int) $this->deck->h;

@@ -98,7 +98,7 @@ class DeckController extends Controller
             $query->orderByDesc('du.last_opened_at');
         } else {
             match ($v['sort'] ?? 'updated') {
-                'title' => $query->orderBy('decks.title'),
+                'title' => $query->selectRaw('lower(decks.title) as title_sort')->orderBy('title_sort'),
                 'created' => $query->orderByDesc('decks.created_at'),
                 default => $query->orderByDesc('decks.updated_at'),
             };

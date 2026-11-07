@@ -618,6 +618,7 @@ class DocumentSanitizer
                 }
                 break;
             case 'paragraph':
+            case 'heading':
                 $line = '';
                 foreach ($node['content'] ?? [] as $child) {
                     if (is_array($child)) {
