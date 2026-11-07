@@ -167,7 +167,11 @@ class ViewerWriteProtectionTest extends TestCase
     public function test_asset_writes_and_reads(): void
     {
         $asset = $this->newAsset();
-        $upload = fn () => ['project_id' => $this->project->id, 'file' => UploadedFile::fake()->create('slide.png', 20, 'image/png')];
+        $size = 20;
+        // Each upload is a different picture: identical bytes in one project are stored once and answer 200.
+        $upload = function () use (&$size): array {
+            return ['project_id' => $this->project->id, 'file' => UploadedFile::fake()->image('slide.png', ++$size, 20)];
+        };
 
         $this->actingAs($this->viewer)->postJson('/api/assets', $upload())->assertForbidden();
         $this->actingAs($this->viewer)->deleteJson('/api/assets/'.$asset->id)->assertForbidden();

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Asset;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,18 +30,20 @@ class AssetStorageTest extends TestCase
         $response = $this->actingAs($user)
             ->postJson('/api/assets', [
                 'project_id' => $project->id,
-                'file' => UploadedFile::fake()->create('slide.png', 128, 'image/png'),
+                'file' => UploadedFile::fake()->image('slide.png', 64, 48),
             ]);
 
         $response->assertCreated()
             ->assertJsonStructure([
-                'asset' => ['id', 'disk', 'path', 'project_id'],
+                'asset' => ['id', 'project_id', 'kind', 'url', 'thumb', 'web'],
                 'delivery_url',
                 'expires_in_seconds',
             ]);
 
-        $assetPath = $response->json('asset.path');
-        Storage::disk('local')->assertExists($assetPath);
+        $stored = Asset::findOrFail($response->json('asset.id'));
+        Storage::disk('local')->assertExists($stored->path);
+        $this->assertSame(64, $stored->width);
+        $this->assertArrayNotHasKey('path', $response->json('asset'), 'storage paths are not exposed');
 
         $showResponse = $this->actingAs($user)
             ->getJson('/api/assets/'.$response->json('asset.id'));
@@ -79,7 +82,7 @@ class AssetStorageTest extends TestCase
         $upload = $this->actingAs($owner)
             ->postJson('/api/assets', [
                 'project_id' => $project->id,
-                'file' => UploadedFile::fake()->create('deck.pdf', 100, 'application/pdf'),
+                'file' => UploadedFile::fake()->image('deck.png', 32, 32),
             ]);
 
         $assetId = $upload->json('asset.id');
