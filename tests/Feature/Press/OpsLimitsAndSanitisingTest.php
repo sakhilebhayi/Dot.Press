@@ -166,7 +166,7 @@ class OpsLimitsAndSanitisingTest extends TestCase
         $this->assertSame([['type' => 'bold']], $inline[0]['marks']);
         $this->assertArrayNotHasKey('marks', $inline[1]);
         $this->assertSame(['type' => 'link', 'attrs' => ['href' => 'https://example.com']], $inline[2]['marks'][0]);
-        $this->assertSame(['color' => '#ff0000', 'fontSize' => 24], $inline[3]['marks'][0]['attrs']);
+        $this->assertSame(['color' => '#ff0000', 'fontSize' => '24px'], $inline[3]['marks'][0]['attrs']);
         $this->assertSame('hardBreak', $inline[4]['type']);
         $this->assertCount(5, $inline);
         $this->assertSame('kept text', $stored['content'][2]['content'][0]['text']);

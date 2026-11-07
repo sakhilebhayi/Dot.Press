@@ -243,8 +243,9 @@ class OpsApplyTest extends TestCase
         $this->assertSame([], $this->els($one));
         $this->assertSame(['a', 'z'], array_column($this->els($two), 'id'));
 
-        $this->ops($user, $deck, [['op' => 'el.move', 'from' => $two->id, 'id' => 'a', 'to' => $two->id]])
-            ->assertJsonPath('skipped.0.reason', 'same slide, use el.order');
+        // Moving within one slide is a z-order move; the index counts after the element is taken out.
+        $this->ops($user, $deck, [['op' => 'el.move', 'from' => $two->id, 'id' => 'a', 'to' => $two->id]])->assertOk()->assertJsonPath('skipped', []);
+        $this->assertSame(['z', 'a'], array_column($this->els($two), 'id'));
     }
 
     public function test_sections_can_be_added_renamed_and_removed(): void
@@ -272,24 +273,28 @@ class OpsApplyTest extends TestCase
         $this->assertNull($one->fresh()->section_id);
     }
 
-    public function test_deck_set_renames_records_activity_and_refuses_size_and_approval(): void
+    public function test_deck_set_renames_records_activity_and_refuses_size_and_approval_as_a_whole(): void
     {
         $user = $this->owner();
         $deck = $this->deckFor($user, 'Old');
 
-        $response = $this->ops($user, $deck, [['op' => 'deck.set', 'title' => 'New', 'w' => 100, 'h' => 100, 'status' => 'approved']])->assertOk();
+        $response = $this->ops($user, $deck, [
+            ['op' => 'deck.set', 'title' => 'New'],
+            ['op' => 'deck.set', 'title' => 'Sneaky', 'w' => 100, 'h' => 100],
+            ['op' => 'deck.set', 'title' => 'Sneakier', 'status' => 'approved'],
+        ])->assertOk();
 
         $this->assertSame('New', $deck->fresh()->title);
         $this->assertSame(1920, $deck->fresh()->w);
         $this->assertSame('draft', $deck->fresh()->status);
-        $this->assertCount(2, $response->json('skipped'));
+        $this->assertSame([1, 2], array_column($response->json('skipped'), 'index'));
         $this->assertTrue(DeckActivity::where('deck_id', $deck->id)->where('event', 'renamed')->exists());
 
         $this->ops($user, $deck, [['op' => 'deck.set', 'status' => 'in_review', 'theme' => ['name' => 'Mine', 'c' => ['accent' => '#ff0000']]]])->assertOk();
         $fresh = $deck->fresh();
         $this->assertSame('in_review', $fresh->status);
-        $this->assertSame('#ff0000', $fresh->theme['c']['accent']);
-        $this->assertSame('#111827', $fresh->theme['c']['ink']);
+        // Through an operation the theme is kept as given (validated), not merged with the default.
+        $this->assertSame(['name' => 'Mine', 'c' => ['accent' => '#ff0000']], $fresh->theme);
     }
 
     public function test_every_batch_gets_a_seq_in_the_log_with_the_applied_ops_and_real_ids(): void

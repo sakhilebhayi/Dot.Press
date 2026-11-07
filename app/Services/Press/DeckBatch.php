@@ -192,16 +192,15 @@ final class DeckBatch
      */
     private function deckSet(array $op): void
     {
-        if (isset($op['w']) || isset($op['h'])) {
-            $this->skip('deck.set', 'size changes go through deck.resize');
+        if (array_key_exists('w', $op) || array_key_exists('h', $op)) {
+            throw new InvalidDocument('size changes go through deck.resize');
+        }
+        if (($op['status'] ?? null) === 'approved') {
+            throw new InvalidDocument('a deck is approved by a reviewer, not by an operation');
         }
 
         $fields = $this->san->deckSet($op);
 
-        if (($fields['status'] ?? null) === 'approved') {
-            unset($fields['status']);
-            $this->skip('deck.set', 'a deck is approved by a reviewer, not by an operation');
-        }
         if ($fields === []) {
             throw new InvalidDocument('no changes');
         }
@@ -274,7 +273,7 @@ final class DeckBatch
      */
     private function sectionAdd(array $op): void
     {
-        $section = $this->san->section($op);
+        $section = $this->san->section($op + ['title' => 'Untitled section']);
         if ($this->sectionIndex($section['id']) !== null) {
             throw new InvalidDocument('section exists');
         }
@@ -364,7 +363,7 @@ final class DeckBatch
             throw new InvalidDocument('duplicate tid');
         }
 
-        $fields = $this->san->slideFields($op['slide'] ?? []);
+        $fields = $this->san->slideFieldsLenient($op['slide'] ?? []);
         $this->assertSection($fields['section_id'] ?? null);
         $this->assertSlideAssets($fields);
         $position = $this->positionAfter($op);
@@ -417,13 +416,13 @@ final class DeckBatch
         if (! array_key_exists('after', $op)) {
             throw new InvalidDocument('after is required');
         }
-        $after = $op['after'] === null ? null : $this->slideId($op['after']);
+        $after = $op['after'] === null ? null : $this->knownSlideId($op['after']);
         if ($after === $id) {
             throw new InvalidDocument('cannot move a slide after itself');
         }
 
         $this->order = array_values(array_filter($this->order, fn ($v) => $v !== $id));
-        $position = $after === null ? 0 : array_search($after, $this->order, true) + 1;
+        $position = $op['after'] === null ? 0 : ($after === null ? count($this->order) : array_search($after, $this->order, true) + 1);
         array_splice($this->order, $position, 0, [$id]);
 
         $this->log(['op' => 'slide.move', 'id' => $id, 'after' => $after]);
@@ -545,7 +544,21 @@ final class DeckBatch
             return 0;
         }
 
-        return array_search($this->slideId($op['after']), $this->order, true) + 1;
+        // A slide that is gone (removed by someone else meanwhile) is not a reason to lose the new one: it goes last.
+        $found = $this->knownSlideId($op['after']);
+
+        return $found === null ? count($this->order) : array_search($found, $this->order, true) + 1;
+    }
+
+    /**
+     * The stored id a reference points at, or null when it names nothing (a malformed reference still throws).
+     */
+    private function knownSlideId(mixed $ref): ?int
+    {
+        $ref = $this->san->slideRef($ref);
+        $id = is_string($ref) ? ($this->tids[$ref] ?? null) : $ref;
+
+        return $id !== null && isset($this->slides[$id]) ? $id : null;
     }
 
     private function slideId(mixed $ref): int
@@ -742,7 +755,9 @@ final class DeckBatch
         $from = $this->slideId($op['from'] ?? null);
         $to = $this->slideId($op['to'] ?? null);
         if ($from === $to) {
-            throw new InvalidDocument('same slide, use el.order');
+            $this->elMoveWithin($from, $op);
+
+            return;
         }
         $this->loadEls($from);
         $this->loadEls($to);
@@ -775,6 +790,34 @@ final class DeckBatch
         $this->touched[$to] = true;
 
         $this->log(['op' => 'el.move', 'from' => $from, 'id' => $id, 'to' => $to, 'index' => $position]);
+    }
+
+    /**
+     * el.move with the same slide for both ends is a z-order move; the index counts after the element is taken out.
+     *
+     * @param  array<string, mixed>  $op
+     */
+    private function elMoveWithin(int $slideId, array $op): void
+    {
+        $this->loadEls($slideId);
+        $id = $this->san->id($op['id'] ?? null, 'element id');
+        $at = $this->elementIndex($slideId, $id);
+        if ($at === null) {
+            throw new InvalidDocument('element not found');
+        }
+
+        $el = $this->els[$slideId][$at];
+        array_splice($this->els[$slideId], $at, 1);
+        $position = count($this->els[$slideId]);
+        if (isset($op['index'])) {
+            $position = (int) $this->san->num($op['index'], 0, $position, 'index');
+        }
+        array_splice($this->els[$slideId], $position, 0, [$el]);
+
+        if ($position !== $at) {
+            $this->touched[$slideId] = true;
+            $this->log(['op' => 'el.move', 'from' => $slideId, 'id' => $id, 'to' => $slideId, 'index' => $position]);
+        }
     }
 
     // ------------------------------------------------------------------ element storage

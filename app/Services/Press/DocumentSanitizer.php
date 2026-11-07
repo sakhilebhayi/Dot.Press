@@ -166,12 +166,6 @@ class DocumentSanitizer
     private function completeType(array &$el): void
     {
         switch ($el['type']) {
-            case 'text':
-                $el['doc'] ??= $this->docFromText('');
-                break;
-            case 'shape':
-                $el['kind'] ??= 'rect';
-                break;
             case 'video':
                 if (! isset($el['src']) && ! isset($el['embed'])) {
                     throw new InvalidDocument('video needs a source');
@@ -317,6 +311,54 @@ class DocumentSanitizer
     }
 
     /**
+     * The initial content of `slide.add`, read leniently so one bad value does not lose a whole slide: a slide key of the
+     * wrong type is ignored, an element that is invalid or repeats an id is dropped. Only too many elements refuses it.
+     *
+     * @return array<string, mixed>
+     */
+    public function slideFieldsLenient(mixed $raw): array
+    {
+        if (! is_array($raw) || ($raw !== [] && array_is_list($raw))) {
+            return [];
+        }
+
+        $out = [];
+        foreach (['title', 'notes', 'section_id', 'hidden', 'layout', 'bg', 'transition'] as $key) {
+            if (! array_key_exists($key, $raw)) {
+                continue;
+            }
+            try {
+                $out += $this->slideFields([$key => $raw[$key]], false);
+            } catch (InvalidDocument) {
+                // ignored
+            }
+        }
+
+        $els = $raw['els'] ?? null;
+        if (is_array($els) && array_is_list($els)) {
+            if (count($els) > self::MAX_ELEMENTS) {
+                throw new InvalidDocument('too many elements on one slide');
+            }
+            $kept = [];
+            $seen = [];
+            foreach ($els as $item) {
+                try {
+                    $el = $this->element($item);
+                } catch (InvalidDocument) {
+                    continue;
+                }
+                if (! isset($seen[$el['id']])) {
+                    $seen[$el['id']] = true;
+                    $kept[] = $el;
+                }
+            }
+            $out['els'] = $kept;
+        }
+
+        return $out;
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function elements(mixed $raw): array
@@ -414,7 +456,7 @@ class DocumentSanitizer
             $out['title'] = $title;
         }
         if (array_key_exists('theme', $raw)) {
-            $out['theme'] = $this->theme($raw['theme']);
+            $out['theme'] = $this->theme($raw['theme'], false);
         }
         if (array_key_exists('status', $raw)) {
             $out['status'] = $this->enum($raw['status'], ['draft', 'in_review', 'approved'], 'status');
@@ -443,18 +485,19 @@ class DocumentSanitizer
     }
 
     /**
-     * Spec section 3. Missing tokens fall back to the default theme so an element that points at a token always resolves.
+     * Spec section 3. With $complete (a new deck) missing tokens are filled from the default theme; through an operation
+     * the theme is kept as given, validated.
      *
      * @return array<string, mixed>
      */
-    public function theme(mixed $v): array
+    public function theme(mixed $v, bool $complete = true): array
     {
         if (! is_array($v) || ($v !== [] && array_is_list($v))) {
             throw new InvalidDocument('invalid theme');
         }
 
         $base = self::defaultTheme();
-        $out = $base;
+        $out = $complete ? $base : ['id' => null, 'name' => null, 'c' => [], 't' => [], 's' => [], 'bg' => null];
 
         if (isset($v['id'])) {
             $id = $this->id($v['id'], 'theme id');
@@ -472,7 +515,7 @@ class DocumentSanitizer
         }
         if (isset($c['chart'])) {
             $palette = $this->list($c['chart'], 8, 'chart colours', fn ($n) => $this->hexOnly($n, 'chart colour'));
-            foreach ($base['c']['chart'] as $i => $fallback) {
+            foreach ($complete ? $base['c']['chart'] : [] as $i => $fallback) {
                 $palette[$i] ??= $fallback;
             }
             $out['c']['chart'] = array_slice($palette, 0, 8);
@@ -499,9 +542,14 @@ class DocumentSanitizer
             $out['s']['stroke'] = $this->num($s['stroke'], 0, 50, 'theme stroke');
         }
 
-        $out['bg'] = isset($v['bg']) ? $this->slideBackground($v['bg']) : null;
+        if (isset($v['bg'])) {
+            $out['bg'] = $this->slideBackground($v['bg']);
+        } elseif ($complete) {
+            $out['bg'] = null;
+        }
 
-        return $out;
+        // A partial theme (set through an operation) holds only what it was given; renderers fall back to the default.
+        return $complete ? $out : array_filter($out, fn ($value) => $value !== null && $value !== []);
     }
 
     /**
@@ -813,8 +861,10 @@ class DocumentSanitizer
                 }
                 try {
                     if (isset($in['fontSize'])) {
-                        $size = is_string($in['fontSize']) ? preg_replace('/px$/i', '', trim($in['fontSize'])) : $in['fontSize'];
-                        $attrs['fontSize'] = $this->num($size, 1, 5000, 'fontSize');
+                        // Tiptap writes "24px", a number is accepted too; the form given is kept.
+                        $isString = is_string($in['fontSize']);
+                        $size = $this->num($isString ? preg_replace('/px$/i', '', trim($in['fontSize'])) : $in['fontSize'], 1, 5000, 'fontSize');
+                        $attrs['fontSize'] = $isString ? $size.'px' : $size;
                     }
                 } catch (InvalidDocument) {
                 }

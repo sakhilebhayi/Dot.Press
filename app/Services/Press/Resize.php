@@ -199,8 +199,14 @@ final class Resize
     {
         if (isset($node['marks']) && is_array($node['marks'])) {
             foreach ($node['marks'] as $i => $mark) {
-                if (($mark['type'] ?? null) === 'textStyle' && isset($mark['attrs']['fontSize']) && is_numeric($mark['attrs']['fontSize'])) {
-                    $node['marks'][$i]['attrs']['fontSize'] = self::r($mark['attrs']['fontSize'] * $s);
+                if (($mark['type'] ?? null) !== 'textStyle' || ! isset($mark['attrs']['fontSize'])) {
+                    continue;
+                }
+                $size = $mark['attrs']['fontSize'];
+                if (is_numeric($size)) {
+                    $node['marks'][$i]['attrs']['fontSize'] = self::r($size * $s);
+                } elseif (is_string($size) && preg_match('/^(\d+(?:\.\d+)?)px$/i', trim($size), $m)) {
+                    $node['marks'][$i]['attrs']['fontSize'] = self::r((float) $m[1] * $s).'px';
                 }
             }
         }
