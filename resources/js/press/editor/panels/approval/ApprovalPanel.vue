@@ -191,7 +191,7 @@ const initials = (n) => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2
 
             <PanelSection id="approval.how" title="How approval works" :default-open="status === 'changed_since_approval' || status === 'draft'">
                 <p class="apv-how">An approval belongs to the exact content that was approved. Change anything afterwards, even one word, and the deck goes back to Draft and reads <strong>Changed since approval</strong> until it is reviewed again.</p>
-                <p class="apv-how">Restoring an earlier version counts as a change. Approving the deck stores a version named Approved, so you can always return to it.</p>
+                <p class="apv-how">Restoring an earlier version counts as a change, except the version named Approved: it is exactly the content that was approved, so restoring it brings the Approved status back. Approving the deck stores that version, so you can always return to it.</p>
             </PanelSection>
         </template>
     </div>

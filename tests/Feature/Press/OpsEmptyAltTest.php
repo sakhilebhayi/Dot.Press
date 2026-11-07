@@ -30,4 +30,27 @@ class OpsEmptyAltTest extends TestCase
         $this->ops($user, $deck, [['op' => 'el.set', 'slide' => $slide->id, 'id' => 'pic1', 'p' => ['alt' => null]]])->assertOk();
         $this->assertArrayNotHasKey('alt', collect($slide->fresh()->els)->firstWhere('id', 'pic1'));
     }
+
+    public function test_spaces_at_the_edges_of_a_text_run_are_kept(): void
+    {
+        $user = $this->owner();
+        $deck = $this->deckFor($user);
+        $slide = $deck->slides()->first();
+        $doc = ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [
+            ['type' => 'text', 'text' => 'Typography ', 'marks' => [['type' => 'bold']]],
+            ['type' => 'text', 'text' => 'and ', 'marks' => [['type' => 'italic']]],
+            ['type' => 'text', 'text' => ' lists'],
+        ]]]];
+        $el = ['id' => 'tx1', 'type' => 'text', 'x' => 0, 'y' => 0, 'w' => 800, 'h' => 100, 'doc' => $doc];
+        $this->ops($user, $deck, [['op' => 'el.add', 'slide' => $slide->id, 'el' => $el]])->assertOk();
+
+        $runs = collect($slide->fresh()->els)->firstWhere('id', 'tx1')['doc']['content'][0]['content'];
+        $this->assertSame(['Typography ', 'and ', ' lists'], array_column($runs, 'text'));
+
+        // and a later patch of the same element keeps them too
+        $doc['content'][0]['content'][2]['text'] = ' lists, ';
+        $this->ops($user, $deck, [['op' => 'el.set', 'slide' => $slide->id, 'id' => 'tx1', 'p' => ['doc' => $doc]]])->assertOk();
+        $runs = collect($slide->fresh()->els)->firstWhere('id', 'tx1')['doc']['content'][0]['content'];
+        $this->assertSame(' lists, ', $runs[2]['text']);
+    }
 }

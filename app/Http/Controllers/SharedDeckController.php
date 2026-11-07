@@ -9,6 +9,7 @@ use App\Services\Press\DeckAccess;
 use App\Services\Press\DeckDocument;
 use App\Services\Press\DeferredPage;
 use App\Services\Press\JsonStream;
+use App\Services\Press\PresentPayload;
 use App\Services\Press\RangeStream;
 use App\Services\Press\Sharing;
 use Illuminate\Http\JsonResponse;
@@ -40,6 +41,7 @@ class SharedDeckController extends Controller
             'title' => $locked ? 'Protected presentation' : $deck->title,
             'needsPassword' => $locked,
             'error' => $request->session()->pull('share_error'),
+            'allowDownload' => (bool) $deck->share_allow_download,
             'token' => $token,
         ];
 
@@ -104,6 +106,36 @@ class SharedDeckController extends Controller
         ]));
     }
 
+    /**
+     * The print view for a link visitor, only when the owner allowed downloads. It is the same page as the signed in
+     * print view, fed from the same guest safe data as the player: no speaker notes, no hidden slides, no comments.
+     * The pictures come through this token's own asset route. A visitor who has not opened a protected link yet is
+     * sent back to the password page.
+     */
+    public function print(Request $request, string $token): InertiaResponse|RedirectResponse
+    {
+        $deck = $this->deck($token);
+        abort_unless($deck->share_allow_download, 404);
+
+        if ($this->locked($request, $deck)) {
+            return redirect()->route('shared.show', ['token' => $token], 303);
+        }
+
+        $slides = array_values(array_filter(
+            PresentPayload::slides($deck, notes: false),
+            fn (array $slide): bool => ! $slide['hidden'],
+        ));
+
+        return Inertia::render('Press/Print', [
+            'deck' => PresentPayload::deckHeader($deck),
+            'slides' => $slides,
+            'assets' => $this->assetMap($deck, $token, $this->guestAssetIds($deck)),
+            'options' => ['hidden' => false, 'notes' => false],
+            'backUrl' => route('shared.show', ['token' => $token], false),
+            'backLabel' => 'Back to the presentation',
+        ]);
+    }
+
     public function asset(Request $request, string $token, int $asset): Response
     {
         $deck = $this->deck($token);
@@ -112,7 +144,8 @@ class SharedDeckController extends Controller
         $model = Asset::withoutGlobalScopes()->where('project_id', $deck->project_id)->find($asset);
 
         // Only what a slide of this very deck uses is ever served, never the rest of the project's library.
-        abort_unless($model && DeckAccess::deckUsesAsset($deck, $model->id), 404);
+        // A picture that only a hidden slide uses is not served either: hidden means hidden for a guest.
+        abort_unless($model && in_array($model->id, $this->guestAssetIds($deck), true), 404);
 
         $useThumb = $request->query('size') === 'thumb' && $model->thumb_path;
         $path = $useThumb ? $model->thumb_path : $model->path;
@@ -177,13 +210,41 @@ class SharedDeckController extends Controller
 
             return $slide;
         }, $doc['slides']);
+        $slides = array_values($slides);
 
-        $ids = DeckAccess::assetIdsOfDeck($deck);
+        return [
+            'deck' => collect($doc['deck'])->only(['id', 'title', 'w', 'h', 'theme', 'sections', 'slide_order', 'updated_at'])->all(),
+            'slides' => $slides,
+            'seq' => 0,
+            'assets' => $this->assetMap($deck, $token, $this->guestAssetIds($deck)),
+        ];
+    }
+
+    /**
+     * Asset ids a guest may fetch: what the visible slides and the theme use.
+     *
+     * @return list<int>
+     */
+    private function guestAssetIds(Deck $deck): array
+    {
+        $slides = array_filter(PresentPayload::slides($deck, notes: false), fn (array $slide): bool => ! $slide['hidden']);
+
+        return array_values(array_unique([...PresentPayload::assetIds($slides), ...DeckAccess::assetIdsIn($deck->theme ?? [])]));
+    }
+
+    /**
+     * The asset map of spec section 9 for a link visitor: urls on this token's own asset route.
+     *
+     * @param  list<int>  $ids
+     * @return array<string, array<string, mixed>>|object an empty map is an object so it encodes as {}
+     */
+    private function assetMap(Deck $deck, string $token, array $ids): array|object
+    {
         $assets = [];
 
         foreach (Asset::withoutGlobalScopes()->where('project_id', $deck->project_id)->whereIn('id', $ids)->get() as $asset) {
             $url = route('shared.asset', ['token' => $token, 'asset' => $asset->id]);
-            $assets[$asset->id] = [
+            $assets[(string) $asset->id] = [
                 'url' => $url,
                 'thumb' => $asset->thumb_path ? $url.'?size=thumb' : null,
                 'w' => $asset->width,
@@ -193,11 +254,6 @@ class SharedDeckController extends Controller
             ];
         }
 
-        return [
-            'deck' => collect($doc['deck'])->only(['id', 'title', 'w', 'h', 'theme', 'sections', 'slide_order', 'updated_at'])->all(),
-            'slides' => $slides,
-            'seq' => 0,
-            'assets' => (object) $assets,
-        ];
+        return $assets === [] ? (object) [] : $assets;
     }
 }

@@ -481,7 +481,7 @@ final class SlideRenderer
         $name = is_string($el['name'] ?? null) ? $el['name'] : '';
         $hex = $this->theme->hex($el['color'] ?? '@ink') ?? '#000000';
         $sw = Els::num($el['sw'] ?? 2, 2, 0.25, 8);
-        $svg = $this->icons->svg($name, $hex, $sw, $w, $h);
+        $svg = $this->icons->svgFitted($name, $hex, $sw, $w, $h);
         if ($svg === null) {
             $this->note($el['id'] ?? null, 'The icon "'.mb_substr($name, 0, 40).'" is not in the icon set the exporter reads, so a placeholder square is drawn.');
             $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'.self::n($w).'" height="'.self::n($h).'" viewBox="0 0 '.self::n($w).' '.self::n($h).'"><rect x="'.self::n($w * 0.15).'" y="'.self::n($h * 0.15).'" width="'.self::n($w * 0.7).'" height="'.self::n($h * 0.7).'" fill="none" stroke="'.$hex.'" stroke-width="'.self::n(max(1, $sw)).'" stroke-dasharray="4,3"/></svg>';

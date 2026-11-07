@@ -177,10 +177,12 @@ export function createSlideRenderer({ deck, assets = {}, fetchFn = (...a) => fet
         // url(...) inside style attributes
         const styled = [...clone.querySelectorAll('[style*="url("]')];
         await Promise.all(styled.map(async (n) => {
-            const urls = [...n.getAttribute('style').matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/gi)].map((m) => m[2]);
+            // url(#id) points at a gradient or clip path inside the same slide: it stays as it is.
+            const urls = [...n.getAttribute('style').matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/gi)].map((m) => m[2]).filter((u) => !u.startsWith('#'));
+            if (!urls.length) return;
             const map = new Map();
             await Promise.all(urls.map(async (u) => { map.set(u, await dataUri(u)); }));
-            n.setAttribute('style', replaceCssUrls(n.getAttribute('style'), (u) => map.get(u) || 'about:blank'));
+            n.setAttribute('style', replaceCssUrls(n.getAttribute('style'), (u) => (u.startsWith('#') ? null : map.get(u) || 'about:blank')));
             if (urls.some((u) => !map.get(u))) missing++;
         }));
         if (missing) warnings.push(missing === 1 ? 'A picture could not be read and was left out.' : `${missing} pictures could not be read and were left out.`);

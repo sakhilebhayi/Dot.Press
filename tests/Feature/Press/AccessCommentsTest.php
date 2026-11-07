@@ -83,6 +83,24 @@ class AccessCommentsTest extends AccessTestCase
         $this->assertDatabaseHas('deck_comments', ['id' => $b['id'], 'resolved_at' => null]);
     }
 
+    public function test_edited_at_is_set_by_changing_the_words_only(): void
+    {
+        $this->actingAs($this->editor);
+        $root = $this->postJson($this->url(), ['body' => 'Root'])->json();
+        $this->assertNull($root['edited_at']);
+
+        $this->travel(5)->minutes();
+        $this->postJson($this->url(), ['body' => 'A reply', 'parent_id' => $root['id']])->assertCreated();
+        $resolved = $this->postJson($this->url("/{$root['id']}/resolve"))->assertOk()->json();
+        $this->assertNull($resolved['edited_at'], 'a reply and a resolve do not make the comment look edited');
+
+        $same = $this->patchJson($this->url("/{$root['id']}"), ['body' => 'Root'])->assertOk()->json();
+        $this->assertNull($same['edited_at'], 'saving the same words is not an edit');
+
+        $edited = $this->patchJson($this->url("/{$root['id']}"), ['body' => 'Root, reworded'])->assertOk()->json();
+        $this->assertNotNull($edited['edited_at']);
+    }
+
     public function test_a_single_reply_cannot_be_resolved(): void
     {
         $this->actingAs($this->editor);

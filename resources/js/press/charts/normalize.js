@@ -3,6 +3,7 @@ import { cleanText, isNum, toNum, clamp } from './util.js';
 
 export const CHART_IDS = ['bar', 'column', 'line', 'area', 'pie', 'doughnut', 'scatter', 'bubble', 'waterfall', 'funnel', 'radar', 'combo', 'kpi', 'map'];
 
+const PLAIN_NUMBER = /^[+-]?\d[\d\s\u00a0\u202f,.'\u2019]*$/;
 export const LIMITS = Object.freeze({ categories: 500, series: 40, points: 2000, kpis: 24, regions: 300, pieSlices: 8 });
 
 const LEGENDS = ['none', 'bottom', 'right', 'top'];
@@ -84,7 +85,9 @@ export function normalizeChart(chart) {
   if (Array.isArray(d.kpis)) {
     for (const k of d.kpis.slice(0, LIMITS.kpis)) {
       if (!isObj(k)) continue;
-      const value = isNum(k.value) ? k.value : typeof k.value === 'string' ? (toNum(k.value) ?? cleanText(k.value, 40)) : null;
+      // A figure typed with a currency sign, a percent sign or a unit letter ("R412", "91%", "1.2m") is text: turning it into
+      // a number would drop the sign. Only a plain number, with thousands separators, becomes one.
+      const value = isNum(k.value) ? k.value : typeof k.value === 'string' ? (PLAIN_NUMBER.test(k.value.trim()) ? (toNum(k.value) ?? cleanText(k.value, 40)) : cleanText(k.value, 40)) : null;
       const item = { label: cleanText(k.label, 60), value };
       if (k.delta !== undefined && k.delta !== null) {
         const dv = isNum(k.delta) ? k.delta : typeof k.delta === 'string' ? (toNum(k.delta) ?? cleanText(k.delta, 24)) : null;

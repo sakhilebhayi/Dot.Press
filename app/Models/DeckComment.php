@@ -14,7 +14,7 @@ class DeckComment extends Model
 
     protected function casts(): array
     {
-        return ['mentions' => 'array', 'anchor' => 'array', 'resolved_at' => 'datetime'];
+        return ['mentions' => 'array', 'anchor' => 'array', 'resolved_at' => 'datetime', 'edited_at' => 'datetime'];
     }
 
     public function deck(): BelongsTo

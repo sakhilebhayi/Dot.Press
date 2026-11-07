@@ -99,7 +99,9 @@ final class ChartData
             if (! is_array($k)) {
                 continue;
             }
-            $value = self::num($k['value'] ?? null);
+            // A figure typed with a currency sign, a percent sign or a unit letter ("R412", "91%") stays text, as in the editor.
+            $raw = $k['value'] ?? null;
+            $value = is_string($raw) && ! preg_match('/^[+-]?\d[\d\s\x{00a0}\x{202f},.\'\x{2019}]*$/u', trim($raw)) ? null : self::num($raw);
             $item = ['label' => self::text($k['label'] ?? '', 60), 'value' => $value ?? (is_string($k['value'] ?? null) ? self::text($k['value'], 40) : null)];
             if (isset($k['delta']) && $k['delta'] !== '') {
                 $dv = self::num($k['delta']);

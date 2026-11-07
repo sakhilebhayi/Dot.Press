@@ -1,0 +1,7 @@
+{
+  "name": "press-b-e2e",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "dependencies": { "playwright-core": "1.49.1" }
+}

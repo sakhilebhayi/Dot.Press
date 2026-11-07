@@ -45,6 +45,16 @@ test('wipe reveals from the entering side', () => {
     assert.equal(f.in[1].clipPath, 'inset(0 0 0 0%)');
 });
 
+test('zoom never fades the leaving layer, so the dark stage cannot show through mid transition', () => {
+    for (const dir of ['l', 'r', 'u', 'd']) {
+        const f = layerFrames({ type: 'zoom', dir }, deck);
+        assert.ok(f.out.every((k) => k.opacity === 1));
+        assert.equal(f.in[0].opacity, 0);
+        assert.equal(f.in[1].opacity, 1);
+        assert.equal(f.inFront, true);
+    }
+});
+
 test('reveal keeps the entering layer underneath', () => {
     assert.equal(layerFrames({ type: 'reveal', dir: 'r' }, deck).inFront, false);
 });

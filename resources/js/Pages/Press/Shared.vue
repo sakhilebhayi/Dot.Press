@@ -6,6 +6,7 @@ import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import '../../../css/press-player.css';
 import PresentPlayer from '../../press/player/PresentPlayer.vue';
+import ChromeIcon from '../../press/player/ChromeIcon.vue';
 
 const props = defineProps({
     /** the document the guest may read: {deck, slides, assets} */
@@ -16,7 +17,11 @@ const props = defineProps({
     /** the link's own token: the password is posted to /s/{token}/unlock */
     token: { type: String, required: true },
     title: { type: String, default: 'Shared presentation' },
+    /** the owner allowed a print view (save as PDF) for people with the link */
+    allowDownload: { type: Boolean, default: false },
 });
+
+const printUrl = computed(() => (props.allowDownload ? `/s/${encodeURIComponent(props.token)}/print` : null));
 
 const form = useForm({ password: '' });
 const problem = computed(() => props.error || form.errors.password || '');
@@ -42,5 +47,9 @@ function unlock() {
             </form>
         </div>
     </div>
-    <PresentPlayer v-else :deck="doc.deck" :slides="doc.slides" :assets="doc.assets" :title="doc.deck.title" mode="shared" />
+    <PresentPlayer v-else :deck="doc.deck" :slides="doc.slides" :assets="doc.assets" :title="doc.deck.title" mode="shared">
+        <template v-if="printUrl" #actions>
+            <a class="pp-btn pp-link" :href="printUrl" aria-label="Print or save as PDF" title="Print or save as PDF"><ChromeIcon name="download" /></a>
+        </template>
+    </PresentPlayer>
 </template>

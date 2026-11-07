@@ -4,7 +4,7 @@
 // can read who has access.
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useEditorContext } from '../../context.js';
-import { Dialog, EmptyState, InlineNotice, PanelSection, ProgressBead, SelectMenu } from '../../../ui/controls';
+import { Dialog, EmptyState, InlineNotice, PanelSection, ProgressBead, SelectMenu, Toggle } from '../../../ui/controls';
 import VisibilityRail from './VisibilityRail.vue';
 import { usePeople } from '../comments/usePeople.js';
 import {
@@ -115,6 +115,10 @@ async function rotate() {
     confirmRotate.value = false;
     if (await apply(() => editor.api.post(`${base}/rotate-link`), 'The link was replaced')) editor.toast('Link replaced. The old one no longer works.', { kind: 'ok' });
 }
+const allowDownload = computed({
+    get: () => !!link.value?.allow_download,
+    set: (v) => { apply(() => editor.api.put(base, { allow_download: !!v }), v ? 'Visitors can save as PDF' : 'Saving as PDF is off'); },
+});
 
 const pw = ref('');
 const pwError = ref('');
@@ -238,6 +242,7 @@ const initials = (n) => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2
                     <p v-else class="c-hint">{{ expiryText ? `The link works through ${expiryText}.` : `No expiry. The link works until you turn it off or replace it.` }}</p>
                 </div>
 
+                <Toggle v-model="allowDownload" label="Let visitors save as PDF" hint="Adds a print button to the shared page. Visitors save the slides as a PDF from their browser. Speaker notes, hidden slides and comments are never included." :disabled="busy" />
                 <p class="shp-limits"><span class="pr-state">visitors see</span>{{ LINK_LIMITS }}</p>
             </PanelSection>
 

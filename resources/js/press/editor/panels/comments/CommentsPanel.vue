@@ -69,6 +69,11 @@ const kindOptions = computed(() => {
     if (pendingAnchor.value) out.push({ value: 'point', label: `Pin at ${pendingAnchor.value.x}, ${pendingAnchor.value.y}`, hint: `On slide ${slideIndex.value + 1}` });
     return out;
 });
+// With one element selected the comment is about that element, unless words are already typed for the slide.
+watch(one, (el) => {
+    if (el && !draft.value.trim() && !pendingAnchor.value) kind.value = 'element';
+    else if (!el && kind.value === 'element') kind.value = 'slide';
+}, { immediate: true });
 watch(kindOptions, (opts) => { if (!opts.some((o) => o.value === kind.value)) kind.value = opts.some((o) => o.value === 'slide') ? 'slide' : 'deck'; });
 watch(() => editor.state.value.slideId, (id) => { if (pendingAnchor.value && String(pendingAnchor.value.slide) !== String(id)) { pendingAnchor.value = null; } });
 
