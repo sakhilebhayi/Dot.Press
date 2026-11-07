@@ -48,6 +48,7 @@ export function createEditorUi() {
         margins: false,
         snap: true,
         cropping: null, // element id while a picture is in crop mode
+        tableSel: null, // {id, r1, c1, r2, c2}: the selected cells while a table is being edited (set by the stage)
         editingText: null, // element id while its text is being edited
         contextMenu: null, // {x, y} in client pixels, or null
         spine: { open: true, view: 'spine' }, // view: 'spine' (claims) | 'sheets' (thumbnail grid)

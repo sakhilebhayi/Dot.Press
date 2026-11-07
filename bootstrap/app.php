@@ -34,6 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // An empty string is a value in the document: alt="" marks a picture as decorative (spec section 6, and the review
+        // rule that asks for it). Laravel would turn it into null, which el.set reads as "delete the key".
+        $middleware->convertEmptyStringsToNull(except: [
+            fn ($request) => $request->is('api/decks/*/ops'),
+        ]);
+
         $middleware->alias([
             'operator' => EnsurePlatformOperator::class,
         ]);
