@@ -76,12 +76,17 @@ for (const [name, opts] of Object.entries(VIEWS)) {
     const after = (await api(op, 'GET', `/api/decks/${D.id}/document`)).json.slides[1].els.find((e) => e.id === 'b1');
     expect(after.y > before.y + 20, tag(`a one finger drag moves the selected element and autosave stores it (y ${before.y} to ${after.y})`));
     // inspector reachable on touch
-    await p.getByRole('button', { name: 'More actions' }).tap();
-    await p.getByRole('menuitem', { name: 'Speaker notes' }).tap();
+    if (await p.getByRole('button', { name: 'More actions' }).isVisible()) {
+        await p.getByRole('button', { name: 'More actions' }).tap();
+        await p.getByRole('menuitem', { name: 'Speaker notes' }).tap();
+    } else {
+        // tablet: the bar has room, so the Inspector button opens the panel strip
+        if (!(await p.locator('.ed-insp').isVisible())) await p.locator('header.tb .tb-insp').tap();
+    }
     await sleep(900);
     await shot(p, `resp-42-${name}-inspector`);
     const insp = await p.locator('.ed-insp').boundingBox();
-    expect(!!insp && insp.x >= -1 && insp.x + insp.width <= opts.viewport.width + 1, tag(`the notes panel fits the screen (${insp ? Math.round(insp.x) + ',' + Math.round(insp.width) : 'none'})`));
+    expect(!!insp && insp.x >= -1 && insp.x + insp.width <= opts.viewport.width + 1, tag(`the inspector fits the screen (${insp ? Math.round(insp.x) + ',' + Math.round(insp.width) : 'none'})`));
     o = await overflow(p);
     expect(o.sw <= o.iw + 1, tag('still no sideways scroll with the panel open'));
     // undo my move so later runs see the same deck

@@ -154,10 +154,21 @@ export function summary(name) {
     if (bad.length) { console.log(bad.map((b) => ' - ' + b.msg).join('\n')); process.exitCode = 1; }
 }
 
-/** Open an inspector panel from the More actions menu (works with nothing selected). */
+/** Open an inspector panel by its menu name ("Speaker notes", "Comments", "Version history", "Transitions" ...). Uses the More actions menu
+ *  when the bar shows it (narrow screens), else the Inspector button and the panel list. */
 export async function openFromMore(page, label) {
-    await page.getByRole('button', { name: 'More actions' }).click();
-    await page.getByRole('menuitem', { name: label, exact: true }).click();
+    const short = { 'Speaker notes': 'Notes', Transitions: 'Motion', 'Version history': 'History', 'Slide size': 'Size' }[label] || label;
+    if (await page.getByRole('button', { name: 'More actions' }).isVisible()) {
+        await page.getByRole('button', { name: 'More actions' }).click();
+        await page.getByRole('menuitem', { name: label, exact: true }).click();
+        return;
+    }
+    if (!(await page.locator('.ed-insp').isVisible())) await page.locator('header.tb .tb-insp').click();
+    const tab = page.locator(`.ed-insp [role=tab][title$=": ${short}"], .ed-insp [role=tab][aria-label$="${short}"]`).first();
+    if (await tab.count()) { await tab.click(); return; }
+    // the panel list: the button that names the current panel opens it
+    await page.locator('.ed-insp .in-pick, .ed-insp [aria-haspopup=menu]').first().click();
+    await page.getByRole('menuitem', { name: short, exact: true }).click();
 }
 
 /** A person in a different team, created in the database (accounts are normally made by the InfoDot sign in). */

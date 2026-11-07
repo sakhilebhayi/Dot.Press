@@ -1,6 +1,6 @@
 # R-40 Dot.Press: acceptance checks 26 to 42 (tester and fixer B)
 
-Branch `feat/r40-e2eb`, written 2026-11-07 on the merged trunk plus `feat/r40-press` (security branch merged in at the end). Every result below was seen in a run of the scripts in `tests/e2e/press-b/` (see its README), driving the real UI in Chrome against a local server with a database queue worker. Screenshots and exported files were opened and looked at, not only measured. Nothing is marked PASS that was not seen to pass.
+Branch `feat/r40-e2eb`, written 2026-11-07 on the merged trunk. `feat/r40-press` was merged into this branch twice (the second time after the security, CSP and shell changes landed there) and the full suites were rerun after each merge: PHPUnit 1374 tests, 0 failures (4 skipped), `node --test` 1234 tests, 0 failures. The scripts were rerun after the second merge (CSP enforced with a nonce). Every result below was seen in a run of the scripts in `tests/e2e/press-b/` (see its README), driving the real UI in Chrome against a local server with a database queue worker. Screenshots and exported files were opened and looked at, not only measured. Nothing is marked PASS that was not seen to pass.
 
 What was not verified anywhere: Safari, Firefox, a real iPhone or iPad (touch was emulated in Chrome), and Microsoft PowerPoint or Keynote opening the exported `.pptx` (python-pptx and the importer read the file; neither is an Office renderer).
 
@@ -8,7 +8,7 @@ What was not verified anywhere: Safari, Firefox, a real iPhone or iPad (touch wa
 
 | # | Check | Result | Evidence (script, step) | Fixed on the way |
 |---|---|---|---|---|
-| 26 | Preview | PASS | `present.mjs`: animation sequence preview plays to "Click 2 of 2", replays, Next click disabled at the end; transition preview in the Motion panel plays and replays | Panels (Motion, Notes, Comments, History, Theme and others) could only be opened after selecting an element: added them to the top bar More menu |
+| 26 | Preview | PASS | `present.mjs`: animation sequence preview plays to "Click 2 of 2", replays, Next click disabled at the end; transition preview in the Motion panel plays and replays | Panels (Motion, Notes, Comments, History, Theme and others) could only be opened after selecting an element: added them to the top bar More menu (the trunk later added the Inspector button and a panel list; both stay) |
 | 27 | Full screen present | PASS | `present.mjs`: Present opens the player on the current slide, F, the button and Esc enter and leave real full screen (`document.fullscreenElement`) without closing the player | none needed |
 | 28 | Navigation | PASS | `present.mjs`: every move of a full forward walk and a full backward walk compared with the pure playback model (slide number and which elements are visible); jump by number, Home, End, `#3` in the address and reload, overview grid, blackout and whiteout, click, hidden slide skipped, End of presentation notice | Arrow keys stopped working after a focused video control left the page (focus fell to body): the player and the console now also listen on the document while nothing has focus |
 | 29 | Transitions | PASS | `present.mjs`: fade, push, wipe, reveal, zoom, morph forward (keyframes and duration equal the document), backward (the left slide's transition, direction flipped), by jump (220 ms cross fade), reduced motion (fade of at most 160 ms); a mid transition frame of each type was looked at | Zoom dipped to grey half way (both layers faded over the dark stage): the leaving layer now stays opaque; unit test added |
@@ -28,6 +28,9 @@ What was not verified anywhere: Safari, Firefox, a real iPhone or iPad (touch wa
 | 42 | Mobile and tablet | PASS (Chrome emulation) | `responsive.mjs` at 390x844 and 768x1024 with touch: library, New sheet, editor (open, slide list, tap a slide, tap to select, one finger drag moves an element and autosave stores it, notes panel as a sheet), player (tap zones, swipe), presenter console, share page; no sideways scroll, every top bar button on screen, no console errors. Screenshots looked at | Phone library header pushed New and the avatar off screen and the filter tabs ran under the sort menu; phone editor top bar was wider than the screen (Present cut off, More unreachable); tablet top bar overlapped the save status with the avatars; the New button had no accessible name on a phone. All fixed; team switch moved into the account menu on a phone |
 
 ## Rough edges seen and not fixed
+
+- On a tablet (768 px) with the inspector open, the inspector drawer runs over the right end of the dock (the zoom control is covered). Seen in `resp-42-tablet-dbg` after the shell merge; not fixed.
+- The export and import rate limits answer in plain words but can ask for a wait of "1353 seconds" (a 60 per hour limit); minutes would read better.
 
 - KPI tile labels and change lines are small on a short chart box (the font size follows the chart's height, about 12 units on a 260 unit box). Fixing it means changing both the JS engine and its PHP port together.
 - The presenter console draws a `<video>` for the current slide (paused, never played there).
