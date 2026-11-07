@@ -1,7 +1,7 @@
 // Checks 26 to 30 (and 33 reduced motion): editor preview, full screen present, navigation, every transition forward,
 // back and by jump, element animations (play, step back), compared step by step with the pure playback model.
 import fs from 'node:fs';
-import { launch, context, login, api, assert, expect, shot, summary, sleep, until, BASE, OUT, devices } from './lib.mjs';
+import { launch, context, login, api, assert, expect, shot, summary, sleep, until, openFromMore, BASE, OUT, devices } from './lib.mjs';
 import { buildAcceptanceDeck } from './fixture.mjs';
 import { createPlan } from '../../../resources/js/press/player/state.js';
 import { layerFrames, normalizeTransition, transitionFor, transitionTiming } from '../../../resources/js/press/player/transitions.js';
@@ -22,7 +22,7 @@ await page.waitForSelector('.es-viewport [data-eid="t1"]');
 await sleep(800);
 let bb = await page.locator('.es-viewport [data-eid="t1"]').first().boundingBox();
 await page.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2);
-await page.locator('[role=tab][title="Selection: Animate"]').click();
+await page.getByRole('tab', { name: /Animate/ }).first().click();
 await page.getByRole('button', { name: 'Play', exact: true }).click();
 // the sequence preview plays on a copy with the real runtime and says how far it is
 await page.getByText(/Click 2 of 2/).waitFor({ timeout: 15000 });
@@ -36,8 +36,7 @@ await page.getByRole('button', { name: 'Next click' }).isDisabled().then((d) => 
 await page.keyboard.press('Escape');
 // the transition preview in the Motion panel (slide 2 is the push)
 await page.getByText('Push slide').first().click();
-await page.getByRole('button', { name: 'More actions' }).click();
-await page.getByRole('menuitem', { name: 'Transitions' }).click();
+await openFromMore(page, 'Transitions');
 await sleep(1200);
 const status = await page.locator('[data-panel="motion"]').innerText().catch(async () => page.locator('[data-panel]').innerText());
 expect(/Playing the transition|Replay/.test(status), 'check 26: the transition preview offers Replay and plays');
