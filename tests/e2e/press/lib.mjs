@@ -46,15 +46,28 @@ export async function login(page, email = 'owner@demo.test', password = 'passwor
 }
 
 export async function newContext(browser, email, opts = {}) {
-    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, ...opts });
-    const page = await ctx.newPage();
-    page.setDefaultTimeout(+(process.env.E2E_TIMEOUT || 8000));
-    const errors = [];
-    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-    page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
-    page.errors = errors;
-    await login(page, email);
-    return { ctx, page };
+    // Sign-in is throttled (5 a minute), so a signed in session is kept on disk per account and reused until it stops working.
+    const stateFile = path.join(SHOTS, `state-${email.replace(/[^a-z0-9]/gi, '_')}.json`);
+    const make = async (state) => {
+        const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, ...opts, ...(state ? { storageState: state } : {}) });
+        const page = await ctx.newPage();
+        page.setDefaultTimeout(+(process.env.E2E_TIMEOUT || 8000));
+        const errors = [];
+        page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+        page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+        page.errors = errors;
+        return { ctx, page };
+    };
+    if (fs.existsSync(stateFile) && Date.now() - fs.statSync(stateFile).mtimeMs < 50 * 60 * 1000) {
+        const c = await make(stateFile);
+        await c.page.goto(BASE + '/dashboard');
+        if (!/\/login/.test(c.page.url())) return c;
+        await c.ctx.close();
+    }
+    const c = await make(null);
+    await login(c.page, email);
+    await c.ctx.storageState({ path: stateFile });
+    return c;
 }
 
 /** Tiny PNG writer (no dependencies): a w x h gradient with a visible border, so crops and masks can be seen. */
@@ -128,3 +141,44 @@ export async function elBox(page, id) {
     return b;
 }
 export const MOD = process.platform === 'darwin' ? 'Meta' : 'Control';
+
+export async function center(page, id) {
+    const b = await elBox(page, id);
+    return { x: b.x + b.width / 2, y: b.y + b.height / 2, b };
+}
+/** A real click on an element of the stage (the stage owns pointer events, so the pointer goes to its screen position). */
+export async function clickEl(page, id, opts = {}) {
+    const c = await center(page, id);
+    await page.mouse.click(c.x, c.y, opts);
+    return c;
+}
+/** Drag an element by (dx, dy) screen pixels with real pointer events. */
+export async function dragEl(page, id, dx, dy, { steps = 10, from = null } = {}) {
+    const c = from || await center(page, id);
+    await page.mouse.move(c.x, c.y);
+    await page.mouse.down();
+    await page.mouse.move(c.x + dx / 2, c.y + dy / 2, { steps });
+    await page.mouse.move(c.x + dx, c.y + dy, { steps });
+    await page.mouse.up();
+}
+
+/** POST/PATCH/DELETE JSON as the signed in user (the XSRF cookie Laravel set is echoed back, like axios does). */
+export async function apiSend(page, method, url, body) {
+    return page.evaluate(async ({ method, url, body }) => {
+        const tok = decodeURIComponent((document.cookie.match(/XSRF-TOKEN=([^;]+)/) || [])[1] || '');
+        const r = await fetch(url, { method, credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-XSRF-TOKEN': tok, 'X-Requested-With': 'XMLHttpRequest' }, body: body === undefined ? undefined : JSON.stringify(body) });
+        return { status: r.status, body: await r.json().catch(() => null) };
+    }, { method, url, body });
+}
+export async function createDeck(page, title, extra = {}) {
+    await page.goto(BASE + '/dashboard');
+    const r = await apiSend(page, 'POST', '/api/decks', { title, ...extra });
+    if (r.status >= 300) throw new Error('create deck failed ' + JSON.stringify(r.body));
+    return r.body.id;
+}
+/** Send ops straight to the API (set up state fast; the assertions still go through the UI). */
+export async function sendOps(page, deckId, ops) {
+    const r = await apiSend(page, 'POST', `/api/decks/${deckId}/ops`, { client: 'e2e-setup', key: crypto.randomUUID?.() || String(Math.random()), ops });
+    if (r.status >= 300) throw new Error('ops failed ' + JSON.stringify(r.body));
+    return r.body;
+}

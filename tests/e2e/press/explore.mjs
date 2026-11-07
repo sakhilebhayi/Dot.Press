@@ -1,7 +1,14 @@
-import { launch, newContext, shot, BASE, sleep, openDeck } from './lib.mjs';
+import { launch, newContext, shot, BASE, sleep, openDeck, clickEl, center } from './lib.mjs';
 const b = await launch();
-const { page } = await newContext(b, 'owner@demo.test');
+const { page, ctx } = await newContext(b, 'owner@demo.test', { viewport: { width: 768, height: 1024 } });
 await openDeck(page, 1);
-console.log(await page.getByRole('button', { name: 'Section', exact: true }).count());
-console.log(await page.getByRole('button', { name: /Section/ }).evaluateAll(els=>els.map(e=>e.outerHTML.slice(0,200))));
+await sleep(400);
+await page.locator('.tb-insp:visible, .dk-insp:visible').first().click();
+await sleep(1200);
+const c = await center(page, 't1');
+console.log(c);
+await page.mouse.click(c.x, c.y);
+await sleep(600);
+console.log(await page.evaluate(() => ({ sel: document.querySelectorAll('.es-proxy[aria-pressed=true]').length, pick: document.querySelector('.in-pick')?.innerText })));
+await shot(page, 'x-768-sel');
 await b.close();

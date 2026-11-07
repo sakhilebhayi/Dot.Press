@@ -181,6 +181,11 @@ export function useEditor(props) {
       autoOpened = false;
     }
   });
+  /** The Inspector button: opens the panel list for the current context (selection, else slide and deck) or closes it. */
+  function toggleInspector() {
+    if (ui.inspector.open) closePanel();
+    else openPanel(ui.inspector.panel || null);
+  }
   const panelCtx = computed(() => ({
     scope: selected.value.length ? 'selection' : 'slide',
     selected: selected.value,
@@ -417,6 +422,7 @@ export function useEditor(props) {
     toast,
     openPanel,
     closePanel,
+    toggleInspector,
     registerPanel,
     // beyond the contract
     deckId, clientId, mac, readOnly: !canEdit,
