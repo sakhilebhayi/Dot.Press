@@ -331,6 +331,7 @@ class DeckController extends Controller
             'h' => (int) $deck->h,
             'status' => DeckDocument::status($deck),
             'visibility' => $deck->visibility,
+            'theme' => $deck->theme,
             'slides' => (int) $deck->slides_count,
             'owner' => $deck->owner?->name,
             'favourite' => (bool) $deck->getAttribute('favourite'),

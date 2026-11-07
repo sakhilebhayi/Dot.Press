@@ -28,7 +28,7 @@ class DeckPageController extends Controller
             'canCreate' => $team !== null && $user->hasTeamPermission($team, 'create'),
             'team' => $team ? ['id' => $team->id, 'name' => $team->name] : null,
             'ai' => ['mode' => config('ai.provider', 'mock') === 'anthropic' ? 'ai' : 'local'],
-            'themes' => collect(ThemeLibrary::all())->map(fn ($theme) => ['id' => $theme['id'], 'name' => $theme['name'], 'c' => $theme['c'] ?? [], 't' => $theme['t'] ?? []])->values(),
+            'themes' => collect(ThemeLibrary::all())->values(),
         ]);
     }
 
