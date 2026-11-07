@@ -96,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     // R-40 built-in libraries: slide layouts and presentation templates (read only).
     Route::get('layout-library', [LayoutLibraryController::class, 'index'])->middleware('throttle:press-read');
+    Route::get('intel/frameworks', [DeckIntelController::class, 'frameworks'])->middleware('throttle:press-read');
     Route::get('templates', [TemplateController::class, 'index'])->middleware('throttle:press-read');
     Route::get('templates/{key}', [TemplateController::class, 'show'])->where('key', '[a-z0-9-]+')->middleware('throttle:press-read');
 
