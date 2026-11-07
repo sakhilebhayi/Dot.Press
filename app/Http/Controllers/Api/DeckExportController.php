@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Jobs\RunDeckExport;
 use App\Models\Deck;
 use App\Models\DeckExport;
-use App\Services\Press\ActivityRecorder;
 use App\Services\Press\Export\ExportPreflight;
 use App\Services\Press\Export\ExportService;
 use Illuminate\Http\JsonResponse;
@@ -72,7 +71,6 @@ class DeckExportController extends Controller
             'options' => ExportService::cleanOptions($data['format'], $data['options'] ?? []),
             'attempts' => 0,
         ]);
-        ActivityRecorder::record($deck, $user, 'exported', ['format' => $data['format']]);
 
         if (ExportService::isSmall($doc)) {
             // Small decks are done before the response, so the page does not wait for the scheduler.

@@ -74,7 +74,7 @@ final class Theme
         $this->radius = (float) ($s['radius'] ?? $d['s']['radius']);
         $this->stroke = (float) ($s['stroke'] ?? $d['s']['stroke']);
         $this->bg = $t['bg'] ?? null;
-        $this->name = (string) ($t['name'] ?? $d['name']);
+        $this->name = Els::str($t['name'] ?? null, $d['name']);
     }
 
     private static function cleanFont(mixed $v): ?string

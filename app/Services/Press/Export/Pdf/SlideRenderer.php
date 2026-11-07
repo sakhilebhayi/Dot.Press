@@ -405,13 +405,13 @@ final class SlideRenderer
         $label = 'Video';
         $url = null;
         if (is_array($el['embed'] ?? null) && isset($el['embed']['provider'], $el['embed']['id'])) {
-            $id = preg_replace('/[^A-Za-z0-9_-]/', '', (string) $el['embed']['id']);
+            $id = preg_replace('/[^A-Za-z0-9_-]/', '', Els::str($el['embed']['id']));
             $url = match ($el['embed']['provider']) {
                 'youtube' => 'https://www.youtube.com/watch?v='.$id,
                 'vimeo' => 'https://vimeo.com/'.$id,
                 default => null,
             };
-            $label = 'Video on '.ucfirst((string) $el['embed']['provider']);
+            $label = 'Video on '.ucfirst(Els::str($el['embed']['provider']));
         } elseif (($u = Els::url($el['src'] ?? null)) !== null) {
             $url = $u;
         }
@@ -520,7 +520,7 @@ final class SlideRenderer
         $rows = [[['t' => 'Region', 'b' => true], ['t' => 'Value', 'b' => true, 'al' => 'r']]];
         foreach (array_slice((array) ($chart['data']['regions'] ?? []), 0, 40) as $r) {
             if (is_array($r)) {
-                $rows[] = [['t' => (string) ($r['code'] ?? '')], ['t' => (string) ($r['value'] ?? ''), 'al' => 'r']];
+                $rows[] = [['t' => Els::str($r['code'] ?? null)], ['t' => Els::str($r['value'] ?? null), 'al' => 'r']];
             }
         }
 
@@ -586,7 +586,7 @@ final class SlideRenderer
                 }
                 $css = 'padding:'.self::n($pad).'px '.self::n($pad * 1.3).'px;vertical-align:middle;text-align:'.$al.';font-weight:'.($bold ? 'bold' : 'normal').';'.($bg !== null ? 'background-color:'.$bg.';' : '').'color:'.$color.';'.$border.(! empty($cell['i']) ? 'font-style:italic;' : '');
                 $span = ($c['rs'] > 1 ? ' rowspan="'.$c['rs'].'"' : '').($c['cs'] > 1 ? ' colspan="'.$c['cs'].'"' : '');
-                $html .= '<td'.$span.' style="'.$css.'">'.htmlspecialchars((string) ($cell['t'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</td>';
+                $html .= '<td'.$span.' style="'.$css.'">'.htmlspecialchars(Els::str($cell['t'] ?? null), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</td>';
             }
             $html .= '</tr>';
         }

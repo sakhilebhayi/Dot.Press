@@ -45,15 +45,15 @@ final class PdfExporter
         $pages = [];
         foreach ($slides as $i => $slide) {
             $parts = $renderer->render($slide, $i + 1, $W, $H);
-            $pages[] = ['anchor' => preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($slide['id'] ?? $i)), 'bg' => $parts['bg'], 'body' => $parts['body']];
-            if (! empty($options['notes']) && trim((string) ($slide['notes'] ?? '')) !== '') {
+            $pages[] = ['anchor' => preg_replace('/[^A-Za-z0-9_-]/', '', Els::str($slide['id'] ?? $i)), 'bg' => $parts['bg'], 'body' => $parts['body']];
+            if (! empty($options['notes']) && trim(Els::str($slide['notes'] ?? '')) !== '') {
                 $pages[] = ['anchor' => 'n'.$i, 'bg' => $this->notesBackground($theme, $W, $H), 'body' => $this->notesPage($slide, $i + 1, $theme, $W, $H)];
             }
         }
         $this->notes = $renderer->notes;
 
         $html = view('press.export.pdf', [
-            'title' => (string) ($deck['title'] ?? 'Presentation'),
+            'title' => Els::str($deck['title'] ?? null, 'Presentation'),
             'pages' => $pages,
             'w' => $this->fmt($W),
             'h' => $this->fmt($H),
@@ -63,7 +63,7 @@ final class PdfExporter
         $dompdf->setPaper([0, 0, $W * 0.75, $H * 0.75]);
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->render();
-        $dompdf->addInfo('Title', mb_substr((string) ($deck['title'] ?? 'Presentation'), 0, 200));
+        $dompdf->addInfo('Title', mb_substr(Els::str($deck['title'] ?? null, 'Presentation'), 0, 200));
         $dompdf->addInfo('Creator', 'Dot.Press');
         $out = $dompdf->output();
         if (! is_string($out) || ! str_starts_with($out, '%PDF')) {
@@ -85,7 +85,7 @@ final class PdfExporter
             if (! empty($s['hidden']) && empty($options['include_hidden'])) {
                 continue;
             }
-            if ($only !== null && ! in_array((string) ($s['id'] ?? ''), $only, true)) {
+            if ($only !== null && ! in_array(Els::str($s['id'] ?? null), $only, true)) {
                 continue;
             }
             $out[] = $s;
@@ -125,8 +125,8 @@ final class PdfExporter
     {
         $size = max(14.0, $H * 0.032);
         $pad = $W * 0.06;
-        $title = htmlspecialchars((string) ($slide['title'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $notes = nl2br(htmlspecialchars((string) $slide['notes'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        $title = htmlspecialchars(Els::str($slide['title'] ?? null), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $notes = nl2br(htmlspecialchars(Els::str($slide['notes'] ?? null), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
         $css = 'position:absolute;left:'.$this->fmt($pad).'px;top:'.$this->fmt($pad).'px;width:'.$this->fmt($W - 2 * $pad).'px;font-family:'.RichTextHtml::family($theme->body).';color:'.$theme->css('@ink').';';
 
         return '<div style="'.$css.'"><div style="font-size:'.$this->fmt($size * 0.8).'px;color:'.$theme->css('@muted').';">Speaker notes for slide '.$n.'</div>'

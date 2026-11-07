@@ -3,6 +3,7 @@
 namespace App\Services\Press\Export\Pptx;
 
 use App\Services\Press\Export\Support\ChartData;
+use App\Services\Press\Export\Support\Els;
 use App\Services\Press\Export\Support\Theme;
 
 /**
@@ -416,7 +417,7 @@ final class PptxChart
 
     private function numFmt(array $opt): string
     {
-        $cur = str_replace('"', '', (string) ($opt['cur'] ?? 'R'));
+        $cur = str_replace('"', '', Els::str($opt['cur'] ?? null, 'R'));
         $dec = $opt['dec'] ?? null;
         $zeros = $dec !== null && $dec > 0 ? '.'.str_repeat('0', $dec) : '';
 

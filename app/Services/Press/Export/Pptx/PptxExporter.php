@@ -84,10 +84,10 @@ final class PptxExporter
         $this->mediaCount = 0;
         $this->slideNo = [];
         foreach ($slides as $i => $s) {
-            $this->slideNo[(string) ($s['id'] ?? $i)] = $i + 1;
+            $this->slideNo[Els::str($s['id'] ?? $i)] = $i + 1;
         }
         $pkg = $this->pkg;
-        $name = (string) ($deck['title'] ?? 'Presentation');
+        $name = Els::str($deck['title'] ?? null, 'Presentation');
 
         $ct = 'application/vnd.openxmlformats-officedocument.';
         $pkg->defaultType('png', 'image/png');
@@ -176,7 +176,7 @@ final class PptxExporter
         }
         $byId = [];
         foreach ($sections as $s) {
-            $byId[(string) $s['id']] = (string) ($s['title'] ?? 'Section');
+            $byId[Els::str($s['id'])] = Els::str($s['title'] ?? null, 'Section');
         }
         // Slides without a section follow the previous one; slides before the first section go to a default one.
         $groups = [];
@@ -250,7 +250,7 @@ final class PptxExporter
         $xml = Ooxml::head().'<p:sld xmlns:a="'.Ooxml::NS_A.'" xmlns:r="'.Ooxml::NS_R.'" xmlns:p="'.Ooxml::NS_P.'"'.$hidden.'><p:cSld>'.$bg['xml'].'<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>'.$tree.'</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>'.$this->transition($slide['transition'] ?? null, $slide['id'] ?? null).'</p:sld>';
         $pkg->add($part, $xml, 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml');
 
-        $notes = trim((string) ($slide['notes'] ?? ''));
+        $notes = trim(Els::str($slide['notes'] ?? null));
         if ($notes !== '') {
             $np = 'ppt/notesSlides/notesSlide'.$n.'.xml';
             $pkg->add($np, PptxParts::notesSlide($notes), 'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml');
@@ -305,7 +305,7 @@ final class PptxExporter
         if (! is_array($t) || empty($t['type'])) {
             return '';
         }
-        $type = (string) $t['type'];
+        $type = Els::str($t['type']);
         $dir = in_array($t['dir'] ?? null, ['l', 'r', 'u', 'd'], true) ? $t['dir'] : 'l';
         $dur = (int) Els::num($t['dur'] ?? 600, 600, 100, 5000);
         $inner = match ($type) {
@@ -503,7 +503,7 @@ final class PptxExporter
     /** @param array<string, mixed> $el */
     private function cNvPr(int $id, array $el, string $default, bool $link = true): string
     {
-        $name = Ooxml::esc(mb_substr((string) ($el['name'] ?? ($default.' '.($el['id'] ?? $id))), 0, 120));
+        $name = Ooxml::esc(mb_substr(Els::str($el['name'] ?? null, $default.' '.Els::str($el['id'] ?? null, (string) $id)), 0, 120));
         $alt = isset($el['alt']) && is_string($el['alt']) && $el['alt'] !== '' ? ' descr="'.Ooxml::esc(mb_substr($el['alt'], 0, 1000)).'"' : '';
         $h = $link ? $this->hlink(is_string($el['link'] ?? null) ? $el['link'] : null) : '';
 
@@ -689,13 +689,13 @@ final class PptxExporter
         $label = $kind === 'video' ? 'Video' : 'Audio clip';
         if ($kind === 'video') {
             if (is_array($el['embed'] ?? null) && isset($el['embed']['provider'], $el['embed']['id'])) {
-                $id = preg_replace('/[^A-Za-z0-9_-]/', '', (string) $el['embed']['id']);
+                $id = preg_replace('/[^A-Za-z0-9_-]/', '', Els::str($el['embed']['id']));
                 $link = match ($el['embed']['provider']) {
                     'youtube' => 'https://www.youtube.com/watch?v='.$id,
                     'vimeo' => 'https://vimeo.com/'.$id,
                     default => null,
                 };
-                $label = 'Video on '.ucfirst((string) $el['embed']['provider']).' (click to open)';
+                $label = 'Video on '.ucfirst(Els::str($el['embed']['provider'])).' (click to open)';
             } elseif (($u = Els::url($el['src'] ?? null)) !== null) {
                 $link = $u;
                 $label = 'Video (click to open)';
@@ -774,7 +774,7 @@ final class PptxExporter
             $this->note($el['id'] ?? null, 'approximated', 'A map chart is exported as a table of region values.');
             $rows = [[['t' => 'Region', 'b' => true], ['t' => 'Value', 'b' => true, 'al' => 'r']]];
             foreach (array_slice($chart['data']['regions'] ?? [], 0, 40) as $r) {
-                $rows[] = [['t' => $r['code']], ['t' => (string) $r['value'], 'al' => 'r']];
+                $rows[] = [['t' => $r['code']], ['t' => Els::str($r['value']), 'al' => 'r']];
             }
 
             return $this->tableEl(['id' => $el['id'] ?? null, 'type' => 'table', 'x' => $b['x'], 'y' => $b['y'], 'w' => $b['w'], 'h' => $b['h'], 'rows' => $rows, 'colw' => [0.6, 0.4], 'header' => true, 'band' => true, 'lines' => 'rows', 'size' => max(12, min(22, $b['h'] / max(1, count($rows)) * 0.5)), 'rot' => $b['rot'], 'alt' => $el['alt'] ?? 'Map values']);
@@ -849,11 +849,11 @@ final class PptxExporter
             $x = $area['x'] + $c * ($tw + $gap);
             $y = $gy + $r * ($th + $gap);
             $vs = max($fs * 1.3, min($fs * 3.4, $th * 0.3));
-            $value = is_float($it['value'] ?? null) || is_int($it['value'] ?? null) ? $fmt((float) $it['value']) : (string) ($it['value'] ?? '');
-            $unit = (string) ($it['unit'] ?? '');
+            $value = is_float($it['value'] ?? null) || is_int($it['value'] ?? null) ? $fmt((float) $it['value']) : Els::str($it['value'] ?? null);
+            $unit = Els::str($it['unit'] ?? null);
             $paras = [];
             $mk = fn (string $t, array $runStyle) => ['list' => null, 'level' => 0, 'n' => 0, 'runs' => [['t' => $t, 'b' => false, 'i' => false, 'u' => false, 's' => false, 'color' => $runStyle['color'], 'size' => $runStyle['size'], 'font' => null, 'link' => null]]];
-            $paras[] = $mk((string) ($it['label'] ?? ''), ['color' => '@muted', 'size' => $fs * 0.95]);
+            $paras[] = $mk(Els::str($it['label'] ?? null), ['color' => '@muted', 'size' => $fs * 0.95]);
             $paras[] = ['list' => null, 'level' => 0, 'n' => 0, 'runs' => array_filter([
                 ['t' => $value, 'b' => true, 'i' => false, 'u' => false, 's' => false, 'color' => '@ink', 'size' => $vs, 'font' => null, 'link' => null],
                 $unit !== '' ? ['t' => ' '.$unit, 'b' => false, 'i' => false, 'u' => false, 's' => false, 'color' => '@muted', 'size' => $vs * 0.5, 'font' => null, 'link' => null] : null,
@@ -867,7 +867,7 @@ final class PptxExporter
                 $paras[count($paras) - 1]['runs'][0]['b'] = true;
             }
             if (! empty($it['note'])) {
-                $paras[] = $mk((string) $it['note'], ['color' => '@muted', 'size' => $fs * 0.8]);
+                $paras[] = $mk(Els::str($it['note']), ['color' => '@muted', 'size' => $fs * 0.8]);
             }
             $style = TextStyle::of(['size' => $fs, 'lh' => 1.15, 'ps' => 0.15, 'valign' => 'middle'], $this->theme);
             $id = $this->cur['nextId']++;
@@ -942,7 +942,7 @@ final class PptxExporter
                     $cs['bold'] = true;
                 }
                 $cs['color'] = is_string($cd['color'] ?? null) ? $cd['color'] : $style['color'];
-                $paras = TextDoc::paragraphs(null, (string) ($cd['t'] ?? ''));
+                $paras = TextDoc::paragraphs(null, Els::str($cd['t'] ?? null));
                 if (! empty($cd['i'])) {
                     foreach ($paras as &$p) {
                         foreach ($p['runs'] as &$run) {

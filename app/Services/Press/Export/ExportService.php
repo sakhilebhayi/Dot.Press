@@ -5,6 +5,7 @@ namespace App\Services\Press\Export;
 use App\Models\Deck;
 use App\Models\DeckExport;
 use App\Models\Project;
+use App\Services\Press\ActivityRecorder;
 use App\Services\Press\DeckDocument;
 use App\Services\Press\Export\Pdf\PdfExporter;
 use App\Services\Press\Export\Pptx\PptxExporter;
@@ -129,6 +130,7 @@ final class ExportService
                 'status' => 'done', 'disk' => $disk, 'path' => $path, 'size' => $size, 'error' => null,
                 'finished_at' => now(), 'expires_at' => now()->addHours((int) config('press_export.export_ttl_hours', 24)),
             ])->save();
+            ActivityRecorder::record($deck, $export->user, 'exported', ['format' => $format, 'slides' => count($doc['slides'])]);
         } catch (Throwable $e) {
             if ($path !== null) {
                 try {

@@ -52,6 +52,19 @@ final class Els
         return $out;
     }
 
+    /** A scalar as a string; arrays, objects, null and non-finite numbers give the default. */
+    public static function str(mixed $v, string $default = ''): string
+    {
+        if (is_string($v)) {
+            return $v;
+        }
+        if (is_int($v) || (is_float($v) && is_finite($v))) {
+            return (string) $v;
+        }
+
+        return $default;
+    }
+
     /** Safe https or in-deck link, or null. */
     public static function link(mixed $l): ?string
     {
