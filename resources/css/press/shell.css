@@ -114,11 +114,14 @@
     .ed[data-spine='open'] .ed-spine { transform: none; transition: transform var(--d-3) var(--ease-settle); }
     .ed .tb-menu { display: inline-flex; }
     .ed .tb-left { border-right: 0; }
+    /* the title needs the room: who else is here and the word mark give way (the avatars are still in the Share panel) */
+    .tb .tb-people, .tb .tb-word { display: none; }
 }
 @media (max-width: 767px) {
     .tb-title { padding: 0 6px; gap: 10px; }
-    .tb-word, .tb-people, .tb-theme, .tb-act, .tb-save-w { display: none; }
-    .tb-overflow { display: inline-flex; }
+    /* these need the .tb prefix: .pr .pr-btn sets display and would keep every button in a bar that is too narrow for them */
+    .tb .tb-word, .tb .tb-people, .tb .tb-theme, .tb .tb-act, .tb .tb-save-w { display: none; }
+    .tb .tb-overflow { display: inline-flex; }
     .tb-save.is-offline .tb-save-w, .tb-save.is-error .tb-save-w { display: inline; max-width: 8ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tb-name { font-size: var(--t-md); }
     .tb-right { gap: 4px; padding-right: 6px; }

@@ -209,7 +209,7 @@ const showMore = () => load({ more: true });
             </label>
         </template>
         <template #actions>
-            <button v-if="canCreate" type="button" class="pr-btn pr-btn--primary lh-new" aria-haspopup="dialog" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" /><span>New</span></button>
+            <button v-if="canCreate" type="button" class="pr-btn pr-btn--primary lh-new" aria-label="New presentation" aria-haspopup="dialog" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" /><span>New</span></button>
         </template>
 
         <div class="lp">

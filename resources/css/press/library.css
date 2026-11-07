@@ -47,7 +47,7 @@
 /* filters: a short rail with a bead under every word; the amber one is where you are ------------------- */
 .lw-bar { position: relative; display: flex; align-items: flex-end; gap: 16px; justify-content: space-between; }
 .lw-bar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 1.5px; background: var(--line-strong); pointer-events: none; }
-.lw-filters { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; }
+.lw-filters { display: flex; flex: 1 1 auto; min-width: 0; gap: 2px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; }
 .lw-filters::-webkit-scrollbar { display: none; }
 .lw-f { position: relative; flex: none; height: 38px; min-width: 44px; padding: 0 12px; border: 0; background: transparent; font-size: var(--t-md); font-weight: 500; color: var(--muted); white-space: nowrap; }
 .lw-f::after { content: ''; position: absolute; left: 50%; bottom: -10px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--paper); z-index: 1; transition: background-color var(--d-2), transform var(--d-3) var(--spring); }
@@ -162,9 +162,10 @@
 
 @media (max-width: 899px) {
     .cs { grid-template-columns: 1fr; gap: 24px; }
-    .lh-team { display: none; }
 }
 @media (max-width: 639px) {
+    /* more specific than .pr .pr-btn, which would keep the team button on a phone and push New off the screen */
+    .lib .lh-team { display: none; }
     .lw-sort > .pr-small { display: none; }
     .lw-bar { gap: 8px; }
     .lh { gap: 6px; padding: 0 10px; }

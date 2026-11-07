@@ -4,7 +4,7 @@
 // can read who has access.
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useEditorContext } from '../../context.js';
-import { Dialog, EmptyState, InlineNotice, PanelSection, ProgressBead, SelectMenu } from '../../../ui/controls';
+import { Dialog, EmptyState, InlineNotice, PanelSection, ProgressBead, SelectMenu, Toggle } from '../../../ui/controls';
 import VisibilityRail from './VisibilityRail.vue';
 import { usePeople } from '../comments/usePeople.js';
 import {

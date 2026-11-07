@@ -33,6 +33,8 @@ const teamItems = computed(() => [
 ]);
 const userItems = computed(() => [
     { heading: user.value.email || user.value.name },
+    // the team button leaves the header on a phone, so the account menu carries the switch
+    ...(teams.value.length > 1 ? [{ heading: 'Switch team' }, ...teams.value.map((t) => ({ label: t.name, checked: current.value?.id === t.id, run: () => switchTeam(t) })), { separator: true }] : []),
     ...(has('profile.show') ? [{ label: 'Profile', icon: 'user', href: route('profile.show') }] : []),
     ...(current.value && has('teams.show') ? [{ label: 'Teams', icon: 'users', href: route('teams.show', current.value.id) }] : []),
     ...(page.props.jetstream?.hasApiFeatures && has('api-tokens.index') ? [{ label: 'API tokens', icon: 'key', href: route('api-tokens.index') }] : []),

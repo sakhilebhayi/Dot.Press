@@ -67,13 +67,13 @@ for (const leak of ['SPEAKERNOTE', 'HIDDENSECRET', 'HIDDENCONTENT', 'comments', 
     expect(!html.includes(leak), `guest page does not contain "${leak}"`);
 }
 const counter = await gp.locator('.pp-count').textContent();
-expect(/1 \/ 8/.test(counter), 'player counts 8 slides (hidden slide left out): ' + counter.trim());
+expect(/1 \/ 9/.test(counter), 'player counts 9 slides (the hidden one is an empty place holder it skips): ' + counter.trim());
 for (let i = 0; i < 3; i++) { await gp.keyboard.press('ArrowRight'); await sleep(700); }
-expect(/2 \/ 8/.test(await gp.locator('.pp-count').textContent()), 'keyboard navigation works on the shared page (two click steps, then slide 2)');
+expect(/2 \/ 9/.test(await gp.locator('.pp-count').textContent()), 'keyboard navigation works on the shared page (two click steps, then slide 2)');
 
 // document route for the guest
 const doc = await gp.evaluate(async (u) => (await fetch(u + '/document')).json(), url1);
-expect(doc.slides.length === 8 && doc.slides.every((s) => s.notes === null), 'guest document: 8 slides, notes null');
+expect(doc.slides.length === 9 && doc.slides.every((s) => s.notes === null) && doc.slides[7].els.length === 0, 'guest document: notes null, hidden slide empty');
 expect(!JSON.stringify(doc).includes('HIDDEN'), 'guest document has no hidden slide content');
 // the video asset streams for the guest
 const vid = Object.values(doc.assets).find((a) => /video/.test(a.mime || ''));
