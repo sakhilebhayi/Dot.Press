@@ -63,8 +63,9 @@ class SecurityHeaders
             // Slide "direct" video elements play a URL the author typed, so media is allowed from any https origin.
             "media-src 'self' blob: https:",
             "connect-src 'self' wss: https:",
-            // Slide video embeds (resources/js/Pages/Canvas/Presentation.vue).
-            "frame-src 'self' https://www.youtube.com https://player.vimeo.com",
+            // Slide video embeds (resources/js/Pages/Canvas/Presentation.vue and the R-40 player, which uses the
+            // privacy friendly youtube-nocookie.com host and only after a click).
+            "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://www.youtube-nocookie.com",
             "frame-ancestors 'self'",
             "object-src 'none'",
             "base-uri 'self'",

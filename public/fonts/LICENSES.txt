@@ -1,0 +1,26 @@
+Fonts self hosted by Dot.Press
+==============================
+
+Every family below is licensed under the SIL Open Font License, Version 1.1
+(https://openfontlicense.org). The licence allows use, embedding, bundling and
+redistribution, including inside a presentation file, as long as the fonts are
+not sold on their own and the reserved font names are not used for modified
+versions. The files here are the unmodified WOFF2 subsets (latin and latin-ext)
+served by Google Fonts.
+
+Public Sans         copyright The Public Sans Project Authors
+Inter               copyright The Inter Project Authors (Rasmus Andersson)
+IBM Plex Sans       copyright IBM Corp.
+IBM Plex Serif      copyright IBM Corp.
+IBM Plex Mono       copyright IBM Corp.
+Literata            copyright The Literata Project Authors
+DM Sans             copyright The DM Sans Project Authors (Colophon Foundry)
+Space Grotesk       copyright The Space Grotesk Project Authors (Florian Karsten)
+Playfair Display    copyright The Playfair Project Authors (Claus Eggers Sorensen)
+Manrope             copyright The Manrope Project Authors (Mikhail Sharanda)
+Source Serif 4      copyright Adobe (Frank Griesshammer), Source is a trademark of Adobe
+Caveat              copyright The Caveat Project Authors (Impallari Type)
+
+fonts.css holds the @font-face rules (font-display: swap). manifest.json lists
+each file with its family, style, weight range and subset; the offline present
+package reads it to inline only the families a deck uses.

@@ -35,6 +35,15 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($key !== '' ? $key : $request->ip());
         });
 
+        // R-40 presenting. Followers poll once a second, so the limits sit well above one person's rate and are
+        // keyed by session token and address: a lecture hall behind one network address shares a budget per session.
+        RateLimiter::for('present-public', fn (Request $request): Limit => Limit::perMinute(60)->by($request->ip()));
+        RateLimiter::for('present-state', fn (Request $request): Limit => Limit::perMinute(180)->by('state|'.$request->route('token').'|'.$request->ip()));
+        RateLimiter::for('present-command', fn (Request $request): Limit => Limit::perMinute(90)->by('cmd|'.$request->route('token').'|'.$request->ip()));
+        RateLimiter::for('present-asset', fn (Request $request): Limit => Limit::perMinute(600)->by('asset|'.$request->ip()));
+        RateLimiter::for('present-session', fn (Request $request): Limit => Limit::perMinute(20)->by('sess|'.(optional($request->user())->id ?? $request->ip())));
+        RateLimiter::for('present-push', fn (Request $request): Limit => Limit::perMinute(240)->by('push|'.(optional($request->user())->id ?? $request->ip())));
+
         // Dot.Press document traffic is limited per person and deck, so one busy deck cannot starve another.
         foreach (['press-ops' => 300, 'press-changes' => 240, 'press-presence' => 150, 'press-read' => 120] as $name => $perMinute) {
             RateLimiter::for($name, function (Request $request) use ($perMinute): Limit {

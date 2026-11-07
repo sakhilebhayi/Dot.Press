@@ -1,0 +1,135 @@
+/*
+  Dot.Press player chrome. Every colour, font, easing and size the player's own interface uses is a variable in the
+  :root block below, so the whole chrome can be re-skinned in one place. The slides themselves (the user's content)
+  are styled by the deck theme and never read these variables.
+
+  Motion language: "settle". Things arrive with a fast ease-out, travel a few pixels, and stop. Nothing bounces,
+  nothing loops, nothing moves while the presenter is talking. Controls leave 2 seconds after the pointer stops.
+*/
+:root {
+    --pp-bg: #07080a;
+    --pp-ink: #f4f1ea;
+    --pp-ink-2: rgb(244 241 234 / 0.64);
+    --pp-ink-3: rgb(244 241 234 / 0.4);
+    --pp-line: rgb(244 241 234 / 0.16);
+    --pp-line-2: rgb(244 241 234 / 0.28);
+    --pp-surface: #121316;
+    --pp-surface-2: #1a1c20;
+    --pp-accent: #f0c36b;
+    --pp-accent-ink: #1b1405;
+    --pp-laser: #ff3b30;
+    --pp-calm: #8fd3b6;
+    --pp-warn: #f0c36b;
+    --pp-over: #ff8a7a;
+    --pp-font: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --pp-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --pp-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    --pp-ease-io: cubic-bezier(0.77, 0, 0.175, 1);
+    --pp-fast: 140ms;
+    --pp-base: 220ms;
+    --pp-radius: 10px;
+    --pp-hit: 40px;
+}
+
+.pp-root { position: fixed; inset: 0; background: var(--pp-bg); color: var(--pp-ink); font-family: var(--pp-font); overflow: hidden; outline: none; -webkit-tap-highlight-color: transparent; touch-action: pan-y pinch-zoom; overscroll-behavior: none; }
+.pp-root.pp-idle { cursor: none; }
+.pp-stage { position: absolute; inset: 0; overflow: hidden; }
+.pp-layer { position: absolute; inset: 0; }
+.pp-layer-wait { visibility: hidden; }
+
+/* progress hairline: one tick per slide, filled up to where we are */
+.pp-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 12px; display: flex; align-items: flex-end; gap: 3px; padding: 0 10px 0; pointer-events: none; opacity: 0.55; transition: opacity var(--pp-base) var(--pp-ease); }
+.pp-root.pp-ui-on .pp-progress { opacity: 1; }
+.pp-seg { position: relative; flex: 1 1 0; height: 2px; background: rgb(128 128 128 / 0.42); box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.18); overflow: hidden; transform-origin: 50% 100%; transition: transform var(--pp-base) var(--pp-ease); }
+.pp-seg > i { position: absolute; inset: 0; background: rgb(255 255 255 / 0.92); transform-origin: 0 50%; transform: scaleX(var(--f, 0)); transition: transform 320ms var(--pp-ease); }
+.pp-seg.is-done > i { background: rgb(128 128 128 / 0.95); }
+.pp-seg.is-now > i { background: var(--pp-accent); }
+.pp-seg.is-hidden { opacity: 0.35; }
+.pp-root.pp-ui-on .pp-seg { transform: scaleY(2); }
+.pp-progress-solid { padding: 0; gap: 0; }
+.pp-progress-solid .pp-seg { height: 2px; }
+
+/* control bar */
+.pp-bar { position: absolute; left: 50%; bottom: 22px; transform: translate(-50%, 8px); display: flex; align-items: center; gap: 2px; padding: 4px; background: var(--pp-surface); border: 1px solid var(--pp-line); border-radius: calc(var(--pp-radius) + 4px); opacity: 0; pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); box-shadow: 0 10px 30px rgb(0 0 0 / 0.35); max-width: calc(100vw - 24px); }
+.pp-root.pp-ui-on .pp-bar { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.pp-btn { appearance: none; border: 0; background: transparent; color: var(--pp-ink-2); width: var(--pp-hit); height: var(--pp-hit); display: inline-grid; place-items: center; border-radius: var(--pp-radius); cursor: pointer; transition: background var(--pp-fast) var(--pp-ease), color var(--pp-fast) var(--pp-ease), transform var(--pp-fast) var(--pp-ease); }
+.pp-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.pp-btn:active { transform: scale(0.95); }
+.pp-btn[aria-pressed='true'] { color: var(--pp-accent); }
+.pp-btn:disabled { opacity: 0.3; pointer-events: none; }
+@media (hover: hover) { .pp-btn:hover { background: var(--pp-surface-2); color: var(--pp-ink); } }
+.pp-btn:focus-visible, .pp-chip:focus-visible, .pp-thumb:focus-visible { outline: 2px solid var(--pp-accent); outline-offset: 2px; }
+.pp-count { font: 500 13px/1 var(--pp-mono); color: var(--pp-ink-2); padding: 0 10px; min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.pp-sep { width: 1px; height: 18px; background: var(--pp-line); margin: 0 4px; }
+
+/* typed slide number, hint, toast */
+.pp-jump { position: absolute; right: 24px; bottom: 28px; font: 500 28px/1 var(--pp-mono); color: var(--pp-ink); background: var(--pp-surface); border: 1px solid var(--pp-line-2); border-radius: var(--pp-radius); padding: 10px 14px; opacity: 0; transform: translateY(6px); transition: opacity var(--pp-fast) var(--pp-ease), transform var(--pp-fast) var(--pp-ease); pointer-events: none; }
+.pp-jump.is-on { opacity: 1; transform: none; }
+.pp-hint { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); font: 400 12px/1.4 var(--pp-font); letter-spacing: 0.01em; color: var(--pp-ink-2); background: var(--pp-surface); border: 1px solid var(--pp-line); padding: 7px 12px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity 400ms var(--pp-ease); pointer-events: none; }
+.pp-hint.is-on { opacity: 0.92; }
+.pp-hint kbd { font: 500 11px var(--pp-mono); color: var(--pp-ink); padding: 0 3px; }
+.pp-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -6px); font: 500 13px/1 var(--pp-font); color: var(--pp-ink); background: var(--pp-surface); border: 1px solid var(--pp-line-2); padding: 10px 14px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); }
+.pp-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* cover (blackout, whiteout) */
+.pp-cover { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 160ms var(--pp-ease); }
+.pp-cover.is-black { background: #000; opacity: 1; pointer-events: auto; }
+.pp-cover.is-white { background: #fff; opacity: 1; pointer-events: auto; }
+
+/* laser */
+.pp-laser { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--pp-laser); box-shadow: 0 0 0 5px rgb(255 59 48 / 0.22), 0 0 22px 6px rgb(255 59 48 / 0.45); opacity: 0; pointer-events: none; transition: opacity 120ms var(--pp-ease); will-change: transform; }
+.pp-laser.is-on { opacity: 1; }
+.pp-root.pp-lasering, .pp-root.pp-lasering * { cursor: none !important; }
+
+/* overview grid */
+.pp-grid { position: absolute; inset: 0; background: rgb(7 8 10 / 0.985); overflow: auto; padding: 56px clamp(16px, 4vw, 56px) 40px; opacity: 0; transform: scale(0.985); pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); overscroll-behavior: contain; }
+.pp-grid.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.pp-grid-head { position: fixed; left: clamp(16px, 4vw, 56px); right: clamp(16px, 4vw, 56px); top: 14px; display: flex; align-items: center; justify-content: space-between; font: 500 13px var(--pp-font); color: var(--pp-ink-2); pointer-events: none; }
+.pp-grid-head button { pointer-events: auto; }
+.pp-grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 18px 16px; list-style: none; margin: 0; padding: 0; }
+.pp-thumb { appearance: none; display: block; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; border-radius: 6px; }
+.pp-thumb-frame { display: block; border: 1px solid var(--pp-line); border-radius: 4px; overflow: hidden; background: #000; transition: border-color var(--pp-fast) var(--pp-ease), transform var(--pp-fast) var(--pp-ease); }
+.pp-thumb:active .pp-thumb-frame { transform: scale(0.98); }
+@media (hover: hover) { .pp-thumb:hover .pp-thumb-frame { border-color: var(--pp-line-2); } }
+.pp-thumb.is-now .pp-thumb-frame { border-color: var(--pp-accent); box-shadow: 0 0 0 1px var(--pp-accent); }
+.pp-thumb.is-hidden .pp-thumb-frame { opacity: 0.42; }
+.pp-thumb-meta { display: flex; gap: 8px; align-items: baseline; margin-top: 7px; font: 400 12px/1.3 var(--pp-font); color: var(--pp-ink-2); }
+.pp-thumb-meta b { font: 500 12px var(--pp-mono); color: var(--pp-ink); font-variant-numeric: tabular-nums; }
+.pp-thumb-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* notes (single screen) */
+.pp-notes { position: absolute; left: 22px; bottom: 82px; width: min(380px, calc(100vw - 44px)); max-height: min(46vh, 420px); display: flex; flex-direction: column; background: var(--pp-surface); border: 1px solid var(--pp-line-2); border-radius: calc(var(--pp-radius) + 2px); box-shadow: 0 16px 40px rgb(0 0 0 / 0.45); opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); }
+.pp-notes.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.pp-notes-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 14px; border-bottom: 1px solid var(--pp-line); font: 500 12px var(--pp-font); color: var(--pp-ink-2); letter-spacing: 0.02em; }
+.pp-notes-body { padding: 12px 16px 16px; overflow: auto; font-size: var(--pp-notes-size, 18px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--pp-ink); }
+.pp-notes-body.is-empty { color: var(--pp-ink-3); }
+.pp-chip { appearance: none; border: 1px solid var(--pp-line); background: transparent; color: var(--pp-ink-2); font: 500 12px var(--pp-mono); height: 28px; min-width: 32px; padding: 0 8px; border-radius: 8px; cursor: pointer; transition: background var(--pp-fast) var(--pp-ease), color var(--pp-fast) var(--pp-ease); }
+.pp-chip:active { transform: scale(0.96); }
+@media (hover: hover) { .pp-chip:hover { background: var(--pp-surface-2); color: var(--pp-ink); } }
+
+/* password gate and status screens (shared viewer) */
+.pp-gate { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: var(--pp-bg); }
+.pp-card { width: min(420px, 100%); background: var(--pp-surface); border: 1px solid var(--pp-line); border-radius: calc(var(--pp-radius) + 4px); padding: 28px; }
+.pp-card h1 { font: 600 20px/1.3 var(--pp-font); margin: 0 0 6px; letter-spacing: -0.005em; }
+.pp-card p { font: 400 14px/1.5 var(--pp-font); color: var(--pp-ink-2); margin: 0 0 18px; }
+.pp-field { display: block; width: 100%; box-sizing: border-box; height: 44px; padding: 0 14px; background: var(--pp-bg); color: var(--pp-ink); border: 1px solid var(--pp-line-2); border-radius: var(--pp-radius); font: 400 16px var(--pp-font); }
+.pp-field:focus-visible { outline: 2px solid var(--pp-accent); outline-offset: 1px; }
+.pp-primary { appearance: none; margin-top: 12px; width: 100%; height: 44px; border: 0; border-radius: var(--pp-radius); background: var(--pp-ink); color: var(--pp-bg); font: 600 15px var(--pp-font); cursor: pointer; transition: transform var(--pp-fast) var(--pp-ease), opacity var(--pp-fast) var(--pp-ease); }
+.pp-primary:active { transform: scale(0.98); }
+.pp-primary:disabled { opacity: 0.5; }
+.pp-error { color: var(--pp-over); font: 400 13px/1.4 var(--pp-font); margin: 8px 0 0; }
+.pp-empty { position: absolute; inset: 0; display: grid; place-items: center; font: 400 15px var(--pp-font); color: var(--pp-ink-2); padding: 24px; text-align: center; }
+.pp-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 640px) {
+    .pp-bar { bottom: 14px; }
+    .pp-btn.pp-hide-sm { display: none; }
+    .pp-notes { left: 12px; right: 12px; width: auto; bottom: 74px; }
+    .pp-jump { right: 14px; bottom: 80px; }
+    .pp-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pp-root *, .pp-root *::before, .pp-root *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+    .pp-seg > i { transition: none; }
+}

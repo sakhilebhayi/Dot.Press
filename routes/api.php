@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\DeckShareController;
 use App\Http\Controllers\Api\DeckVersionController;
 use App\Http\Controllers\Api\LayoutController;
 use App\Http\Controllers\Api\PresenceController;
+use App\Http\Controllers\Api\PresentSessionController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SlideController;
 use App\Http\Controllers\Api\ThemeController;
@@ -92,4 +93,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('decks/{deck}/generate-deck', [AiController::class, 'generateDeck']);
         Route::post('slides/{slide}/rewrite-text', [AiController::class, 'rewriteText']);
     });
+
+    // R-40 presenting: live sessions and the offline present package.
+    Route::post('decks/{deck}/present-sessions', [PresentSessionController::class, 'store'])->middleware('throttle:present-session');
+    Route::put('present-sessions/{token}', [PresentSessionController::class, 'update'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-push');
+    Route::delete('present-sessions/{token}', [PresentSessionController::class, 'destroy'])->where('token', '[A-Za-z0-9]{40}');
+    Route::get('decks/{deck}/present-package', [PresentSessionController::class, 'package'])->middleware('throttle:export');
 });
