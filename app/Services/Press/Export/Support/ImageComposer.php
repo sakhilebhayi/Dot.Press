@@ -109,6 +109,9 @@ final class ImageComposer
 
     public static function decode(string $bytes): ?GdImage
     {
+        if (! Raster::available()) {
+            return null;
+        }
         $dim = @getimagesizefromstring($bytes);
         if (! $dim || $dim[0] * $dim[1] > self::MAX_SOURCE_PIXELS || ! Memory::fits((int) ($dim[0] * $dim[1] * 5))) {
             return null;

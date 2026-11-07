@@ -10,6 +10,9 @@ final class Placeholder
     /** @return string PNG bytes */
     public static function png(string $label, float $w, float $h, string $kind, Theme $theme): string
     {
+        if (! Raster::available()) {
+            return Raster::blankPng();
+        }
         [$pw, $ph, $d] = Raster::pixelSize($w, $h, 1.0);
         $pw = min($pw, 1280);
         $ph = min($ph, 1280);

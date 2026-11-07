@@ -3,10 +3,12 @@
 namespace Tests\Feature\Press;
 
 use App\Services\Press\Export\ArrayAssetResolver;
+use App\Services\Press\Export\ExportPreflight;
 use App\Services\Press\Export\Pdf\FontRegistry;
 use App\Services\Press\Export\Pdf\PdfExporter;
 use App\Services\Press\Export\Pptx\PptxExporter;
 use App\Services\Press\Export\Support\ChartData;
+use App\Services\Press\Export\Support\Raster;
 use App\Services\Press\Export\Support\ShapeGeometry;
 use App\Services\Press\Import\PptxImporter;
 use DOMDocument;
@@ -157,6 +159,32 @@ class ExportCoverageTest extends TestCase
             $this->assertStringContainsString($needle, $xml);
         }
         @unlink($file);
+    }
+
+    public function test_a_server_without_an_image_library_still_exports_with_flat_colours_and_no_pictures(): void
+    {
+        Raster::forceAvailability(false);
+        try {
+            $doc = PressSampleDeck::doc();
+            $pdf = new PdfExporter(PressSampleDeck::assets());
+            $bytes = $pdf->render($doc);
+            $this->assertSame(4, $this->pdfPages($bytes));
+            $this->assertNotEmpty(array_filter($pdf->notes, fn ($n) => str_contains($n['note'], 'could not be read')), 'pictures are reported as unreadable');
+            [$file, $zip] = $this->pptx($doc);
+            $this->assertNotFalse($zip->locateName('ppt/slides/slide1.xml'));
+            @unlink($file);
+            $pre = ExportPreflight::analyze($doc, 'pdf', [], PressSampleDeck::assets());
+            $levels = [];
+            foreach ($pre['slides'] as $s) {
+                foreach ($s['elements'] as $e) {
+                    $levels[$s['id'].'/'.$e['id']] = $e['level'];
+                }
+            }
+            $this->assertSame('dropped', $levels['s2/b3']);
+            $this->assertSame('approximated', $levels['s3/h2'], 'the gradient is its first colour');
+        } finally {
+            Raster::forceAvailability(null);
+        }
     }
 
     /** @return array<int|string, mixed> */

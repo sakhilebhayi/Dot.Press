@@ -13,6 +13,26 @@ final class Raster
     /** Longest side in pixels of any generated bitmap. */
     public const MAX_SIDE = 2000;
 
+    /** A transparent 1 x 1 PNG, for places that need a picture when no image library is available. */
+    public static function blankPng(): string
+    {
+        return (string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+    }
+
+    /** Whether the GD extension (and with it gradients, masks and picture processing) is there. */
+    public static function available(): bool
+    {
+        return self::$forced ?? (extension_loaded('gd') && function_exists('imagecreatetruecolor'));
+    }
+
+    private static ?bool $forced = null;
+
+    /** Test hook: pretend the image library is (not) there; null goes back to the truth. */
+    public static function forceAvailability(?bool $available): void
+    {
+        self::$forced = $available;
+    }
+
     public static function canvas(int $w, int $h, bool $transparent = true): GdImage
     {
         $im = imagecreatetruecolor(max(1, $w), max(1, $h));

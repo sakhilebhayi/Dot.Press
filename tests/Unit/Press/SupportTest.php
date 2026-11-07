@@ -6,6 +6,7 @@ use App\Services\Press\Export\Pdf\FontRegistry;
 use App\Services\Press\Export\Support\ChartData;
 use App\Services\Press\Export\Support\IconLibrary;
 use App\Services\Press\Export\Support\ImageComposer;
+use App\Services\Press\Export\Support\Memory;
 use App\Services\Press\Export\Support\Raster;
 use App\Services\Press\Export\Support\ShapeGeometry;
 use App\Services\Press\Export\Support\SvgPath;
@@ -300,8 +301,8 @@ class SupportTest extends TestCase
 
     public function test_a_picture_too_big_for_the_memory_limit_is_refused_not_a_fatal_error(): void
     {
-        $this->assertTrue(\App\Services\Press\Export\Support\Memory::fits(1000));
-        $this->assertFalse(\App\Services\Press\Export\Support\Memory::fits(PHP_INT_MAX >> 4) && \App\Services\Press\Export\Support\Memory::limit() > 0);
+        $this->assertTrue(Memory::fits(1000));
+        $this->assertFalse(Memory::fits(PHP_INT_MAX >> 4) && Memory::limit() > 0);
         // a 30 megapixel PNG header is over the pixel cap whatever the memory limit
         $png = "\x89PNG\r\n\x1a\n".pack('N', 13).'IHDR'.pack('NN', 6000, 5000)."\x08\x02\x00\x00\x00".str_repeat("\0", 4);
         $this->assertNull(ImageComposer::decode($png));

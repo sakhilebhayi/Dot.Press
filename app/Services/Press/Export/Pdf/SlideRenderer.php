@@ -74,6 +74,9 @@ final class SlideRenderer
     private function background(mixed $bg, float $W, float $H): string
     {
         $bg ??= $this->theme->bg ?? '@bg';
+        if (Theme::isGradient($bg) && ! Raster::available()) {
+            $bg = $this->flatFill($bg);
+        }
         if (is_string($bg)) {
             $css = $this->theme->css($bg) ?? $this->theme->css('@bg');
 
@@ -139,6 +142,9 @@ final class SlideRenderer
     /** A gradient painted with GD, clipped to the shape's outline. */
     private function gradientImg(array $fill, float $x, float $y, float $w, float $h, string $kind, float $radius): string
     {
+        if (! Raster::available()) {
+            return '';
+        }
         $stops = $this->theme->stops($fill);
         if ($stops === []) {
             return '';
@@ -202,9 +208,22 @@ final class SlideRenderer
 
     // ------------------------------------------------------------------ text
 
+    /** The first colour of a gradient, used when the server has no image library to paint it with. */
+    private function flatFill(mixed $fill): mixed
+    {
+        if (Theme::isGradient($fill)) {
+            return $fill['stops'][0][1] ?? '@bg';
+        }
+
+        return $fill;
+    }
+
     /** @param array<string, mixed> $el */
     private function text(array $el): string
     {
+        if (! Raster::available() && Theme::isGradient($el['fill'] ?? null)) {
+            $el['fill'] = $this->flatFill($el['fill']);
+        }
         $b = Els::box($el);
         $style = TextStyle::of($el, $this->theme);
         $paras = TextDoc::paragraphs(is_array($el['doc'] ?? null) ? $el['doc'] : null, is_string($el['text'] ?? null) ? $el['text'] : null);
@@ -268,6 +287,9 @@ final class SlideRenderer
     /** @param array<string, mixed> $el */
     private function shape(array $el): string
     {
+        if (! Raster::available() && Theme::isGradient($el['fill'] ?? null)) {
+            $el['fill'] = $this->flatFill($el['fill']);
+        }
         $b = Els::box($el);
         $kind = in_array($el['kind'] ?? null, ShapeGeometry::KINDS, true) ? $el['kind'] : 'rect';
         $w = max(1.0, $b['w']);

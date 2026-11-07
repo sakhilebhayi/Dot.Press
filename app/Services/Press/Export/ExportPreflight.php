@@ -8,6 +8,7 @@ use App\Services\Press\Export\Support\ChartData;
 use App\Services\Press\Export\Support\Els;
 use App\Services\Press\Export\Support\IconLibrary;
 use App\Services\Press\Export\Support\ImageComposer;
+use App\Services\Press\Export\Support\Raster;
 use App\Services\Press\Export\Support\ShapeGeometry;
 use App\Services\Press\Export\Support\TextDoc;
 use App\Services\Press\Export\Support\Theme;
@@ -238,6 +239,9 @@ final class ExportPreflight
                 if (! in_array($kind, ShapeGeometry::KINDS, true)) {
                     return ['approximated', 'The shape "'.mb_substr((string) $kind, 0, 30).'" is not known and is drawn as a rectangle.'];
                 }
+                if ($pdf && Theme::isGradient($el['fill'] ?? null) && ! in_array($kind, ['line', 'arrow'], true) && ! Raster::available()) {
+                    return ['approximated', 'The server has no image library (GD), so the gradient is drawn as its first colour.'];
+                }
                 if ($pdf && Theme::isGradient($el['fill'] ?? null) && ! in_array($kind, ['line', 'arrow'], true)) {
                     return ['flattened', 'The gradient fill is drawn as a picture in the PDF.'];
                 }
@@ -248,6 +252,9 @@ final class ExportPreflight
                 return ['native', null];
 
             case 'image':
+                if (! Raster::available()) {
+                    return ['dropped', 'The server has no image library (GD), so pictures cannot be processed for this export.'];
+                }
                 $src = $el['src'] ?? null;
                 $id = Els::shortAssetId($src);
                 if ($id === null) {

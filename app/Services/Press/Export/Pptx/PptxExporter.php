@@ -388,15 +388,7 @@ final class PptxExporter
             }
             $dim = ImageComposer::svgDimensions($bytes) ?? [(int) $w, (int) $h];
             $plan = ImageComposer::plan($dim[0], $dim[1], array_merge($el, ['fit' => ($el['fit'] ?? 'contain') === 'cover' ? 'contain' : ($el['fit'] ?? 'contain')]), $w, $h);
-            $fallback = Placeholder::png('', 8, 8, 'image', $this->theme);
-            $img = imagecreatetruecolor(1, 1);
-            imagealphablending($img, false);
-            imagesavealpha($img, true);
-            imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
-            ob_start();
-            imagepng($img);
-            $fallback = (string) ob_get_clean();
-            $rid = $this->addMedia($fallback, 'png');
+            $rid = $this->addMedia(Raster::blankPng(), 'png');
             $svgRid = $this->addMedia($bytes, 'svg');
 
             return ['rid' => $rid, 'svgRid' => $svgRid, 'win' => [0.0, 0.0, 1.0, 1.0], 'dest' => $plan['dest'], 'svg' => true, 'baked' => false];
