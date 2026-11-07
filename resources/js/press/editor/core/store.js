@@ -166,7 +166,7 @@ export function createStore(opts = {}) {
     },
 
     // selection
-    select(idList, mode = 'replace') { set({ selection: selSelect(state.doc, state.selection, state.slideId, idList, mode) }); },
+    select(idList, mode = 'replace', opts) { set({ selection: selSelect(state.doc, state.selection, state.slideId, idList, mode, opts) }); },
     clickElement(elId, mods = {}) { set({ selection: clickSelect(state.doc, state.selection, state.slideId, elId, mods) }); },
     clearSelection() { if (state.selection.ids.length) set({ selection: emptySelection(state.slideId) }); },
     selectAll() { set({ selection: selAll(state.doc, state.slideId) }); },
