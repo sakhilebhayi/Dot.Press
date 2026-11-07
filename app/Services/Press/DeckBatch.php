@@ -44,6 +44,12 @@ final class DeckBatch
 
     private int $index = 0;
 
+    /** Bytes of slide content this request has added so far (see charge()). */
+    private int $grown = 0;
+
+    /** Bytes of slide content the deck held when the request began, read once and only when something grows. */
+    private ?int $deckBytes = null;
+
     /** @var array<int, bool> */
     private array $assetChecks = [];
 
@@ -374,6 +380,7 @@ final class DeckBatch
         if ($size > DocumentSanitizer::MAX_SLIDE_BYTES) {
             throw new InvalidDocument('slide too large');
         }
+        $this->charge($size);
 
         $slide = $this->createSlide($fields, $els);
         $this->tids[$tid] = $slide->id;
@@ -484,6 +491,8 @@ final class DeckBatch
             }
             $els[] = $el;
         }
+
+        $this->charge(strlen((string) json_encode($els)));
 
         $from = $this->slides[$source];
         $fields = [
@@ -852,6 +861,34 @@ final class DeckBatch
         if ($enforce && $delta > 0 && $next > DocumentSanitizer::MAX_SLIDE_BYTES) {
             throw new InvalidDocument('slide too large');
         }
+        if ($enforce && $delta > 0) {
+            $this->charge($delta);
+        }
         $this->bytes[$slideId] = max(2, $next);
+    }
+
+    /**
+     * Content added by one request is budgeted, and so is the deck: a few hundred bytes of operations (200 copies of one
+     * fat slide) must not write hundreds of megabytes or exhaust the memory of the process. Removing and shrinking is
+     * never charged, so a deck that hit its cap can always be cut down again. The ops that were not paid for are skipped
+     * and reported like any other refused op.
+     */
+    private function charge(int $bytes): void
+    {
+        if ($bytes <= 0) {
+            return;
+        }
+
+        if ($this->grown + $bytes > (int) config('security.press_batch_growth_bytes', 8 * 1024 * 1024)) {
+            throw new InvalidDocument('batch too large');
+        }
+
+        $this->deckBytes ??= (int) DB::table('slides')->where('deck_id', $this->deck->id)->sum(DB::raw('length(els)'));
+
+        if ($this->deckBytes + $this->grown + $bytes > (int) config('security.press_deck_bytes', 32 * 1024 * 1024)) {
+            throw new InvalidDocument('deck too large');
+        }
+
+        $this->grown += $bytes;
     }
 }

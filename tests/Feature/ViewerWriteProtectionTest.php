@@ -113,7 +113,10 @@ class ViewerWriteProtectionTest extends TestCase
             $this->actingAs($writer)->putJson('/api/projects/'.$this->project->id, ['name' => 'Renamed'])->assertOk();
         }
 
-        $this->actingAs($this->editor)->deleteJson('/api/projects/'.$this->project->id)->assertNoContent();
+        // R-40 security pass: deleting a project erases every deck in it, so editors may not, and nobody may while it holds decks.
+        $this->actingAs($this->editor)->deleteJson('/api/projects/'.$this->project->id)->assertForbidden();
+        $empty = Project::create(['user_id' => $this->owner->id, 'team_id' => $this->team->id, 'name' => 'Empty', 'slug' => 'empty-'.uniqid()]);
+        $this->actingAs($this->admin)->deleteJson('/api/projects/'.$empty->id)->assertNoContent();
     }
 
     // ---- decks ----------------------------------------------------------

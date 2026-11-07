@@ -83,6 +83,11 @@ class ProjectController extends Controller
     {
         $this->authorize('delete', $project);
 
+        // One request must not erase a team's whole library: archive or delete the decks first, on purpose.
+        if ($project->decks()->withoutGlobalScopes()->exists()) {
+            return response()->json(['message' => 'This project still holds decks. Delete or archive them first.'], 409);
+        }
+
         $project->delete();
 
         return response()->noContent();

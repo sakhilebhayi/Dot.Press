@@ -79,7 +79,7 @@ Route::middleware(PrivateShareResponse::class)
         Route::get('/', [SharedDeckController::class, 'show'])->name('shared.show');
         Route::post('unlock', [SharedDeckController::class, 'unlock'])->name('shared.unlock');
         Route::get('document', [SharedDeckController::class, 'document'])->name('shared.document');
-        Route::get('asset/{asset}', [SharedDeckController::class, 'asset'])->middleware('throttle:600,1,press-share-asset')->name('shared.asset');
+        Route::get('asset/{asset}', [SharedDeckController::class, 'asset'])->middleware('throttle:6000,1,press-share-asset')->name('shared.asset');
     });
 
 Route::middleware([
@@ -130,7 +130,7 @@ if (! Features::enabled(Features::registration())) {
 // R-40 live presenting (public). The 40 character session token is the permission; every route is rate limited.
 // The pages keep the web group (Inertia). The polling, command and asset routes drop it: they carry no cookie, and a
 // session record for every poll of every follower would be wasted writes. They send no CSRF token for the same reason.
-Route::middleware('throttle:present-public')->group(function () {
+Route::middleware(['throttle:present-public', PrivateShareResponse::class])->group(function () {
     Route::get('/live/{token}', [PresentSessionController::class, 'follow'])->where('token', '[A-Za-z0-9]{40}')->name('press.live');
     Route::get('/remote/{token}', [PresentSessionController::class, 'remote'])->where('token', '[A-Za-z0-9]{40}')->name('press.remote');
 });

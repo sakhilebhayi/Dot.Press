@@ -34,7 +34,7 @@ final class ThemeTokens
 
     public static function isHex(mixed $value): bool
     {
-        return is_string($value) && preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $value) === 1;
+        return is_string($value) && preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/D', $value) === 1;
     }
 
     /** A hex colour or a theme token such as "@accent". */

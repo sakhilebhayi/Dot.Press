@@ -91,7 +91,7 @@ async function draftOutline() {
         busy.value = false;
         await nextTick();
         box.value?.querySelector('.ns-beat input')?.focus();
-    } catch (e) { fail(e, 'The outline writer is not available in this build yet. Start from a blank presentation instead.'); }
+    } catch (e) { fail(e, 'The outline could not be made right now. Try again, or start from a blank presentation.'); }
 }
 async function regenerateBeat(beat) {
     if (regen.value) return;
@@ -100,7 +100,7 @@ async function regenerateBeat(beat) {
         const out = await fetchOutline({ only: beat.beat });
         const fresh = out.beats.find((b) => b.beat === beat.beat) || out.beats[0];
         outline.value = { ...outline.value, beats: outline.value.beats.map((b) => (b.id === beat.id ? { ...fresh, id: beat.id, label: beat.label } : b)) };
-    } catch (e) { fail(e, 'The outline writer is not available in this build yet.'); }
+    } catch (e) { fail(e, 'The outline could not be made right now. Try again in a moment.'); }
     regen.value = null;
 }
 const mutateBeats = (fn) => { outline.value = { ...outline.value, beats: fn(outline.value.beats) }; };
@@ -154,7 +154,7 @@ async function importPptx() {
         if (!out.deckId) { error.value = 'The import finished but did not say which presentation it made.'; return; }
         if (!out.notes.length) { open(out.deckId); return; }
         imported.value = out;
-    } catch (e) { fail(e, 'PowerPoint import is not available in this build yet.'); }
+    } catch (e) { fail(e, 'The PowerPoint file could not be imported. Try again, or save it as .pptx from PowerPoint first.'); }
 }
 
 // ---- templates ----------------------------------------------------------------------------------------

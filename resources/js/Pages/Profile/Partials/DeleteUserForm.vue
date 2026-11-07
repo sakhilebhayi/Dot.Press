@@ -49,7 +49,7 @@ const closeModal = () => {
 
         <template #content>
             <p class="ac-text">
-                Deleting your account also deletes the decks in the projects you created, even ones you shared with a team. Download any deck you want to keep first, as PowerPoint or PDF.
+                Deleting your account deletes the teams you own, with every deck and picture in them. Decks you made in someone else's team stay with that team. Download any deck you want to keep first, as PowerPoint or PDF.
             </p>
 
             <div class="ac-actions">

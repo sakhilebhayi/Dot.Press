@@ -289,7 +289,8 @@ class PresentSessionTest extends TestCase
         $session = $this->start();
         $this->asGuest();
         $url = '/live/'.$session['token'].'/state';
-        for ($i = 0; $i < 180; $i++) {
+        // 1200 a minute from one address: a room of 20 people polling every second (R-40 security pass).
+        for ($i = 0; $i < 1200; $i++) {
             $this->get($url)->assertOk();
         }
         $this->get($url)->assertStatus(429);
