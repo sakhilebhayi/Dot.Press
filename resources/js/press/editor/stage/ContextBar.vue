@@ -177,7 +177,7 @@ function run(id) {
         case 'replace': emit('replace', props.elements[0].id); break;
         case 'crop': emit('crop', props.elements[0].id); break;
         case 'editData': editor.openPanel?.('chart'); break;
-        case 'swap': editor.openPanel?.('icons'); break;
+        case 'swap': editor.openPanel?.('icon'); break;
         case 'poster': editor.openPanel?.('assets', { for: props.elements[0].id, role: 'poster' }); break;
         case 'play': emit('preview', props.elements[0].id); break;
         case 'loop': props.format.toggle('loop', props.elements); break;

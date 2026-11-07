@@ -618,6 +618,8 @@ const tableRef = ref(null);
 const tableRange = ref(null);
 const tableTarget = computed(() => (tableEdit.value ? slide.value.els.find((x) => x.id === tableEdit.value && x.type === 'table') || null : null));
 watch(tableTarget, (t) => { if (!t) { tableEdit.value = null; tableRange.value = null; } });
+// Panels read the selected cells from ui.tableSel ({id, r1, c1, r2, c2}, or null when no table is being edited).
+watch([tableEdit, tableRange], ([id, r]) => { ui.tableSel = id && r ? { id, r1: r.r1, c1: r.c1, r2: r.r2, c2: r.c2 } : null; }, { deep: true });
 const tableState = computed(() => {
     const el = selected.value.length === 1 && selected.value[0].type === 'table' ? selected.value[0] : null;
     if (!el) return {};
@@ -863,6 +865,7 @@ watch(() => ui.userGuides, (g) => {
 let offBus = [];
 const onWindowBlur = () => gestures.setSpace(false);
 onBeforeUnmount(() => {
+    ui.tableSel = null;
     window.removeEventListener('keyup', onKeyUp);
     window.removeEventListener('blur', onWindowBlur);
     offBus.forEach((off) => off());
