@@ -82,7 +82,7 @@ final class Strategy implements Template
             ['We will', ['Serve fewer segments well', 'Invest in service speed', 'Price on value, not volume', 'Partner for reach']],
             ['We will not', ['Chase every tender', 'Build what partners already offer', 'Compete on the lowest price', 'Open new regions this year']],
             'Make the right-hand column uncomfortable on purpose. If nobody in the room would object to anything in it, it is not a real trade off. Replace both columns with your own and be ready for someone to ask why a favourite project is on the list.',
-            ['reveal' => ['body', 'body2']],
+            ['reveal' => true],
         );
 
         $c->section('03', 'Coherent actions', 'What we do, in what order, and how we will know', 'Move from ideas to commitments. Every action must follow from a choice on the previous slides; if one does not, cut it.');

@@ -31,13 +31,13 @@ final class TemplateLibrary
     {
         $namespace = 'App\\Services\\Press\\Templates\\Library\\';
 
-        return array_filter(array_map(fn (string $name): string => $namespace.$name, [
+        return array_map(fn (string $name): string => $namespace.$name, [
             'ExecutiveSummary', 'BoardPack', 'QuarterlyReview', 'Strategy',
             'SalesProposal', 'ProductLaunch', 'MarketingPlan',
             'InvestorPitch', 'FinancialReview', 'BudgetPresentation',
             'TrainingDeck', 'Lesson', 'Workshop', 'ResearchTalk',
             'MiningProduction', 'SafetyBriefing', 'ProjectStatus', 'EngineeringProposal', 'ConstructionProgress', 'ManufacturingPerformance',
-        ]), 'class_exists');
+        ]);
     }
 
     /**

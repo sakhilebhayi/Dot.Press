@@ -76,7 +76,7 @@ final class ConstructionProgress implements Template
         $c->data(
             'Variations and instructions',
             Compose::table([
-                ['Reference', 'Description', 'Value', 'Status'],
+                ['Ref', 'Description', 'Value', 'Status'],
                 ['V-014', 'Additional basement waterproofing', 'R 185 000', 'Approved'],
                 ['V-015', 'Changed lift specification', 'R 92 000', 'Pending'],
                 ['V-016', 'Extra fire stopping on level 2', 'R 64 000', 'Pending'],

@@ -103,15 +103,11 @@ final class SalesProposal implements Template
             'A real quote from a similar client is worth more than any claim you make about yourself. Ask the customer to approve the words and the attribution before you use them. If you have no quote yet, replace this slide with a short case study.',
         );
 
-        $c->points(
+        $c->columns(
             'Terms and next steps',
-            [
-                '**Validity.** This proposal is valid until [date].',
-                '**Payment.** 50 percent on signing, 50 percent on delivery.',
-                '**Start.** We can begin on [date] if we agree by [date].',
-            ],
-            'Be clear and brief about terms. Surprises here lose deals. Say what the client needs to do next, such as signing, naming a project contact and arranging system access. Replace each line with your own terms.',
-            'One decision from you starts the clock.',
+            ['p' => ['**Terms**', 'This proposal is valid until [date].', 'Payment is 50 percent on signing and 50 percent on delivery.', 'Prices exclude VAT.']],
+            ['p' => ['**Next steps**', 'Confirm the package you prefer.', 'Name a project contact on your side.', 'We can begin on [date] if we agree by [date].']],
+            'Be clear and brief about terms. Surprises here lose deals. Say what the client needs to do next, such as signing, naming a project contact and arranging system access. Replace each line with your own terms and steps.',
         );
 
         $c->closing(

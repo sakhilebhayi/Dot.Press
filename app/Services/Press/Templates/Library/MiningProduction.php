@@ -88,7 +88,7 @@ final class MiningProduction implements Template
             'Unit cost: what moved it',
             Compose::chart('waterfall', ['Plan', 'Volume', 'Labour', 'Power', 'Consumables', 'Maintenance', 'Actual'], [
                 ['name' => 'Cost per tonne', 'values' => [1285, -45, 20, 35, 15, -10, null]],
-            ], ['title' => 'Unit cost bridge', 'sub' => 'Rand per tonne', 'fmt' => 'num', 'dec' => 0, 'labels' => 'value', 'legend' => 'none'], ['totals' => [0, 6]]),
+            ], ['title' => 'Unit cost bridge', 'sub' => 'Rand per tonne, axis starts at 1 200', 'fmt' => 'num', 'dec' => 0, 'labels' => 'value', 'legend' => 'none', 'ax' => ['y' => ['min' => 1200, 'max' => 1340, 'show' => true]]], ['totals' => [0, 6]]),
             ['Volume above plan lowered the unit cost.', 'Power and labour pushed it back up.', 'Net: 15 rand per tonne above plan.'],
             'Source: replace with the cost report.',
             'A bridge from planned to actual unit cost shows the room which lines to manage. Name the largest increase and the action under way. Replace the lines and values with your own and check that the totals add up.',

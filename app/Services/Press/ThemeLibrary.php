@@ -82,10 +82,24 @@ final class ThemeLibrary
                 's' => ['radius' => 12, 'stroke' => 2],
                 'bg' => null,
             ],
-            // Further built-in themes follow slate. Each one is built for a kind of room or a kind of document; see
-            // docs/programme/R40_LIBRARIES.md for the reasoning. Rules every theme satisfies (tests enforce them):
-            // ink on bg at least 7:1, muted on bg at least 4.5:1, accent and accent2 on bg at least 3:1, and the
-            // eight chart colours validated for colour-blind separation of neighbouring series.
+            // Further built-in themes follow slate. Each one is built for a kind of room or a kind of document.
+            // Rules every theme satisfies (tests/Unit/Press/LibraryThemesTest enforces them): ink on bg and on surface
+            // at least 7:1, muted at least 4.5:1, accent and accent2 on bg at least 3:1, the page colour readable on an
+            // accent ground (section slides), and eight chart colours whose neighbours stay apart under protan and
+            // deutan simulation (the dataviz validator's gates). Chart palettes are the validated eight-hue ring,
+            // turned a few degrees per theme so each deck has its own cast without losing separation.
+            //
+            // boardroom       board and executive decks: ivory page, navy ink, a serif heading (Source Serif 4)
+            // field-report    warm sand page for site and research reports: Literata with IBM Plex Sans
+            // workshop        rounded and friendly, thick strokes, DM Sans throughout, for facilitated sessions
+            // annual-report   white page, claret accent, Playfair Display as an editorial heading for formal documents
+            // night-briefing  dark navy for darkened rooms, Space Grotesk headings, a gradient so subtle it reads as flat
+            // projector       high contrast (21:1 ink), heavy Inter, thick strokes: survives a washed-out projector
+            // engineering     cool grey, squared corners, IBM Plex Sans: technical proposals and plant reports
+            // site-operations charcoal and safety yellow, Manrope: mine and plant operations, readable in a control room
+            // ledger          green on near white, Source Serif 4 headings with Inter figures: finance and budgets
+            // lecture         paper white, indigo, Literata headings and Public Sans: teaching and research talks
+            // launch          white, flat, vermilion: Space Grotesk and DM Sans for announcements and pitches
             self::theme('boardroom', 'Boardroom',
                 ['bg' => '#fafaf7', 'surface' => '#eeede7', 'ink' => '#14213d', 'muted' => '#4b5870', 'line' => '#cfcdc4', 'accent' => '#1f4e8c', 'accent2' => '#b4690e', 'good' => '#1f7a4d', 'warn' => '#9a5a06', 'bad' => '#b3261e',
                     'chart' => ['#2a78d6', '#eb6834', '#1baf7a', '#eaa016', '#e87ba4', '#008300', '#6250d6', '#e34948']],

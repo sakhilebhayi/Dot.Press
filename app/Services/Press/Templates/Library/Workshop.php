@@ -63,11 +63,10 @@ final class Workshop implements Template
 
         $c->section('02', 'Diverge', 'Many options, no judgement', 'Explain that quantity comes first in this part of the session, and that quality comes from choosing later. Remind people that ideas are not criticised yet, and keep the timer visible.');
 
-        $c->points(
-            'Brainstorm rules',
-            ['ol' => ['Write alone for five minutes: one idea per note', 'Read out your notes; no comments yet', 'Group similar ideas together', 'Add to someone else\'s idea']],
+        $c->timeline(
+            'Brainstorm in four moves',
+            [['5 minutes', 'Write alone: one idea per note.'], ['10 minutes', 'Read out your notes. No comments yet.'], ['10 minutes', 'Group similar ideas together.'], ['10 minutes', 'Build on someone else\'s idea.']],
             'Silent writing first avoids loud voices dominating and reduces anchoring on the first idea. Tell people to aim for twenty notes each. Put the timer on screen and stop on time. Replace the steps with your own method if you use a different technique.',
-            'Aim for twenty notes each.',
         );
 
         $c->section('03', 'Converge', 'Choose together, on purpose', "Now the group narrows its options. Explain the method before you start so people trust the result, and say that everyone's vote counts the same, whatever their seniority.");

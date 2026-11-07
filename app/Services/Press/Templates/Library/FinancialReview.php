@@ -40,7 +40,7 @@ final class FinancialReview implements Template
             'Profit is above budget; cash is slightly below plan.',
             "Pick the four numbers the reader will ask for first. Give each against budget and prior period. The numbers here are samples: replace them with figures from your management accounts. Say the one that needs the reader's attention.",
             true,
-            ['reveal' => ['kpi1', 'kpi2', 'kpi3', 'kpi4']],
+            ['reveal' => true],
         );
 
         $c->beginSection('Explanation');
@@ -84,7 +84,7 @@ final class FinancialReview implements Template
             ['Original budget', ['Revenue 19.4 million', 'Operating margin 19 percent', 'Capital spend 1.2 million', 'Year end cash 3.0 million']],
             ['Current forecast', ['Revenue 20.1 million', 'Operating margin 20 percent', 'Capital spend 1.4 million', 'Year end cash 3.2 million']],
             'Reforecasting is a promise to the board, so make the changes visible. Highlight which line moved most and why. Replace both columns with your figures, and keep the four lines in the same order.',
-            ['reveal' => ['body2']],
+            ['reveal' => 'right'],
         );
 
         $c->beginSection('Outlook');

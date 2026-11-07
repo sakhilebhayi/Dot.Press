@@ -60,7 +60,7 @@ final class SafetyBriefing implements Template
                 ['Before controls', 'Likely', 'Serious', 'High'],
                 ['After controls', 'Unlikely', 'Serious', 'Medium'],
                 ['After controls and supervision', 'Rare', 'Serious', 'Low'],
-            ], [0.4, 0.2, 0.2, 0.2], ['l', 'l', 'l', 'l']),
+            ], [0.34, 0.22, 0.24, 0.2], ['l', 'l', 'l', 'l']),
             ['Controls reduce likelihood.', 'The consequence stays the same, so we never relax.'],
             'Use your own risk matrix and ratings.',
             'Show how each control lowers the risk. Consequence stays serious because the hazard has not gone away. Use the risk matrix your company uses, and replace the sample rows with the real task. Keep to three rows.',
@@ -80,19 +80,14 @@ final class SafetyBriefing implements Template
             ['Do', ['Check the isolation before you start', 'Wear the protective equipment for the task', 'Tell the supervisor of any change', 'Keep the area tidy']],
             ['Do not', ['Work under a suspended load', 'Bypass a guard or an interlock', 'Start if you are unsure', 'Rush to make up time']],
             'Pick the four behaviours that most often cause harm at your site. Say each short sentence aloud and ask for a nod. Replace the eight lines with your own, and drop any that do not apply to the task.',
-            ['reveal' => ['body', 'body2']],
+            ['reveal' => true],
         );
 
         $c->beginSection('Emergency');
-        $c->points(
+        $c->timeline(
             'If something goes wrong',
-            [
-                '**Stop.** Make the area safe if you can do so safely.',
-                '**Raise the alarm.** Radio channel [number] or call [number].',
-                '**Muster.** Assembly point [name]. Wait for a head count.',
-            ],
-            "Everyone should be able to say the three steps without looking. Point out the exit routes, the first aid station and the assembly point. Ask one person to repeat the radio channel. Replace the numbers and names with your site's.",
-            'Know your route and your assembly point.',
+            [['Stop', 'Make the area safe if you can do so safely.'], ['Raise the alarm', 'Radio channel [number] or call [number].'], ['Muster', 'Go to assembly point [name].'], ['Account', 'Wait for the head count. Do not go back in.']],
+            "Everyone should be able to say the four steps without looking. Point out the exit routes, the first aid station and the assembly point. Ask one person to repeat the radio channel. Replace the numbers and names with your site's.",
         );
 
         $c->quote(

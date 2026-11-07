@@ -99,7 +99,7 @@ final class InvestorPitch implements Template
 
         $c->data(
             'How we will use the money',
-            Compose::chart('doughnut', ['Product and engineering', 'Sales and marketing', 'Operations', 'Reserve'], [
+            Compose::chart('doughnut', ['Product', 'Sales', 'Operations', 'Reserve'], [
                 ['name' => 'Share of funds', 'values' => [45, 35, 10, 10]],
             ], ['title' => 'Use of funds', 'sub' => 'Percent of the round', 'legend' => 'right', 'labels' => 'percent', 'fmt' => 'pct']),
             ['Eighteen months of runway.', 'Each slice maps to a milestone.', 'The next milestone is the next round.'],

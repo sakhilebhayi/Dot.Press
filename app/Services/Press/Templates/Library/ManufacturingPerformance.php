@@ -40,13 +40,13 @@ final class ManufacturingPerformance implements Template
             'OEE is 71 percent: 88 times 89 times 96. Performance and availability hold it back.',
             'OEE is availability times performance times quality, so say which part is the weakest. The numbers here are samples: replace them with your own plant data and state the definition of ideal cycle time you use. World class is often quoted at 85 percent, but compare against your own trend first.',
             true,
-            ['reveal' => ['kpi1', 'kpi2', 'kpi3', 'kpi4']],
+            ['reveal' => true],
         );
 
         $c->beginSection('Losses');
         $c->data(
             'Where the capacity went',
-            Compose::chart('waterfall', ['Available time', 'Breakdowns', 'Changeovers', 'Minor stops', 'Slow running', 'Scrap and rework', 'Good output'], [
+            Compose::chart('waterfall', ['Planned', 'Breakdowns', 'Setups', 'Stops', 'Speed', 'Scrap', 'Output'], [
                 ['name' => 'Percent of available time', 'values' => [100, -7, -5, -7, -4, -4, null]],
             ], ['title' => 'OEE loss waterfall', 'sub' => 'Percent of planned production time', 'fmt' => 'num', 'dec' => 0, 'labels' => 'value', 'legend' => 'none'], ['totals' => [0, 6]]),
             ['Breakdowns and minor stops are the largest losses.', 'Together they take 14 points.', 'Focus the next month on those two.'],

@@ -106,15 +106,11 @@ final class EngineeringProposal implements Template
             'Show the critical path and the one date everything depends on (the shutdown). Name the approvals needed and by when. Replace the four steps with your own plan.',
         );
 
-        $c->points(
+        $c->columns(
             'Risks and assumptions',
-            [
-                '**Lead time.** Steel delivery may take longer. Order early.',
-                '**Access.** The site must be isolated for six weeks.',
-                '**Unknowns.** Foundation condition is assumed; test during design.',
-            ],
-            'List the assumptions you are making and the risks that would change the answer. For each, say how you will check it and when. Reviewers value being told. Replace the three lines with your own.',
-            'Each assumption has a check.',
+            ['p' => ['**Risks**', 'Lead time: steel delivery may take longer, so order early.', 'Access: the site must be isolated for six weeks.']],
+            ['p' => ['**Assumptions**', 'Foundation condition is assumed; test during design.', 'Loads match the 2023 survey; confirm before sign off.']],
+            'List the assumptions you are making and the risks that would change the answer. For each, say how you will check it and when. Reviewers value being told. Replace the lines in both columns with your own.',
         );
 
         $c->closing(

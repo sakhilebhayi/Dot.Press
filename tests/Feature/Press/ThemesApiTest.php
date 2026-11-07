@@ -4,6 +4,7 @@ namespace Tests\Feature\Press;
 
 use App\Models\BrandKit;
 use App\Models\Theme;
+use App\Services\Press\ThemeLibrary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -33,9 +34,11 @@ class ThemesApiTest extends TestCase
 
         $response = $this->actingAs($this->owner)->getJson('/api/themes')->assertOk();
 
+        $builtIns = count(ThemeLibrary::all());
         $names = array_column($response->json('data'), 'name');
-        $this->assertSame(['Slate', 'Alpha', 'Zebra'], $names);
-        $response->assertJsonPath('data.0.id', 'slate')->assertJsonPath('data.0.builtin', true)->assertJsonPath('data.1.builtin', false);
+        $this->assertSame(array_column(ThemeLibrary::all(), 'name'), array_slice($names, 0, $builtIns));
+        $this->assertSame(['Alpha', 'Zebra'], array_slice($names, $builtIns));
+        $response->assertJsonPath('data.0.id', 'slate')->assertJsonPath('data.0.builtin', true)->assertJsonPath("data.{$builtIns}.builtin", false);
         $response->assertJsonPath('team_id', $this->owner->currentTeam->id)->assertJsonPath('default_brand_kit', null);
     }
 
@@ -159,9 +162,9 @@ class ThemesApiTest extends TestCase
 
         $this->actingAs($other)->postJson('/api/themes', ['name' => 'Their theme'])->assertCreated();
 
-        $this->actingAs($this->owner)->getJson('/api/themes?team_id='.$second->id)->assertOk()->assertJsonPath('data.1.name', 'Their theme');
+        $this->actingAs($this->owner)->getJson('/api/themes?team_id='.$second->id)->assertOk()->assertJsonPath('data.'.count(ThemeLibrary::all()).'.name', 'Their theme');
         $this->actingAs($this->owner)->postJson('/api/themes?team_id='.$second->id, ['name' => 'nope'])->assertForbidden();
-        $this->actingAs($this->owner)->getJson('/api/themes')->assertOk()->assertJsonCount(1, 'data');
+        $this->actingAs($this->owner)->getJson('/api/themes')->assertOk()->assertJsonCount(count(ThemeLibrary::all()), 'data');
         $this->actingAs($this->owner)->getJson('/api/themes?team_id=abc')->assertNotFound();
     }
 

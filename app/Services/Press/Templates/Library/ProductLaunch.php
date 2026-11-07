@@ -66,7 +66,7 @@ final class ProductLaunch implements Template
             ['Before', ['Six steps across three tools', 'Waiting for another team', 'Mistakes found late', 'No single record']],
             ['After', ['One step in one place', 'Done by the person who needs it', 'Mistakes caught as they happen', 'A single, shared record']],
             'Before and after is the clearest way to show value. Make the left column feel familiar, so the audience nods, and the right column plausible, so they believe it. Replace both columns with your own.',
-            ['reveal' => ['body2']],
+            ['reveal' => 'right'],
         );
 
         $c->beginSection('Value and plan');
@@ -76,7 +76,7 @@ final class ProductLaunch implements Template
             'Four goals. We will review them every two weeks.',
             'Set goals you can measure in the window, and say how you will measure them. These sample targets are illustrative: replace them with yours. Choose one number for reach, one for conversion, one for proof and one for quality.',
             true,
-            ['reveal' => ['kpi1', 'kpi2', 'kpi3', 'kpi4']],
+            ['reveal' => true],
         );
 
         $c->data(

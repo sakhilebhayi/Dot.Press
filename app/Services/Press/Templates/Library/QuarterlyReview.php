@@ -49,7 +49,7 @@ final class QuarterlyReview implements Template
             'Revenue is ahead of target; margin and churn need attention.',
             "Read each figure with its target: 'Revenue 12.4 million against 11.8 million.' The sample numbers are illustrative; replace them with your own and keep the labels to three words. Color is not needed here, so say aloud which of the four is a concern. The takeaway line is the sentence you want repeated after the meeting.",
             true,
-            ['reveal' => ['kpi1', 'kpi2', 'kpi3', 'kpi4']],
+            ['reveal' => true],
         );
 
         $c->data(
@@ -85,7 +85,7 @@ final class QuarterlyReview implements Template
             ['Worked: repeat it', ['Renewal calls started 60 days out', 'One owner per large account', 'Weekly pipeline review', 'Clear pricing for the new tier']],
             ['Did not: change it', ['Freight cost passed on too late', 'Discounts approved without a margin check', 'Onboarding took six weeks, not three', 'Two reports with different numbers']],
             'Keep the two lists parallel and specific. Each line should be something a team can act on, not a theme. Do not assign blame on the slide; assign owners in the plan. Replace all eight lines with your own, and if one side has fewer than four honest items, show fewer.',
-            ['reveal' => ['body', 'body2']],
+            ['reveal' => true],
         );
 
         $c->data(

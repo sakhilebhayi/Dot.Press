@@ -167,7 +167,13 @@ final class LayoutLibrary
                 $entry['size'] = round($size * $unit, 2);
                 $entry['sizeF'] = round($size * $unit / $h, 5);
                 $entry['text'] = $p['text'];
-                $entry['style'] = $p['style'];
+                $style = $p['style'];
+                if (! empty($style['card'])) {
+                    // a card is a filled box: its corners follow the theme radius, 12 units until a theme says otherwise
+                    unset($style['card']);
+                    $style['radius'] = round(12 * $unit, 2);
+                }
+                $entry['style'] = $style;
             }
             $out[] = $entry;
         }
@@ -244,12 +250,12 @@ final class LayoutLibrary
         switch ($id) {
             case 'title':
                 if ($portrait) {
-                    $add('title', 'title', 'text', 'Title', $mx, 480, $cw, 620, 104, 'Presentation title', ['valign' => 'bottom', 'lh' => 1.0, 'ls' => -0.02] + $heading);
+                    $add('title', 'title', 'text', 'Title', $mx, 480, $cw, 620, 104, 'Presentation title', ['valign' => 'bottom', 'lh' => 1.05, 'ls' => -0.02, 'fit' => 'none'] + $heading);
                     $add('subtitle', 'subtitle', 'text', 'Subtitle', $mx, 1150, $cw, 260, 44, 'One line that says what this is for', $muted);
                     $add('caption', 'caption', 'text', 'Presenter and date', $mx, 1700, $cw, 80, 28, 'Presenter, role, date', $muted);
                 } else {
                     $tw = $wide ? 1320 : 1010;
-                    $add('title', 'title', 'text', 'Title', $mx, 280, $tw, 400, $wide ? 112 : 104, 'Presentation title', ['valign' => 'bottom', 'lh' => 1.0, 'ls' => -0.02] + $heading);
+                    $add('title', 'title', 'text', 'Title', $mx, 280, $tw, 400, $wide ? 112 : 104, 'Presentation title', ['valign' => 'bottom', 'lh' => 1.05, 'ls' => -0.02, 'fit' => 'none'] + $heading);
                     $add('subtitle', 'subtitle', 'text', 'Subtitle', $mx, 724, $wide ? 1100 : 900, 140, 40, 'One line that says what this is for', $muted);
                     $add('caption', 'caption', 'text', 'Presenter and date', $mx, 930, $wide ? 1100 : 900, 56, 26, 'Presenter, role, date', $muted);
                 }
@@ -258,11 +264,11 @@ final class LayoutLibrary
             case 'section':
                 if ($portrait) {
                     $add('number', 'number', 'text', 'Section number', $mx, 420, $cw, 400, 300, '01', ['valign' => 'bottom', 'lh' => 0.9, 'ls' => -0.04] + $heading);
-                    $add('title', 'title', 'text', 'Section title', $mx, 880, $cw, 420, 100, 'Section title', ['lh' => 1.02, 'ls' => -0.02] + $heading);
+                    $add('title', 'title', 'text', 'Section title', $mx, 880, $cw, 420, 100, 'Section title', ['lh' => 1.05, 'ls' => -0.02, 'fit' => 'none'] + $heading);
                     $add('subtitle', 'subtitle', 'text', 'Section summary', $mx, 1340, $cw, 260, 42, 'One line on what this part covers', $muted);
                 } else {
                     $add('number', 'number', 'text', 'Section number', $mx, 150, 900, 330, 270, '01', ['valign' => 'bottom', 'lh' => 0.9, 'ls' => -0.04] + $heading);
-                    $add('title', 'title', 'text', 'Section title', $mx, 520, $wide ? 1500 : 1180, 220, $wide ? 96 : 90, 'Section title', ['lh' => 1.02, 'ls' => -0.02] + $heading);
+                    $add('title', 'title', 'text', 'Section title', $mx, 520, $wide ? 1500 : 1180, 220, $wide ? 96 : 90, 'Section title', ['lh' => 1.05, 'ls' => -0.02, 'fit' => 'none'] + $heading);
                     $add('subtitle', 'subtitle', 'text', 'Section summary', $mx, 780, $wide ? 1200 : 1000, 170, 40, 'One line on what this part covers', $muted);
                 }
                 break;
@@ -276,8 +282,8 @@ final class LayoutLibrary
                     $lw = $wide ? 680 : 500;
                     $gx = $mx + $lw + ($wide ? 80 : 56);
                     $add('title', 'title', 'text', 'Title', $mx, 96, $lw, 580, $wide ? 64 : 58, 'Title', $heading);
-                    $add('subtitle', 'subtitle', 'text', 'Why it matters', $mx, 720, $lw, 230, 30, 'Why this matters', ['valign' => 'bottom', 'weight' => 600, 'color' => '@accent'] + $text);
-                    $add('body', 'body', 'text', 'Points', $gx, 104, $fw - $mx - $gx, 840, $wide ? 48 : 44, 'Point one', ['ps' => 0.9, 'lh' => 1.32] + $text);
+                    $add('subtitle', 'subtitle', 'text', 'Why it matters', $mx, 720, $lw, 230, 34, 'Why this matters', ['valign' => 'bottom', 'weight' => 600, 'color' => '@accent'] + $text);
+                    $add('body', 'body', 'text', 'Points', $gx, 104, $fw - $mx - $gx, 840, $wide ? 48 : 44, 'Point one', ['ps' => 0.9, 'lh' => 1.32, 'valign' => 'middle'] + $text);
                 }
                 $addFooter();
                 break;
@@ -286,12 +292,12 @@ final class LayoutLibrary
                 $topTitle();
                 if ($portrait) {
                     $half = ($bodyH - 40) / 2;
-                    $add('body', 'body', 'text', 'Left column', $mx, $bodyY, $cw, $half, 44, 'First block', ['ps' => 0.6] + $text);
-                    $add('body2', 'body', 'text', 'Right column', $mx, $bodyY + $half + 40, $cw, $half, 44, 'Second block', ['ps' => 0.6] + $text);
+                    $add('body', 'body', 'text', 'Left column', $mx, $bodyY, $cw, min($half, 560), 44, 'First block', ['fill' => '@surface', 'pad' => 36, 'card' => true, 'ps' => 0.6] + $text);
+                    $add('body2', 'body', 'text', 'Right column', $mx, $bodyY + $half + 40, $cw, min($half, 560), 44, 'Second block', ['fill' => '@surface', 'pad' => 36, 'card' => true, 'ps' => 0.6] + $text);
                 } else {
                     $col = ($cw - 48) / 2;
-                    $add('body', 'body', 'text', 'Left column', $mx, $bodyY, $col, $bodyH, 42, 'First block', ['ps' => 0.6] + $text);
-                    $add('body2', 'body', 'text', 'Right column', $mx + $col + 48, $bodyY, $col, $bodyH, 42, 'Second block', ['ps' => 0.6] + $text);
+                    $add('body', 'body', 'text', 'Left column', $mx, $bodyY, $col, min($bodyH - 40, 560), 42, 'First block', ['fill' => '@surface', 'pad' => 36, 'card' => true, 'ps' => 0.6] + $text);
+                    $add('body2', 'body', 'text', 'Right column', $mx + $col + 48, $bodyY, $col, min($bodyH - 40, 560), 42, 'Second block', ['fill' => '@surface', 'pad' => 36, 'card' => true, 'ps' => 0.6] + $text);
                 }
                 $addFooter();
                 break;
@@ -311,8 +317,8 @@ final class LayoutLibrary
                 $tx = $left ? $mw + $gap : $mx;
                 $tw = $fw - $mw - $gap - $mx;
                 $add('media', 'media', 'media', 'Image', $left ? 0 : $fw - $mw, 0, $mw, $fh);
-                $add('title', 'title', 'text', 'Title', $tx, 96, $tw, $wide ? 330 : 300, $wide ? 58 : 54, 'Title', $heading);
-                $add('body', 'body', 'text', 'Text', $tx, $wide ? 470 : 440, $tw, $wide ? 490 : 520, $wide ? 40 : 36, 'Supporting text', ['ps' => 0.6] + $text);
+                $add('title', 'title', 'text', 'Title', $tx, 96, $tw, $wide ? 240 : 230, $wide ? 60 : 54, 'Title', $heading);
+                $add('body', 'body', 'text', 'Text', $tx, $wide ? 340 : 330, $tw, $wide ? 620 : 630, $wide ? 44 : 38, 'Supporting text', ['ps' => 0.7] + $text);
                 $addFooter($tx, $tw);
                 break;
 
@@ -336,14 +342,14 @@ final class LayoutLibrary
                     foreach ([['subtitle', 'body', 0], ['subtitle2', 'body2', 1]] as [$sk, $bk, $i]) {
                         $y = $bodyY + $i * ($half + 40);
                         $add($sk, 'subtitle', 'text', $i ? 'Right heading' : 'Left heading', $mx, $y, $cw, $headH, 40, $i ? 'Option B' : 'Option A', ['weight' => 700, 'color' => '@accent', 'valign' => 'middle'] + $text);
-                        $add($bk, 'body', 'text', $i ? 'Right points' : 'Left points', $mx, $y + $headH + 8, $cw, $half - $headH - 8, 42, 'Point', ['ps' => 0.6] + $text);
+                        $add($bk, 'body', 'text', $i ? 'Right points' : 'Left points', $mx, $y + $headH + 8, $cw, min($half - $headH - 8, 440), 42, 'Point', ['fill' => '@surface', 'pad' => 36, 'card' => true, 'ps' => 0.6] + $text);
                     }
                 } else {
                     $col = ($cw - 64) / 2;
                     foreach ([['subtitle', 'body', 0], ['subtitle2', 'body2', 1]] as [$sk, $bk, $i]) {
                         $x = $mx + $i * ($col + 64);
                         $add($sk, 'subtitle', 'text', $i ? 'Right heading' : 'Left heading', $x, $bodyY, $col, $headH, 40, $i ? 'Option B' : 'Option A', ['weight' => 700, 'color' => '@accent', 'valign' => 'middle'] + $text);
-                        $add($bk, 'body', 'text', $i ? 'Right points' : 'Left points', $x, $bodyY + $headH + 28, $col, $bodyH - $headH - 28, 42, 'Point', ['ps' => 0.6] + $text);
+                        $add($bk, 'body', 'text', $i ? 'Right points' : 'Left points', $x, $bodyY + $headH + 28, $col, min($bodyH - $headH - 68, 450), 44, 'Point', ['fill' => '@surface', 'pad' => 36, 'card' => true, 'ps' => 0.6] + $text);
                     }
                 }
                 $addFooter();
@@ -438,11 +444,11 @@ final class LayoutLibrary
 
             case 'closing':
                 if ($portrait) {
-                    $add('title', 'title', 'text', 'Closing line', $mx, 420, $cw, 620, 100, 'Thank you', ['valign' => 'bottom', 'lh' => 1.0, 'ls' => -0.02] + $heading);
+                    $add('title', 'title', 'text', 'Closing line', $mx, 420, $cw, 620, 100, 'Thank you', ['valign' => 'bottom', 'lh' => 1.05, 'ls' => -0.02, 'fit' => 'none'] + $heading);
                     $add('subtitle', 'subtitle', 'text', 'The ask', $mx, 1100, $cw, 280, 44, 'The decision or next step', $muted);
                     $add('body', 'body', 'text', 'Contact', $mx, 1560, $cw, 220, 32, 'Name, email, phone', $muted);
                 } else {
-                    $add('title', 'title', 'text', 'Closing line', $mx, 240, $wide ? 1400 : 1100, 380, $wide ? 104 : 96, 'Thank you', ['valign' => 'bottom', 'lh' => 1.0, 'ls' => -0.02] + $heading);
+                    $add('title', 'title', 'text', 'Closing line', $mx, 240, $wide ? 1400 : 1100, 380, $wide ? 104 : 96, 'Thank you', ['valign' => 'bottom', 'lh' => 1.05, 'ls' => -0.02, 'fit' => 'none'] + $heading);
                     $add('subtitle', 'subtitle', 'text', 'The ask', $mx, 660, $wide ? 1100 : 900, 150, 42, 'The decision or next step', $muted);
                     $add('body', 'body', 'text', 'Contact', $mx, 850, $wide ? 1100 : 900, 140, 30, 'Name, email, phone', $muted);
                 }

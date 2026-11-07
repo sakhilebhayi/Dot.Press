@@ -72,6 +72,22 @@ class LibraryThemesTest extends TestCase
     }
 
     #[DataProvider('themes')]
+    public function test_secondary_text_stays_legible_on_the_cover_and_section_grounds(array $theme): void
+    {
+        $c = $theme['c'];
+        $dark = ThemeTokens::luminance($c['bg']) < ThemeTokens::luminance($c['ink']);
+
+        // section slides: the page colour at 90 percent over the accent (the summary line under the title)
+        $this->assertGreaterThanOrEqual(3.5, ThemeTokens::contrast(ThemeTokens::mix($c['accent'], $c['bg'], 0.9), $c['accent']), 'summary on the accent ground');
+        // cover slides: the page colour at 78 percent over the ink (a light theme), or the muted ink on the dark page
+        if ($dark) {
+            $this->assertGreaterThanOrEqual(4.5, ThemeTokens::contrast($c['muted'], $c['bg']), 'muted on a dark cover');
+        } else {
+            $this->assertGreaterThanOrEqual(4.5, ThemeTokens::contrast(ThemeTokens::mix($c['ink'], $c['bg'], 0.78), $c['ink']), 'subtitle on an ink cover');
+        }
+    }
+
+    #[DataProvider('themes')]
     public function test_every_theme_uses_fonts_from_the_slide_font_list(array $theme): void
     {
         $this->assertContains($theme['t']['heading'], self::FONTS);

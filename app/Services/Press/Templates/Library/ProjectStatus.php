@@ -40,7 +40,7 @@ final class ProjectStatus implements Template
             'Amber: spend is ahead of progress by nine points.',
             'Say the overall status first, then explain it with these four numbers. Spend ahead of progress is a classic early warning, so name it if it applies. The figures are samples: replace them with your own project data, and agree with the sponsor how each is measured.',
             true,
-            ['reveal' => ['kpi1', 'kpi2', 'kpi3', 'kpi4']],
+            ['reveal' => true],
         );
 
         $c->beginSection('Progress');

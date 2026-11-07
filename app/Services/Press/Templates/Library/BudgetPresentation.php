@@ -83,7 +83,7 @@ final class BudgetPresentation implements Template
             ['We add', ['Two analysts to cut report time', 'New scanners to replace old ones', 'A year of vendor support', 'Staff training']],
             ['We stop', ['Two low value subscriptions', 'Paper based approvals', 'Duplicate site visits', 'An unused office lease']],
             'Showing what you stop builds trust. Be specific enough that the finance team can check the savings. Replace both lists with your own and give a rand figure for the total of each side if you can.',
-            ['reveal' => ['body', 'body2']],
+            ['reveal' => true],
         );
 
         $c->timeline(

@@ -49,7 +49,6 @@ final class ExecutiveSummary implements Template
             ],
             'Keep this to the situation, complication and question (SCQA). Use one sentence each. The situation must be uncontroversial: if someone could disagree with it, it belongs in the findings. The complication is the reason the meeting exists. The question should be answerable by the sentence on the previous slide, and the room should hear it as the obvious next thing to ask.',
             'Executives decide faster when the question is on the table first.',
-            ['reveal' => []],
         );
 
         $c->beginSection('Findings');
@@ -59,7 +58,7 @@ final class ExecutiveSummary implements Template
             'Replace each figure with your own, and keep the label to six words.',
             'Pick the three numbers an executive would quote in the corridor. One should show the problem or opportunity, one the benefit and one the cost or payback. Say each number once, say what it compares against, and move on. Sample figures here are illustrative; replace them before you present. If you cannot source a number, drop it rather than round it.',
             true,
-            ['reveal' => ['kpi1', 'kpi2', 'kpi3']],
+            ['reveal' => true],
         );
 
         $c->data(
@@ -78,7 +77,7 @@ final class ExecutiveSummary implements Template
             ['Option A: phased rollout', ['Starts in one region', 'Lower upfront cost', 'Slower to full benefit', 'Easy to stop']],
             ['Option B: full launch', ['Starts everywhere at once', 'Higher upfront cost', 'Benefit from month three', 'Hard to reverse']],
             'Compare the options on the same four criteria, in the same order, so the eye can run across. Do not hide the downside of your preferred option: executives trust a comparison that admits cost. Finish by saying which option you recommend and which single criterion decided it. Replace both headings and every line with your own options.',
-            ['reveal' => ['body', 'body2']],
+            ['reveal' => true],
         );
 
         $c->points(

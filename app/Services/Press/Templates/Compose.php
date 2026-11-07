@@ -288,15 +288,17 @@ final class Compose
             $els = $this->withSampleNote($els);
         }
 
-        foreach (array_values($opt['reveal'] ?? []) as $i => $key) {
-            foreach ($byKey[$key] ?? [] as $id) {
-                $els = array_map(function (array $el) use ($id, $i): array {
-                    if ($el['id'] === $id) {
-                        $el['anim'] = [['id' => 'a'.($i + 1), 'ph' => 'in', 'fx' => 'rise', 'on' => $i === 0 ? 'click' : 'click', 'delay' => 0, 'dur' => 450, 'ease' => 'out']];
-                    }
+        foreach ($this->revealGroups($layout, $opt['reveal'] ?? [], $content) as $i => $group) {
+            foreach ($group as $n => $key) {
+                foreach ($byKey[$key] ?? [] as $id) {
+                    $els = array_map(function (array $el) use ($id, $i, $n): array {
+                        if ($el['id'] === $id) {
+                            $el['anim'] = [['id' => 'a'.($i + 1).($n ? 'b' : ''), 'ph' => 'in', 'fx' => 'rise', 'on' => $n === 0 ? 'click' : 'with', 'delay' => 0, 'dur' => 450, 'ease' => 'out']];
+                        }
 
-                    return $el;
-                }, $els);
+                        return $el;
+                    }, $els);
+                }
             }
         }
 
@@ -334,19 +336,18 @@ final class Compose
         $color = $s['color'] ?? '@ink';
         $op = 1;
         if ($inverse || $accent) {
-            // on the ink or accent ground, text is the page colour (the dark theme keeps its own light ink)
+            // On the ink or accent ground the text takes the page colour. A dark theme is already dark: its cover keeps its own inks.
             $onDark = $accent || ! $this->dark;
-            if ($color === '@muted') {
-                $op = 0.78;
-            } elseif ($color === '@accent') {
-                $op = 0.9;
+            if ($onDark) {
+                if ($color === '@muted') {
+                    $op = $accent ? 0.9 : 0.78;
+                } elseif ($color === '@accent') {
+                    $op = 0.9;
+                }
+                $color = '@bg';
             }
             if ($p['role'] === 'number') {
                 $op = 0.4;
-            }
-            $color = $onDark ? '@bg' : ($color === '@accent' ? '@accent' : $color);
-            if ($accent) {
-                $color = '@bg';
             }
         }
 
@@ -379,10 +380,13 @@ final class Compose
             $el['ps'] = $s['ps'];
         }
         if (isset($s['pad'])) {
-            $el['pad'] = $this->n($s['pad'] * $this->h / 1080);
+            $el['pad'] = $this->n($s['pad'] * $this->typeUnit());
         }
         if (isset($s['fill'])) {
             $el['fill'] = $s['fill'];
+            if (isset($s['radius'])) {
+                $el['radius'] = $this->n($this->theme['s']['radius'] * $this->h / 1080);
+            }
         }
         if ($op !== 1) {
             $el['op'] = $op;
@@ -424,8 +428,8 @@ final class Compose
                 $rows[] = $cells;
             }
             $count = count($rows);
-            $size = $t['size'] ?? (int) round(30 * ($this->h / ($this->family() === 'portrait' ? 1920 : 1080)) * ($this->family() === 'portrait' ? 1.7 : 1));
-            $rowH = $t['rowh'] ?? min($h / $count, $size * 2.1);
+            $size = $t['size'] ?? (int) round(30 * $this->typeUnit() * ($this->family() === 'portrait' ? 1.15 : 1));
+            $rowH = $t['rowh'] ?? min($h / $count, $size * 2.4);
 
             return [[
                 'id' => 'media', 'type' => 'table', 'name' => 'Table', 'x' => $x, 'y' => $y, 'w' => $w, 'h' => $this->n($rowH * $count), 'role' => 'media', 'origin' => 'template',
@@ -461,6 +465,16 @@ final class Compose
         }
 
         return [];
+    }
+
+    /** Type size multiplier for this deck: the layout library's rule (see LayoutLibrary). */
+    private function typeUnit(): float
+    {
+        return match ($this->family()) {
+            'portrait' => 0.9 * $this->w / 1080,
+            'standard' => 0.92 * $this->h / 1080,
+            default => $this->h / 1080,
+        };
     }
 
     /** @param array<string, mixed> $chart */
@@ -510,9 +524,9 @@ final class Compose
             $icon = $this->options['icon'] ?? 'target';
             $onInk = ! $this->dark;
             $portrait = $family === 'portrait';
+            $kickerY = $portrait ? $H * 0.2 : 100;
             if ($style === 'rule') {
-                $y = $by['title']['y'] * $H - ($portrait ? 40 : 36);
-                $rect('Accent rule', $by['title']['x'] * $W, $y, $W * ($portrait ? 0.2 : 0.09), $H * 0.012, '@accent');
+                $rect('Accent rule', $by['title']['x'] * $W, $kickerY - 34, $W * ($portrait ? 0.2 : 0.07), $H * 0.008, '@accent');
             } else {
                 $split = $style === 'split';
                 if ($portrait) {
@@ -528,6 +542,15 @@ final class Compose
                 }
             }
 
+            $unit = $this->typeUnit();
+            $kicker = mb_strtoupper((string) ($this->options['label'] ?? ''));
+            if ($kicker !== '' && $layout === 'title') {
+                $out[] = [
+                    'id' => 'kicker', 'type' => 'text', 'name' => 'Label', 'x' => $this->n($by['title']['x'] * $W), 'y' => $this->n($kickerY), 'w' => $this->n($W * ($portrait ? 0.7 : 0.5)), 'h' => $this->n(40 * $unit),
+                    'doc' => $this->doc($kicker), 'font' => '@body', 'size' => $this->n(24 * $unit), 'weight' => 600, 'ls' => 0.14, 'color' => $this->dark ? '@accent' : '@bg', 'align' => 'left', 'valign' => 'middle', 'lh' => 1.2, 'fit' => 'shrink', 'op' => $this->dark ? 1 : 0.85, 'origin' => 'template',
+                ];
+            }
+
             return $out;
         }
 
@@ -536,12 +559,6 @@ final class Compose
                 if ($family !== 'portrait') {
                     $x = ($by['body']['x'] * $W + $by['subtitle']['x'] * $W + $by['subtitle']['w'] * $W) / 2;
                     $rect('Divider', $x - 1, 104, 2, $H * 0.78, '@line');
-                }
-                break;
-            case 'two':
-                if ($family !== 'portrait') {
-                    $x = ($px('body', 'r') + $px('body2', 'x')) / 2;
-                    $rect('Divider', $x - 1, $px('body', 'y'), 2, $px('body', 'h'), '@line');
                 }
                 break;
             case 'compare':
@@ -614,6 +631,38 @@ final class Compose
         $els[] = $note;
 
         return $els;
+    }
+
+    /**
+     * What appears on each click. true means the natural steps of the layout (a figure and its label, a column and its
+     * heading); 'right' reveals only the right hand column of a comparison; a list names slots (a string is one slot,
+     * a list of slots appears together).
+     *
+     * @param  array<string, mixed>|bool|string  $reveal
+     * @param  array<string, mixed>  $content
+     * @return list<list<string>>
+     */
+    private function revealGroups(string $layout, array|bool|string $reveal, array $content): array
+    {
+        if ($reveal === true) {
+            if ($layout === 'kpi') {
+                $groups = [];
+                for ($i = 1; $i <= 4; $i++) {
+                    if (isset($content['kpi'.$i])) {
+                        $groups[] = ['kpi'.$i, 'cap'.$i];
+                    }
+                }
+
+                return $groups;
+            }
+
+            return $layout === 'compare' ? [['subtitle', 'body'], ['subtitle2', 'body2']] : [['body'], ['body2']];
+        }
+        if ($reveal === 'right') {
+            return [['subtitle2', 'body2']];
+        }
+
+        return array_map(fn ($g): array => (array) $g, is_array($reveal) ? array_values($reveal) : []);
     }
 
     /**

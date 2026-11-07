@@ -43,15 +43,10 @@ final class TrainingDeck implements Template
 
         $c->section('01', 'Learn', 'The idea, in plain words', 'Keep this part short. People learn more from doing than from listening. Aim for no more than 15 minutes.');
 
-        $c->points(
+        $c->timeline(
             'The idea in three parts',
-            [
-                '**What it is.** One sentence in everyday words.',
-                '**Why it matters.** What goes wrong without it.',
-                '**How it works.** The three steps, in order.',
-            ],
-            "Explain the concept in a form a newcomer can repeat. Use one example from the learners' own work. If you use a term of art, define it the first time and then keep using the same word. Replace the three lines with your own.",
-            'Say it plainly before you say it precisely.',
+            [['What it is', 'One sentence in everyday words.'], ['Why it matters', 'What goes wrong without it.'], ['How it works', 'The three steps, in order.']],
+            "Explain the concept in a form a newcomer can repeat. Use one example from the learners' own work. If you use a term of art, define it the first time and then keep using the same word. Replace the three parts with your own, and say each one aloud before you show the next.",
         );
 
         $c->imageSide(
@@ -67,7 +62,7 @@ final class TrainingDeck implements Template
             ['Do', ['Check the setting before you start', 'Record what you did', 'Ask when you are unsure', 'Tell a colleague when it is done']],
             ['Do not', ['Skip the first check to save time', 'Rely on memory', 'Guess', 'Leave without handover']],
             'Pair every do with a matching do not so learners can see the contrast. Use real mistakes you have seen. Replace the eight lines with your own, and keep the wording short enough to remember.',
-            ['reveal' => ['body', 'body2']],
+            ['reveal' => true],
         );
 
         $c->quote(
@@ -78,11 +73,10 @@ final class TrainingDeck implements Template
 
         $c->section('02', 'Practise', 'Your turn: do the task', 'Hand over to the learners. Tell them how long they have and what you will be doing while they work (walking round, answering questions).');
 
-        $c->points(
+        $c->timeline(
             'The exercise',
-            ['ol' => ['Open the practice file', 'Complete steps 1 to 5 of the checklist', 'Compare your result with the model answer', 'Note one thing you would do differently']],
-            'Give clear steps and a time limit (10 to 15 minutes works for most tasks). Walk the room and ask questions rather than giving answers. Replace the four steps with your own exercise.',
-            'You have 15 minutes. Ask if you are stuck.',
+            [['Step 1', 'Open the practice file.'], ['Step 2', 'Complete steps 1 to 5 of the checklist.'], ['Step 3', 'Compare your result with the model answer.'], ['Step 4', 'Note one thing you would do differently.']],
+            'Give clear steps and a time limit (10 to 15 minutes works for most tasks). Say that you have 15 minutes and that they should ask if they are stuck. Walk the room and ask questions rather than giving answers. Replace the four steps with your own exercise.',
         );
 
         $c->data(

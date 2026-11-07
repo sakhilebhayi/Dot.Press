@@ -86,7 +86,7 @@ final class MarketingPlan implements Template
                 ['Email', 'Monthly newsletter and a 5 part welcome series', 'Conversion', 'R 20 000'],
                 ['Events', 'Two workshops, one conference stand', 'Leads', 'R 120 000'],
                 ['Referrals', 'Customer reward programme', 'Revenue', 'R 40 000'],
-            ], [0.16, 0.44, 0.2, 0.2], ['l', 'l', 'l', 'r'], null, 26),
+            ], [0.16, 0.44, 0.2, 0.2], ['l', 'l', 'l', 'r'], null, 28),
             ['Every line points to one objective.', 'Events take the largest share of budget.', 'Referrals are the cheapest route to revenue.'],
             'Budgets are illustrative. Replace with yours.',
             'A channel plan is a table: the audience wants to scan down. Keep each cell to a short phrase. Make sure every line has an objective and a budget, and that the totals match the budget slide. Replace all four rows with your own channels.',
