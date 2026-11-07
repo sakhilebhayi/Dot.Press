@@ -7,6 +7,8 @@
  *   pickTop(slide, pt, opts)             topmost hit id or null
  *   pickBelow(slide, pt, currentId, opts)  the next hit below `currentId` (alt+click selects behind), wrapping
  *   lockedAt(slide, pt, pad)             topmost locked, visible element under the point (to hint "locked")
+ *   contextPick(slide, pt, pad)          what a right click lands on: {id, locked}. An unlocked element wins; with none, a locked one under
+ *                                        the point (so the menu can offer Unlock); else null
  *   tabOrder(slide)                      pickable ids bottom to top (matches Tab through the layers)
  *   isLine(el)                           a line or arrow shape (box of height 0, endpoint handles)
  */
@@ -45,6 +47,13 @@ export function lockedAt(slide, pt, pad = 0) {
     if (pointInBox(el, pt, pad)) return el.id;
   }
   return null;
+}
+
+export function contextPick(slide, pt, pad = 0) {
+  const id = pickTop(slide, pt, { pad });
+  if (id) return { id, locked: false };
+  const lk = lockedAt(slide, pt, pad);
+  return lk ? { id: lk, locked: true } : null;
 }
 
 export const tabOrder = (slide) => (slide ? slide.els.filter((e) => !e.hide && !e.lock).map((e) => e.id) : []);

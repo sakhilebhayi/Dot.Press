@@ -62,6 +62,7 @@ const toggles = computed(() => [
 
 <template>
     <div class="dk" role="toolbar" aria-label="Insert and view tools">
+        <button type="button" class="dk-b dk-insp" :aria-pressed="ui.inspector.open" aria-controls="ed-insp" aria-label="Inspector" data-tip="Inspector" data-tip-up @click="editor.toggleInspector()"><Ico name="inspector" /></button>
         <div class="dk-group" role="group" aria-label="Insert">
             <button type="button" class="dk-b" :aria-pressed="ui.tool === 'select'" aria-label="Select" data-tip="Select" data-tip-up @click="ui.tool = 'select'"><Ico name="select" /></button>
             <button type="button" class="dk-b dk-hand" :aria-pressed="ui.tool === 'hand'" aria-label="Hand, move around the slide" data-tip="Hand" data-tip-up @click="ui.tool = ui.tool === 'hand' ? 'select' : 'hand'"><Ico name="hand" /></button>

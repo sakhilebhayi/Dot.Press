@@ -37,6 +37,9 @@ export const MODES = [
   },
 ];
 
+/** The mode the panel starts on: the one that never cuts anything off. The person can pick Scale to fill after seeing the preview. */
+export const DEFAULT_MODE = 'fit';
+
 const gcd = (a, b) => (b ? gcd(b, a % b) : a);
 
 export function ratioLabel(w, h) {

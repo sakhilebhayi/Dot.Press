@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hitOrder, pickTop, pickBelow, lockedAt, tabOrder, isLine } from '../lib/hit.js';
+import { hitOrder, pickTop, pickBelow, lockedAt, contextPick, tabOrder, isLine } from '../lib/hit.js';
 import { S, T, R } from '../../core/__tests__/helpers.mjs';
 
 const slide = S('s1', [
@@ -47,4 +47,17 @@ test('locked elements are reported for the hint, tab order is pickable bottom to
   assert.equal(lockedAt(slide, { x: 20, y: 20 }), null);
   assert.deepEqual(tabOrder(slide), ['bottom', 'mid', 'top', 'ln']);
   assert.deepEqual(tabOrder(null), []);
+});
+
+test('a right click lands on the top unlocked element, else on a locked one so the menu can offer Unlock', () => {
+  const slide = { els: [
+    { id: 'free', type: 'shape', kind: 'rect', x: 0, y: 0, w: 100, h: 100 },
+    { id: 'lock', type: 'shape', kind: 'rect', x: 500, y: 0, w: 100, h: 100, lock: true },
+    { id: 'under', type: 'shape', kind: 'rect', x: 500, y: 500, w: 100, h: 100, lock: true },
+    { id: 'over', type: 'shape', kind: 'rect', x: 500, y: 500, w: 100, h: 100 },
+  ] };
+  assert.deepEqual(contextPick(slide, { x: 50, y: 50 }), { id: 'free', locked: false });
+  assert.deepEqual(contextPick(slide, { x: 550, y: 50 }), { id: 'lock', locked: true });
+  assert.deepEqual(contextPick(slide, { x: 550, y: 550 }), { id: 'over', locked: false });
+  assert.equal(contextPick(slide, { x: 300, y: 300 }), null);
 });

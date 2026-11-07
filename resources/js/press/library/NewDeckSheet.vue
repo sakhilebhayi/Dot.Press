@@ -8,7 +8,8 @@ import { createApi } from '../editor/ui/transport.js';
 import { newId } from '../editor/core/doc.js';
 import Ico from '../editor/ui/Ico.vue';
 import LazyThumb from '../editor/ui/LazyThumb.vue';
-import { SIZES } from './libraryModel.js';
+import { SIZES, normalizeTemplates, templateCategories } from './libraryModel.js';
+import TemplateThumb from './TemplateThumb.vue';
 import { buildOps, modeLabel, moveBeat, normalizeImport, normalizeOutline, outlineToDeck, titleFromBrief } from './outlineModel.js';
 
 const props = defineProps({
@@ -21,6 +22,10 @@ const api = createApi(axios.create({ withCredentials: true, headers: { 'X-Reques
 const box = ref(null);
 const tab = ref('blank');
 const templates = ref([]);
+const tplCategories = ref([]);
+const tplFilter = ref('all');
+const visibleTemplates = computed(() => (tplFilter.value === 'all' ? templates.value : templates.value.filter((t) => t.category === tplFilter.value)));
+const tplChips = computed(() => templateCategories(templates.value, tplCategories.value));
 const busy = ref(false);
 const error = ref('');
 let opener = null;
@@ -77,6 +82,7 @@ const announced = computed(() => modeLabel(outline.value?.mode || props.ai.mode)
 
 async function fetchOutline(extra = {}) {
     const body = { brief: brief.text.trim(), source: brief.source.trim() || undefined, framework: brief.framework === 'auto' ? undefined : brief.framework, ...extra };
+    if (body.source === undefined) delete body.source;
     const res = await api.post('/api/ai/outline', body);
     const out = normalizeOutline(res);
     if (!out) throw Object.assign(new Error('The outline writer answered with something that is not an outline.'), { status: 502 });
@@ -97,8 +103,9 @@ async function regenerateBeat(beat) {
     if (regen.value) return;
     regen.value = beat.id; error.value = '';
     try {
-        const out = await fetchOutline({ only: beat.beat });
-        const fresh = out.beats.find((b) => b.beat === beat.beat) || out.beats[0];
+        const out = await fetchOutline();
+        const fresh = out.beats.find((b) => b.beat === beat.beat);
+        if (!fresh) throw new Error('That section did not come back in the new draft. Your version is kept.');
         outline.value = { ...outline.value, beats: outline.value.beats.map((b) => (b.id === beat.id ? { ...fresh, id: beat.id, label: beat.label } : b)) };
     } catch (e) { fail(e, 'The outline could not be made right now. Try again in a moment.'); }
     regen.value = null;
@@ -161,15 +168,15 @@ async function importPptx() {
 async function loadTemplates() {
     try {
         const res = await api.get('/api/templates');
-        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.templates) ? res.templates : [];
-        templates.value = list.filter((t) => t && (t.id != null) && (t.name || t.title));
+        templates.value = normalizeTemplates(res);
+        tplCategories.value = Array.isArray(res?.categories) ? res.categories : [];
     } catch { templates.value = []; }
 }
 async function useTemplate(t) {
     if (busy.value) return;
     busy.value = true; error.value = '';
     try {
-        const body = { title: t.name || t.title, template: String(t.id) };
+        const body = { title: t.name, template: t.id, size: t.aspect === '4:3' ? '4:3' : t.aspect === '9:16' ? 'portrait' : '16:9' };
         const deck = await api.post('/api/decks', body);
         open(deck.id);
     } catch (e) { fail(e); }
@@ -299,14 +306,17 @@ onBeforeUnmount(() => { document.documentElement.style.overflow = ''; });
                                     <div class="ns-beat-tools">
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="bi === 0" :aria-label="`Move ${b.label} up`" @click="shiftBeat(b.id, -1)"><Ico name="chevronUp" size="sm" /></button>
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="bi === outline.beats.length - 1" :aria-label="`Move ${b.label} down`" @click="shiftBeat(b.id, 1)"><Ico name="chevronDown" size="sm" /></button>
-                                        <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="!!regen" :aria-label="`Write ${b.label} again`" data-tip="Write again" @click="regenerateBeat(b)"><Ico name="refresh" size="sm" /></button>
+                                        <button v-if="outline.mode === 'ai'" type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :disabled="!!regen" :aria-label="`Write ${b.label} again`" data-tip="Write again" @click="regenerateBeat(b)"><Ico name="refresh" size="sm" /></button>
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" :aria-label="`Delete ${b.label}`" @click="removeBeat(b.id)"><Ico name="trash" size="sm" /></button>
                                     </div>
                                 </div>
                                 <ul class="ns-claims">
                                     <li v-for="s in b.slides" :key="s.id" class="ns-claim">
                                         <span class="pr-bead pr-bead--sm" aria-hidden="true"></span>
-                                        <input :value="s.title" type="text" class="pr-field" maxlength="200" aria-label="Claim" placeholder="Say what is true" @input="setSlide(b.id, s.id, $event.target.value)" />
+                                        <span class="ns-claim-f">
+                                            <input :value="s.title" type="text" class="pr-field" maxlength="200" aria-label="Claim" placeholder="Say what is true" @input="setSlide(b.id, s.id, $event.target.value)" />
+                                            <span v-if="s.need && s.title === b.label" class="ns-need pr-small pr-muted">Placeholder. {{ s.need }} Write the claim, or delete the slide.</span>
+                                        </span>
                                         <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon pr-btn--sm" aria-label="Delete this slide" @click="removeSlide(b.id, s.id)"><Ico name="close" size="sm" /></button>
                                     </li>
                                 </ul>
@@ -316,7 +326,8 @@ onBeforeUnmount(() => { document.documentElement.style.overflow = ''; });
                         <p v-if="!outline.beats.length" class="pr-muted">Nothing on this line yet. Go back and draft it again.</p>
                         <div class="ns-foot">
                             <button type="button" class="pr-btn" :disabled="busy" @click="step = 'brief'">Back</button>
-                            <button type="button" class="pr-btn" :disabled="busy" @click="draftOutline"><Ico name="refresh" size="sm" />Write it all again</button>
+                            <button v-if="outline.mode === 'ai'" type="button" class="pr-btn" :disabled="busy" @click="draftOutline"><Ico name="refresh" size="sm" />Write it all again</button>
+                            <button v-else type="button" class="pr-btn" :disabled="busy" data-tip="Local rules give the same draft every time" @click="draftOutline"><Ico name="refresh" size="sm" />Reset my edits</button>
                             <button type="button" class="pr-btn pr-btn--primary ns-grow" :disabled="busy || !slideCount" @click="generateDeck">{{ busy ? 'Making it' : `Make ${slideCount} ${slideCount === 1 ? 'slide' : 'slides'}` }}</button>
                         </div>
                     </div>
@@ -351,11 +362,16 @@ onBeforeUnmount(() => { document.documentElement.style.overflow = ''; });
 
                     <!-- templates -->
                     <div v-else-if="tab === 'templates'" class="ns-form" role="tabpanel">
+                        <div class="ns-chips" role="group" aria-label="Template category">
+                            <button type="button" class="ns-chip" :class="{ 'is-on': tplFilter === 'all' }" :aria-pressed="tplFilter === 'all'" @click="tplFilter = 'all'">All <span class="pr-state">{{ templates.length }}</span></button>
+                            <button v-for="c in tplChips" :key="c.id" type="button" class="ns-chip" :class="{ 'is-on': tplFilter === c.id }" :aria-pressed="tplFilter === c.id" @click="tplFilter = c.id">{{ c.name }} <span class="pr-state">{{ c.count }}</span></button>
+                        </div>
                         <ul class="ns-tpls">
-                            <li v-for="t in templates" :key="t.id">
-                                <button type="button" class="ns-tpl" :disabled="busy" @click="useTemplate(t)">
-                                    <span v-if="t.preview" class="ns-tpl-thumb"><LazyThumb :slide="{ id: 'p', bg: t.preview.bg ?? null, els: t.preview.els ?? [] }" :deck="{ w: t.w || 1920, h: t.h || 1080, theme: t.theme }" /></span>
-                                    <span class="ns-tpl-n">{{ t.name || t.title }}</span>
+                            <li v-for="t in visibleTemplates" :key="t.id">
+                                <button type="button" class="ns-tpl" :disabled="busy" :aria-label="`Use the template ${t.name}, ${t.slides} slides`" @click="useTemplate(t)">
+                                    <TemplateThumb :template-id="t.id" />
+                                    <span class="ns-tpl-n">{{ t.name }}</span>
+                                    <span class="ns-tpl-b pr-small pr-muted">{{ t.blurb }}</span>
                                     <span v-if="t.slides" class="pr-state pr-muted">{{ t.slides }} slides</span>
                                 </button>
                             </li>

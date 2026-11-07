@@ -42,8 +42,10 @@
 .pr-ico--sm { width: 16px; height: 16px; }
 .pr-ico--lg { width: 24px; height: 24px; }
 
-/* buttons: quiet by default, primary is the ink fill */
-.pr-btn {
+/* buttons: quiet by default, primary is the ink fill.
+   The base rule has no specificity (:where) so a component class on the same button (.tb-act, .lh-team ...) always wins,
+   whatever order the built stylesheets happen to load in. */
+:where(.pr-btn) {
     --h: 36px;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     height: var(--h); padding: 0 14px; border-radius: var(--r-2);

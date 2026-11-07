@@ -3,6 +3,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { useEditorContext } from '../context.js';
 import PanelHost from '../panels/PanelHost.vue';
+import DropMenu from './DropMenu.vue';
 import Ico from './Ico.vue';
 
 const editor = useEditorContext();
@@ -20,6 +21,12 @@ const groups = computed(() => {
     return out;
 });
 const scopeWord = { selection: 'Selection', slide: 'Slide', deck: 'Deck' };
+const current = computed(() => tabs.value.find((p) => p.id === active.value) || null);
+// every panel by name, grouped by scope: the icon strip is a shortcut, this list is how a panel is found
+const pickItems = computed(() => groups.value.flatMap((g) => [
+    { heading: scopeWord[g.scope] || g.scope },
+    ...g.items.map((p) => ({ label: p.label, icon: p.icon, checked: p.id === active.value, run: () => { choose(p.id); nextTick(() => strip.value?.querySelector('[aria-selected="true"]')?.focus?.()); } })),
+]));
 
 function choose(id) { ui.inspector.panel = id; ui.inspector.props = null; }
 function onTabKey(e) {
@@ -34,7 +41,13 @@ function onTabKey(e) {
 }
 watch(active, async () => {
     await nextTick();
-    strip.value?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    // Scroll only the strip. scrollIntoView would also scroll the app shell sideways while the drawer slides in.
+    const box = strip.value;
+    const tab = box?.querySelector('[aria-selected="true"]');
+    if (!box || !tab) return;
+    const left = tab.offsetLeft - box.offsetLeft;
+    if (left < box.scrollLeft) box.scrollLeft = Math.max(0, left - 8);
+    else if (left + tab.offsetWidth > box.scrollLeft + box.clientWidth) box.scrollLeft = left + tab.offsetWidth - box.clientWidth + 8;
 });
 async function close() {
     editor.closePanel();
@@ -45,15 +58,24 @@ async function close() {
 <template>
     <aside class="in" aria-label="Inspector">
         <header class="in-head">
+            <DropMenu :items="pickItems" label="Inspector panels" :min-width="230">
+                <template #trigger="{ toggle, open }">
+                    <button type="button" class="in-pick" aria-haspopup="menu" :aria-expanded="open" :aria-label="current ? `${current.label} panel. Choose another panel` : 'Choose a panel'" @click="toggle">
+                        <Ico v-if="current?.icon" :name="current.icon" size="sm" />
+                        <span class="in-pick-l">{{ current ? current.label : 'Panels' }}</span>
+                        <Ico name="chevronDown" size="sm" />
+                    </button>
+                </template>
+            </DropMenu>
             <div ref="strip" class="in-tabs pr-scroll" role="tablist" aria-label="Panels" @keydown="onTabKey">
                 <template v-for="(g, gi) in groups" :key="g.scope">
                     <span v-if="gi > 0" class="in-sep" aria-hidden="true"></span>
                     <button
                         v-for="p in g.items" :key="p.id" type="button" role="tab" class="in-tab" :class="{ 'is-on': p.id === active }" :aria-selected="p.id === active" :tabindex="p.id === active ? 0 : -1"
-                        :title="`${scopeWord[p.scope]}: ${p.label}`" @click="choose(p.id)"
+                        :aria-label="p.label" :data-tip="`${scopeWord[p.scope]}: ${p.label}`" @click="choose(p.id)"
                     >
                         <Ico v-if="p.icon" :name="p.icon" size="sm" />
-                        <span :class="{ 'pr-sr': p.icon && p.id !== active }">{{ p.label }}</span>
+                        <span v-else>{{ p.label }}</span>
                     </button>
                 </template>
             </div>
