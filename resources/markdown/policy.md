@@ -1,10 +1,10 @@
 _Last updated: 2026-11-08_
 
-This policy explains what Dot.Press stores about you and your work, what it does with it, who can see it and how to have it corrected or deleted. Dot.Press is run by **BluePin Inc** ("we", "us") and is part of the Dot ecosystem. It is written with South Africa's **Protection of Personal Information Act 4 of 2013 (POPIA)** in mind.
+This policy explains what Dot.Press stores about you and your work, what it does with it, who can see it and how to have it corrected or deleted. Dot.Press is run by **BluPin Incorporated** ("we", "us") and is part of the Dot ecosystem. It is written with South Africa's **Protection of Personal Information Act 4 of 2013 (POPIA)** in mind.
 
 ## 1. Who is responsible
 
-BluePin Inc is the responsible party for the personal information in Dot.Press. Questions, requests and complaints go to our Information Officer at privacy@infodot.co.za, the same address InfoDot uses.
+BluPin Incorporated is the responsible party for the personal information in Dot.Press. Questions, requests and complaints go to our Information Officer at privacy@infodot.co.za, the same address InfoDot uses.
 
 ## 2. What Dot.Press stores
 

@@ -1,6 +1,6 @@
 _Last updated: 2026-11-07_
 
-These terms cover your use of Dot.Press, run by **BluePin Inc** ("we", "us"). By signing in and using Dot.Press you agree to them.
+These terms cover your use of Dot.Press, run by **BluPin Incorporated** ("we", "us"). By signing in and using Dot.Press you agree to them.
 
 ## 1. What Dot.Press is
 
@@ -49,7 +49,7 @@ Dot.Press is provided as it is, without promises that it is error free, uninterr
 
 ## 11. Limit of liability
 
-As far as the law allows, BluePin Inc is not liable for indirect or consequential loss arising from your use of Dot.Press, including loss from content you create, upload, share or export.
+As far as the law allows, BluPin Incorporated is not liable for indirect or consequential loss arising from your use of Dot.Press, including loss from content you create, upload, share or export.
 
 ## 12. Changes
 
