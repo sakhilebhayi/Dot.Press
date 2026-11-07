@@ -100,7 +100,7 @@ class SharedDeckController extends Controller
         };
 
         return JsonStream::response($request, DeckDocument::chunks($deck, $assets, [
-            'notes' => false, 'seq' => 0, 'deck_keys' => ['id', 'title', 'w', 'h', 'theme', 'sections', 'slide_order', 'updated_at'],
+            'notes' => false, 'blank_hidden' => true, 'seq' => 0, 'deck_keys' => ['id', 'title', 'w', 'h', 'theme', 'sections', 'slide_order', 'updated_at'],
         ]));
     }
 

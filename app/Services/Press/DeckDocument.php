@@ -76,11 +76,12 @@ class DeckDocument
      * The caller must already have proved the person may read the deck: this reads the tables directly, without the
      * per-user global scopes (the same reason PresentPayload does).
      *
-     * Options: `notes` false writes null for every slide's notes (a guest never gets them), `deck_keys` keeps only those
-     * keys of the deck block, `seq` writes that number instead of the log position.
+     * Options: `notes` false writes null for every slide's notes (a guest never gets them), `blank_hidden` sends a hidden
+     * slide as an empty place holder (no title, background or elements, and its pictures are not listed), `deck_keys`
+     * keeps only those keys of the deck block, `seq` writes that number instead of the log position.
      *
      * @param  (callable(list<int>): array<int|string, mixed>)|null  $assets
-     * @param  array{notes?: bool, deck_keys?: list<string>, seq?: int}  $options
+     * @param  array{notes?: bool, blank_hidden?: bool, deck_keys?: list<string>, seq?: int}  $options
      * @return Generator<int, string>
      */
     public static function chunks(Deck $deck, ?callable $assets = null, array $options = []): Generator
@@ -92,6 +93,7 @@ class DeckDocument
             $deckBlock = array_intersect_key($deckBlock, array_flip($options['deck_keys']));
         }
         $notes = $options['notes'] ?? true;
+        $blankHidden = $options['blank_hidden'] ?? false;
         $assetIds = [];
         self::collectAssetIds(json_encode($deck->theme ?: null), $assetIds);
 
@@ -101,14 +103,15 @@ class DeckDocument
         $rows = DB::table('slides')->where('deck_id', $deck->id)->orderBy('sort_order')->orderBy('id')
             ->select(['id', 'title', 'notes', 'section_id', 'hidden', 'layout', 'bg', 'transition', 'revision', 'els'])->cursor();
         foreach ($rows as $row) {
-            $els = self::rawJson($row->els, '[]');
-            $bg = self::rawJson($row->bg, 'null');
+            $blank = $blankHidden && $row->hidden;
+            $els = $blank ? '[]' : self::rawJson($row->els, '[]');
+            $bg = $blank ? 'null' : self::rawJson($row->bg, 'null');
             $transition = self::rawJson($row->transition, 'null');
             self::collectAssetIds($els, $assetIds);
             self::collectAssetIds($bg, $assetIds);
 
             yield ($first ? '' : ',').'{"id":'.(int) $row->id
-                .',"title":'.json_encode((string) ($row->title ?? ''), self::FLAGS)
+                .',"title":'.($blank ? 'null' : json_encode((string) ($row->title ?? ''), self::FLAGS))
                 .',"notes":'.($notes ? json_encode((string) ($row->notes ?? ''), self::FLAGS) : 'null')
                 .',"section_id":'.json_encode($row->section_id, self::FLAGS)
                 .',"hidden":'.($row->hidden ? 'true' : 'false')
