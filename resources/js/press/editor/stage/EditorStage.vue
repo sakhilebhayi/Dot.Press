@@ -15,7 +15,8 @@
 //   editor.uploadAsset(file, {projectId, onProgress}) -> asset payload   when absent the stage POSTs multipart to /api/assets
 //   editor.registerAsset(id, entry)   when absent the stage writes editor.assets[id] directly
 //   editor.runCommand(cmd, args)      for keymap commands the store does not run (present.*, view.help, edit.find, edit.rename)
-//   ui.dragging                       {kind: 'asset', id, asset?} from the asset panel (native drag and drop onto the stage)
+//   ui.dragging                       {kind: 'asset', id, asset?} from the asset panel (native drag and drop onto the stage);
+//                                     {kind: 'insert', what, ...} from the Insert panel: the stage emits 'insert:drop' {drag, point} on the bus
 // What it gives the shell
 //   editor.stage                      {fit, zoomToSelection, zoomToRect, focus, toScreen, toSlide, beginTextEdit, beginCrop,
 //                                      replacePicture, pickFiles, addFiles, announce}; also the exposed API of the component
@@ -367,7 +368,7 @@ function hasFiles(dt) {
     return !!dt && [...(dt.types || [])].includes('Files');
 }
 function dragKind() {
-    return ui.dragging && (ui.dragging.kind === 'asset' || ui.dragging.kind === 'file') ? ui.dragging : null;
+    return ui.dragging && (ui.dragging.kind === 'asset' || ui.dragging.kind === 'file' || ui.dragging.kind === 'insert') ? ui.dragging : null;
 }
 function onDragEnter(e) {
     if (!canEdit.value) return;
@@ -387,7 +388,7 @@ function onDragOver(e) {
     e.dataTransfer.dropEffect = 'copy';
     const pt = dropPoint(e);
     const target = hitOrder(slide.value, pt, { pad: 0 }).map((id) => slide.value.els.find((x) => x.id === id)).find((x) => x);
-    const id = target && (target.type === 'image' || target.type === 'video') ? target.id : null;
+    const id = target && (target.type === 'image' || target.type === 'video') && ui.dragging?.kind !== 'insert' ? target.id : null;
     if (gestures.hover.value.id !== id) gestures.hover.value = { id, handle: null, lockedId: null };
 }
 function onDragLeave(e) {
@@ -410,6 +411,11 @@ function onDrop(e) {
     if (asset && asset.kind === 'asset') {
         e.preventDefault();
         uploads.addExisting(asset, { point: pt });
+        ui.dragging = null;
+    } else if (asset && asset.kind === 'insert') {
+        // an item dragged from the Insert panel: the panel builds the element and adds it at the drop point
+        e.preventDefault();
+        editor.emit?.('insert:drop', { drag: asset, point: pt });
         ui.dragging = null;
     }
 }
