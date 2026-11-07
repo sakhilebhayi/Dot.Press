@@ -1,0 +1,386 @@
+[
+ {
+  "fam": "Public Sans",
+  "file": "public-sans-italic-100-900-latin-ext.woff2",
+  "style": "italic",
+  "weight": "100 900",
+  "subset": "latin-ext",
+  "bytes": 19292
+ },
+ {
+  "fam": "Public Sans",
+  "file": "public-sans-italic-100-900-latin.woff2",
+  "style": "italic",
+  "weight": "100 900",
+  "subset": "latin",
+  "bytes": 28356
+ },
+ {
+  "fam": "Public Sans",
+  "file": "public-sans-normal-100-900-latin-ext.woff2",
+  "style": "normal",
+  "weight": "100 900",
+  "subset": "latin-ext",
+  "bytes": 18372
+ },
+ {
+  "fam": "Public Sans",
+  "file": "public-sans-normal-100-900-latin.woff2",
+  "style": "normal",
+  "weight": "100 900",
+  "subset": "latin",
+  "bytes": 26636
+ },
+ {
+  "fam": "Inter",
+  "file": "inter-italic-100-900-latin-ext.woff2",
+  "style": "italic",
+  "weight": "100 900",
+  "subset": "latin-ext",
+  "bytes": 91836
+ },
+ {
+  "fam": "Inter",
+  "file": "inter-italic-100-900-latin.woff2",
+  "style": "italic",
+  "weight": "100 900",
+  "subset": "latin",
+  "bytes": 51636
+ },
+ {
+  "fam": "Inter",
+  "file": "inter-normal-100-900-latin-ext.woff2",
+  "style": "normal",
+  "weight": "100 900",
+  "subset": "latin-ext",
+  "bytes": 85272
+ },
+ {
+  "fam": "Inter",
+  "file": "inter-normal-100-900-latin.woff2",
+  "style": "normal",
+  "weight": "100 900",
+  "subset": "latin",
+  "bytes": 48432
+ },
+ {
+  "fam": "IBM Plex Sans",
+  "file": "ibm-plex-sans-italic-100-700-latin-ext.woff2",
+  "style": "italic",
+  "weight": "100 700",
+  "subset": "latin-ext",
+  "bytes": 28764
+ },
+ {
+  "fam": "IBM Plex Sans",
+  "file": "ibm-plex-sans-italic-100-700-latin.woff2",
+  "style": "italic",
+  "weight": "100 700",
+  "subset": "latin",
+  "bytes": 44916
+ },
+ {
+  "fam": "IBM Plex Sans",
+  "file": "ibm-plex-sans-normal-100-700-latin-ext.woff2",
+  "style": "normal",
+  "weight": "100 700",
+  "subset": "latin-ext",
+  "bytes": 25868
+ },
+ {
+  "fam": "IBM Plex Sans",
+  "file": "ibm-plex-sans-normal-100-700-latin.woff2",
+  "style": "normal",
+  "weight": "100 700",
+  "subset": "latin",
+  "bytes": 40240
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-italic-400-latin-ext.woff2",
+  "style": "italic",
+  "weight": "400",
+  "subset": "latin-ext",
+  "bytes": 11692
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-italic-400-latin.woff2",
+  "style": "italic",
+  "weight": "400",
+  "subset": "latin",
+  "bytes": 16024
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-normal-400-latin-ext.woff2",
+  "style": "normal",
+  "weight": "400",
+  "subset": "latin-ext",
+  "bytes": 10868
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-normal-400-latin.woff2",
+  "style": "normal",
+  "weight": "400",
+  "subset": "latin",
+  "bytes": 14916
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-normal-500-latin-ext.woff2",
+  "style": "normal",
+  "weight": "500",
+  "subset": "latin-ext",
+  "bytes": 10892
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-normal-500-latin.woff2",
+  "style": "normal",
+  "weight": "500",
+  "subset": "latin",
+  "bytes": 15528
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-normal-700-latin-ext.woff2",
+  "style": "normal",
+  "weight": "700",
+  "subset": "latin-ext",
+  "bytes": 10740
+ },
+ {
+  "fam": "IBM Plex Serif",
+  "file": "ibm-plex-serif-normal-700-latin.woff2",
+  "style": "normal",
+  "weight": "700",
+  "subset": "latin",
+  "bytes": 14936
+ },
+ {
+  "fam": "IBM Plex Mono",
+  "file": "ibm-plex-mono-normal-400-latin-ext.woff2",
+  "style": "normal",
+  "weight": "400",
+  "subset": "latin-ext",
+  "bytes": 8860
+ },
+ {
+  "fam": "IBM Plex Mono",
+  "file": "ibm-plex-mono-normal-400-latin.woff2",
+  "style": "normal",
+  "weight": "400",
+  "subset": "latin",
+  "bytes": 10052
+ },
+ {
+  "fam": "IBM Plex Mono",
+  "file": "ibm-plex-mono-normal-500-latin-ext.woff2",
+  "style": "normal",
+  "weight": "500",
+  "subset": "latin-ext",
+  "bytes": 8848
+ },
+ {
+  "fam": "IBM Plex Mono",
+  "file": "ibm-plex-mono-normal-500-latin.woff2",
+  "style": "normal",
+  "weight": "500",
+  "subset": "latin",
+  "bytes": 10060
+ },
+ {
+  "fam": "IBM Plex Mono",
+  "file": "ibm-plex-mono-normal-700-latin-ext.woff2",
+  "style": "normal",
+  "weight": "700",
+  "subset": "latin-ext",
+  "bytes": 8748
+ },
+ {
+  "fam": "IBM Plex Mono",
+  "file": "ibm-plex-mono-normal-700-latin.woff2",
+  "style": "normal",
+  "weight": "700",
+  "subset": "latin",
+  "bytes": 10128
+ },
+ {
+  "fam": "Literata",
+  "file": "literata-italic-200-900-latin-ext.woff2",
+  "style": "italic",
+  "weight": "200 900",
+  "subset": "latin-ext",
+  "bytes": 42768
+ },
+ {
+  "fam": "Literata",
+  "file": "literata-italic-200-900-latin.woff2",
+  "style": "italic",
+  "weight": "200 900",
+  "subset": "latin",
+  "bytes": 53696
+ },
+ {
+  "fam": "Literata",
+  "file": "literata-normal-200-900-latin-ext.woff2",
+  "style": "normal",
+  "weight": "200 900",
+  "subset": "latin-ext",
+  "bytes": 42556
+ },
+ {
+  "fam": "Literata",
+  "file": "literata-normal-200-900-latin.woff2",
+  "style": "normal",
+  "weight": "200 900",
+  "subset": "latin",
+  "bytes": 52720
+ },
+ {
+  "fam": "DM Sans",
+  "file": "dm-sans-italic-100-1000-latin-ext.woff2",
+  "style": "italic",
+  "weight": "100 1000",
+  "subset": "latin-ext",
+  "bytes": 20604
+ },
+ {
+  "fam": "DM Sans",
+  "file": "dm-sans-italic-100-1000-latin.woff2",
+  "style": "italic",
+  "weight": "100 1000",
+  "subset": "latin",
+  "bytes": 39804
+ },
+ {
+  "fam": "DM Sans",
+  "file": "dm-sans-normal-100-1000-latin-ext.woff2",
+  "style": "normal",
+  "weight": "100 1000",
+  "subset": "latin-ext",
+  "bytes": 18192
+ },
+ {
+  "fam": "DM Sans",
+  "file": "dm-sans-normal-100-1000-latin.woff2",
+  "style": "normal",
+  "weight": "100 1000",
+  "subset": "latin",
+  "bytes": 36980
+ },
+ {
+  "fam": "Space Grotesk",
+  "file": "space-grotesk-normal-300-700-latin-ext.woff2",
+  "style": "normal",
+  "weight": "300 700",
+  "subset": "latin-ext",
+  "bytes": 18924
+ },
+ {
+  "fam": "Space Grotesk",
+  "file": "space-grotesk-normal-300-700-latin.woff2",
+  "style": "normal",
+  "weight": "300 700",
+  "subset": "latin",
+  "bytes": 22320
+ },
+ {
+  "fam": "Playfair Display",
+  "file": "playfair-display-italic-400-900-latin-ext.woff2",
+  "style": "italic",
+  "weight": "400 900",
+  "subset": "latin-ext",
+  "bytes": 23332
+ },
+ {
+  "fam": "Playfair Display",
+  "file": "playfair-display-italic-400-900-latin.woff2",
+  "style": "italic",
+  "weight": "400 900",
+  "subset": "latin",
+  "bytes": 38888
+ },
+ {
+  "fam": "Playfair Display",
+  "file": "playfair-display-normal-400-900-latin-ext.woff2",
+  "style": "normal",
+  "weight": "400 900",
+  "subset": "latin-ext",
+  "bytes": 20980
+ },
+ {
+  "fam": "Playfair Display",
+  "file": "playfair-display-normal-400-900-latin.woff2",
+  "style": "normal",
+  "weight": "400 900",
+  "subset": "latin",
+  "bytes": 38460
+ },
+ {
+  "fam": "Manrope",
+  "file": "manrope-normal-200-800-latin-ext.woff2",
+  "style": "normal",
+  "weight": "200 800",
+  "subset": "latin-ext",
+  "bytes": 15212
+ },
+ {
+  "fam": "Manrope",
+  "file": "manrope-normal-200-800-latin.woff2",
+  "style": "normal",
+  "weight": "200 800",
+  "subset": "latin",
+  "bytes": 24436
+ },
+ {
+  "fam": "Source Serif 4",
+  "file": "source-serif-4-italic-200-900-latin-ext.woff2",
+  "style": "italic",
+  "weight": "200 900",
+  "subset": "latin-ext",
+  "bytes": 44356
+ },
+ {
+  "fam": "Source Serif 4",
+  "file": "source-serif-4-italic-200-900-latin.woff2",
+  "style": "italic",
+  "weight": "200 900",
+  "subset": "latin",
+  "bytes": 51720
+ },
+ {
+  "fam": "Source Serif 4",
+  "file": "source-serif-4-normal-200-900-latin-ext.woff2",
+  "style": "normal",
+  "weight": "200 900",
+  "subset": "latin-ext",
+  "bytes": 42040
+ },
+ {
+  "fam": "Source Serif 4",
+  "file": "source-serif-4-normal-200-900-latin.woff2",
+  "style": "normal",
+  "weight": "200 900",
+  "subset": "latin",
+  "bytes": 50952
+ },
+ {
+  "fam": "Caveat",
+  "file": "caveat-normal-400-700-latin-ext.woff2",
+  "style": "normal",
+  "weight": "400 700",
+  "subset": "latin-ext",
+  "bytes": 29528
+ },
+ {
+  "fam": "Caveat",
+  "file": "caveat-normal-400-700-latin.woff2",
+  "style": "normal",
+  "weight": "400 700",
+  "subset": "latin",
+  "bytes": 74572
+ }
+]
