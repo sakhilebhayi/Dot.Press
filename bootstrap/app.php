@@ -4,6 +4,7 @@ use App\Http\Middleware\CompressResponse;
 use App\Http\Middleware\EnsurePlatformOperator;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MemoizeDeckAccess;
+use App\Http\Middleware\OwnHostIsStateful;
 use App\Http\Middleware\SecurityHeaders;
 use App\Services\Guardian\ErrorCounter;
 use Illuminate\Foundation\Application;
@@ -36,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Requests whose Origin or Referer is one of SANCTUM_STATEFUL_DOMAINS (the app's own host by default) get the
         // session and CSRF middleware; everything else still needs a bearer token.
         $middleware->statefulApi();
+        // ...and never depends on the host's .env listing this host (see the middleware).
+        $middleware->api(prepend: [OwnHostIsStateful::class]);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
