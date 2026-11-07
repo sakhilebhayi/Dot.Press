@@ -9,6 +9,12 @@ return [
     'hsts_seconds' => (int) env('SECURITY_HSTS_SECONDS', 15552000),   // 180 days
 
     /*
+    | The Content-Security-Policy is enforced. SECURITY_CSP_REPORT_ONLY=true is the kill switch: the same policy is sent as
+    | report-only (nothing blocked, violations go to /csp-report) until the page it broke is fixed.
+    */
+    'csp_report_only' => filter_var(env('SECURITY_CSP_REPORT_ONLY', false), FILTER_VALIDATE_BOOL),
+
+    /*
     | A live present session stops working when the person who started it loses the right to see the deck. The check is
     | remembered this many seconds (followers poll every second). 0 checks on every request.
     */
