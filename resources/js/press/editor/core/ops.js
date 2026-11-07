@@ -474,6 +474,21 @@ export function remapOps(ops, map) {
   });
 }
 
+/**
+ * Ops as another client reads them from the change log. The server logs a slide.add with the stored `id` next to the author's
+ * temporary `tid`, and every later op in the log (slide.set, slide.move, an `after`) names the stored id. A reader must create
+ * the slide under the stored id, or the next ops cannot find it and a chain of added slides drifts apart until a reload.
+ */
+export function fromChangeLog(ops) {
+  let out = null;
+  ops.forEach((op, i) => {
+    if (op?.op !== 'slide.add' || op.id === null || op.id === undefined || sid(op.id) === sid(op.tid)) return;
+    if (!out) out = ops.slice();
+    out[i] = { ...op, tid: sid(op.id) };
+  });
+  return out || ops;
+}
+
 /** Rewrite slide ids in a document. */
 export function remapDoc(doc, map) {
   if (!map || !Object.keys(map).length) return doc;

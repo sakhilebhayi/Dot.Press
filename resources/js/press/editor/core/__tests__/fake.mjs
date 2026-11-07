@@ -67,6 +67,9 @@ export function fakeServer(initial) {
     const r = applyOps(s.doc, work, { strictTid: true });
     r.doc = remapDoc(r.doc, ids);
     r.applied = remapOps(r.applied, ids);
+    // The real server logs a slide.add with the stored id next to the author's temporary tid (DeckBatch::slideAdd).
+    const tidOf = Object.fromEntries(Object.entries(ids).map(([temp, real]) => [real, temp]));
+    r.applied = r.applied.map((o) => (o.op === 'slide.add' && tidOf[String(o.tid)] ? { ...o, id: String(o.tid), tid: tidOf[String(o.tid)] } : o));
     if (!r.applied.length) {
       const res = { seq: s.seq, deck_rev: 1, slides: {}, ids: {}, skipped: r.skipped.map((x) => ({ op: x.op, reason: x.reason })) };
       s.keys.set(key, res);
