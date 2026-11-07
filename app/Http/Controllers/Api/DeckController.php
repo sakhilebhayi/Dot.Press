@@ -160,7 +160,14 @@ class DeckController extends Controller
             }
         }
 
-        $deck = DB::transaction(function () use ($project, $user, $v, $w, $h, $theme, $built, $sanitizer): Deck {
+        // A template brings its sections; a slide only keeps a section id that exists.
+        $sections = [];
+        foreach (is_array($built['sections'] ?? null) ? $built['sections'] : [] as $rawSection) {
+            $sections[] = $sanitizer->section($rawSection);
+        }
+        $sectionIds = array_flip(array_column($sections, 'id'));
+
+        $deck = DB::transaction(function () use ($project, $user, $v, $w, $h, $theme, $built, $sanitizer, $sections, $sectionIds): Deck {
             $deck = Deck::create([
                 'project_id' => $project->id,
                 'user_id' => $user->id,
@@ -169,7 +176,7 @@ class DeckController extends Controller
                 'sort_order' => (int) $project->decks()->max('sort_order') + 1,
                 'w' => $w,
                 'h' => $h,
-                'sections' => [],
+                'sections' => $sections,
             ]);
 
             $slides = is_array($built['slides'] ?? null) && $built['slides'] !== [] ? $built['slides'] : [[]];
@@ -183,6 +190,7 @@ class DeckController extends Controller
                 $slide->bg = $fields['bg'] ?? null;
                 $slide->transition = $fields['transition'] ?? null;
                 $slide->hidden = (bool) ($fields['hidden'] ?? false);
+                $slide->section_id = isset($fields['section_id'], $sectionIds[$fields['section_id']]) ? $fields['section_id'] : null;
                 $slide->sort_order = $position;
                 $slide->revision = 0;
                 $slide->els = $fields['els'] ?? [];

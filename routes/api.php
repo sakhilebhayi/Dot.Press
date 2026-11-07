@@ -17,10 +17,12 @@ use App\Http\Controllers\Api\DeckReviewController;
 use App\Http\Controllers\Api\DeckShareController;
 use App\Http\Controllers\Api\DeckVersionController;
 use App\Http\Controllers\Api\LayoutController;
+use App\Http\Controllers\Api\LayoutLibraryController;
 use App\Http\Controllers\Api\PresenceController;
 use App\Http\Controllers\Api\PresentSessionController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SlideController;
+use App\Http\Controllers\Api\TemplateController;
 use App\Http\Controllers\Api\ThemeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -91,6 +93,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('themes', ThemeController::class);
     Route::apiResource('brand-kits', BrandKitController::class)->parameters(['brand-kits' => 'brandKit']);
     Route::apiResource('layouts', LayoutController::class);
+
+    // R-40 built-in libraries: slide layouts and presentation templates (read only).
+    Route::get('layout-library', [LayoutLibraryController::class, 'index'])->middleware('throttle:press-read');
+    Route::get('templates', [TemplateController::class, 'index'])->middleware('throttle:press-read');
+    Route::get('templates/{key}', [TemplateController::class, 'show'])->where('key', '[a-z0-9-]+')->middleware('throttle:press-read');
 
     Route::prefix('ai')->middleware('throttle:ai')->group(function (): void {
         Route::get('usage', [AiController::class, 'usage']);
