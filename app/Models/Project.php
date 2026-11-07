@@ -2,15 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasTeamScope;
+use App\Models\Scopes\ProjectAccessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
-    use HasTeamScope;
-
     protected $fillable = [
         'user_id',
         'team_id',
@@ -19,6 +17,11 @@ class Project extends Model
         'description',
         'settings',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('team', new ProjectAccessScope);
+    }
 
     protected function casts(): array
     {

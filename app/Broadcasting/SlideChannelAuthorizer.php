@@ -3,9 +3,9 @@
 namespace App\Broadcasting;
 
 use App\Models\Deck;
-use App\Models\Project;
 use App\Models\Slide;
 use App\Models\User;
+use App\Services\Press\DeckAccess;
 
 /**
  * Authorization for the 'slide.{slideId}' private channel, factored out of
@@ -14,12 +14,11 @@ use App\Models\User;
  * actually invoke a channel's callback via the /broadcasting/auth HTTP
  * endpoint, so that endpoint can't be used to verify this logic.
  *
- * Every lookup here is deliberately unscoped and walked manually
- * (Slide -> Deck -> Project) rather than via ->with('deck.project'):
- * eager-loading through the relations would apply Deck's and Project's
- * own team-scoped global scopes using the *current* authenticated user,
- * which would silently return null for anyone outside the team instead
- * of the row this check actually needs to test membership against.
+ * Every lookup here is deliberately unscoped (Slide -> Deck) rather than
+ * via a relation: eager-loading would apply the access scopes using the
+ * *current* authenticated user, which would silently return null for
+ * anyone without access instead of the row the check needs. The decision
+ * itself is DeckAccess's, like every other route.
  */
 class SlideChannelAuthorizer
 {
@@ -37,12 +36,6 @@ class SlideChannelAuthorizer
             return false;
         }
 
-        $project = Project::withoutGlobalScopes()->find($deck->project_id);
-
-        if (! $project) {
-            return false;
-        }
-
-        return $user->belongsToTeam($project->team);
+        return DeckAccess::can($user, $deck, 'view');
     }
 }

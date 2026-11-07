@@ -132,7 +132,13 @@ class ViewerWriteProtectionTest extends TestCase
             $this->actingAs($writer)->patchJson('/api/decks/'.$this->deck->id, ['title' => 'Renamed'])->assertOk();
         }
 
-        $this->actingAs($this->editor)->deleteJson('/api/decks/'.$this->newDeck()->id)->assertNoContent();
+        // R-40 rule change: deleting a deck is the `manage` ability. An editor may delete a deck they created
+        // (the creator is its owner) but no longer one somebody else made; an admin may delete any team deck.
+        $this->actingAs($this->editor)->deleteJson('/api/decks/'.$this->newDeck()->id)->assertForbidden();
+        $own = $this->newDeck();
+        $own->forceFill(['user_id' => $this->editor->id])->save();
+        $this->actingAs($this->editor)->deleteJson('/api/decks/'.$own->id)->assertNoContent();
+        $this->actingAs($this->admin)->deleteJson('/api/decks/'.$this->newDeck()->id)->assertNoContent();
     }
 
     // ---- slides ---------------------------------------------------------

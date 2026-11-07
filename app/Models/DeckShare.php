@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasScopeThroughDeck;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeckShare extends Model
 {
+    use HasScopeThroughDeck;
+
     protected $fillable = ['deck_id', 'user_id', 'role', 'invited_by'];
 
     protected function casts(): array
