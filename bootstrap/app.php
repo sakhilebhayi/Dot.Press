@@ -40,6 +40,12 @@ return Application::configure(basePath: dirname(__DIR__))
             fn ($request) => $request->is('api/decks/*/ops'),
         ]);
 
+        // Spaces are text too: "Typography " followed by an italic "and " must keep both, or the words run together. Laravel's
+        // TrimStrings would strip every string in the operations body, including the text runs of a document.
+        $middleware->trimStrings(except: [
+            fn ($request) => $request->is('api/decks/*/ops'),
+        ]);
+
         $middleware->alias([
             'operator' => EnsurePlatformOperator::class,
         ]);

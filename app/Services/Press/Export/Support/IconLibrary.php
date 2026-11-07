@@ -52,6 +52,30 @@ final class IconLibrary
         return '<svg xmlns="http://www.w3.org/2000/svg" width="'.$w.'" height="'.$h.'" viewBox="0 0 24 24">'.$body.'</svg>';
     }
 
+    /**
+     * The icon drawn at w by h in its own coordinates (viewBox 0 0 w h), scaled evenly and centred like an SVG viewBox
+     * would. PDF renderers that ignore the viewBox of a differently sized <svg> (DomPDF draws it at 24 by 24) get the
+     * right size from this form.
+     */
+    public function svgFitted(string $name, string $hex, float $strokeWidth, float $w, float $h): ?string
+    {
+        $paths = $this->paths($name);
+        if ($paths === null) {
+            return null;
+        }
+        $k = max(0.01, min($w, $h) / 24);
+        $tx = round(($w - 24 * $k) / 2, 3);
+        $ty = round(($h - 24 * $k) / 2, 3);
+        $body = '';
+        foreach ($paths as $d) {
+            $body .= '<path d="'.htmlspecialchars($d, ENT_QUOTES).'" fill="none" stroke="'.$hex.'" stroke-width="'.$strokeWidth.'" stroke-linecap="round" stroke-linejoin="round"/>';
+        }
+        $w = round($w, 3);
+        $h = round($h, 3);
+
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="'.$w.'" height="'.$h.'" viewBox="0 0 '.$w.' '.$h.'"><g transform="translate('.$tx.' '.$ty.') scale('.round($k, 5).')">'.$body.'</g></svg>';
+    }
+
     /** @return array<string, list<string>> */
     private function load(): array
     {

@@ -153,3 +153,11 @@ test('looksTemporal', () => {
   assert.equal(looksTemporal(['Apples', 'Pears', 'Plums']), false);
   assert.equal(looksTemporal(['Jan']), false);
 });
+
+test('normalizeChart keeps a KPI figure that carries a sign or a unit as the text it was typed as', () => {
+  const kpis = normalizeChart({ type: 'kpi', data: { kpis: [
+    { label: 'Cost per tonne', value: 'R412' }, { label: 'Availability', value: '91%' }, { label: 'Output', value: '1.2m' },
+    { label: 'Plain', value: '1 234' }, { label: 'Tonnes', value: '1,053' }, { label: 'Number', value: 412 },
+  ] } }).data.kpis;
+  assert.deepEqual(kpis.map((k) => k.value), ['R412', '91%', '1.2m', 1234, 1053, 412]);
+});

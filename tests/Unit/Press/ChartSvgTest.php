@@ -121,4 +121,14 @@ class ChartSvgTest extends TestCase
         $this->assertStringContainsString('fill="#123456"', $svg);
         $this->assertEqualsCanonicalizing(['#ff0000', '#00ff00'], array_slice(ChartData::seriesColors(ChartData::normalize(['type' => 'column', 'data' => ['categories' => ['a'], 'series' => [['name' => 's1', 'values' => [3]], ['name' => 's2', 'values' => [4]]]]]), new Theme($theme)), 0, 2));
     }
+
+    public function test_a_kpi_figure_with_a_sign_or_unit_keeps_its_text_like_the_editor(): void
+    {
+        $chart = ChartData::normalize(['type' => 'kpi', 'data' => ['kpis' => [
+            ['label' => 'Cost per tonne', 'value' => 'R412'], ['label' => 'Availability', 'value' => '91%'], ['label' => 'Output', 'value' => '1.2m'],
+            ['label' => 'Plain', 'value' => '1 234'], ['label' => 'Tonnes', 'value' => '1,053'], ['label' => 'Number', 'value' => 412],
+        ]]]);
+
+        $this->assertSame(['R412', '91%', '1.2m', 1234.0, 1053.0, 412.0], array_map(fn ($k) => is_string($k['value']) ? $k['value'] : (float) $k['value'], $chart['data']['kpis']));
+    }
 }

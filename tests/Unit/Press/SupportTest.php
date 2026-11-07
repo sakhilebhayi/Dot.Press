@@ -220,6 +220,17 @@ class SupportTest extends TestCase
         $this->assertStringContainsString('viewBox="0 0 24 24"', $svg);
     }
 
+    public function test_a_fitted_icon_is_drawn_in_the_box_coordinates_scaled_and_centred(): void
+    {
+        $lib = new IconLibrary(__DIR__.'/../../Fixtures/Press/icons_sample.js');
+        $svg = (string) $lib->svgFitted('check', '#123456', 2, 200, 100);
+
+        $this->assertStringContainsString('width="200" height="100" viewBox="0 0 200 100"', $svg);
+        // 100 / 24 = 4.16667 evenly, centred: (200 - 100) / 2 = 50 across, nothing down
+        $this->assertStringContainsString('transform="translate(50 0) scale(4.16667)"', $svg);
+        $this->assertNull($lib->svgFitted('missing', '#000000', 2, 10, 10));
+    }
+
     public function test_the_real_icon_file_parses_completely_when_it_is_there(): void
     {
         $file = resource_path('js/press/icons.js');
