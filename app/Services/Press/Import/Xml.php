@@ -18,9 +18,8 @@ final class Xml
         if ($xml === '') {
             return null;
         }
-        // Drop a BOM and look at the prolog: DOCTYPE and ENTITY are never legitimate here.
-        $head = substr($xml, 0, 4096);
-        if (stripos($head, '<!DOCTYPE') !== false || stripos($head, '<!ENTITY') !== false || stripos($xml, '<!ENTITY') !== false) {
+        // DOCTYPE and ENTITY declarations are never legitimate in an OOXML part (a long comment must not hide one).
+        if (stripos($xml, '<!DOCTYPE') !== false || stripos($xml, '<!ENTITY') !== false) {
             throw new ImportException('The file contains a document type declaration, which is not allowed.');
         }
         $prev = libxml_use_internal_errors(true);

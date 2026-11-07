@@ -103,6 +103,7 @@ tail.set('type', 'triangle')
 grp = s.shapes.add_group_shape()
 g1 = grp.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(7), Inches(1), Inches(1), Inches(1))
 g2 = grp.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.5), Inches(2), Inches(1), Inches(1))
+oval.click_action.target_slide = prs.slides[0]
 pic = s.shapes.add_picture(png((200, 80, 80)), Inches(6.5), Inches(3.5), Inches(3), Inches(2.25))
 pic.crop_left = 0.1
 pic.crop_right = 0.2
@@ -145,3 +146,40 @@ s._element.set('show', '0')
 
 prs.save(os.path.join(HERE, 'python_pptx_basic.pptx'))
 print('wrote python_pptx_basic.pptx')
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# A second file: features the document model cannot hold, injected as raw XML so the import report can be tested.
+# ---------------------------------------------------------------------------------------------------------------
+prs = Presentation()
+prs.slide_width = Emu(12192000)
+prs.slide_height = Emu(6858000)
+s = prs.slides.add_slide(prs.slide_layouts[6])
+box = s.shapes.add_shape(MSO_SHAPE.PENTAGON if hasattr(MSO_SHAPE, 'PENTAGON') else MSO_SHAPE.REGULAR_PENTAGON, Inches(1), Inches(1), Inches(2), Inches(1))
+tb = s.shapes.add_textbox(Inches(4), Inches(1), Inches(4), Inches(1))
+tb.text_frame.text = 'WordArt text'
+# a shape with an unsupported preset, 3D formatting and WordArt warp
+star = s.shapes.add_shape(MSO_SHAPE.LIGHTNING_BOLT, Inches(1), Inches(3), Inches(2), Inches(2))
+sppr = star._element.spPr
+sp3d = etree.SubElement(sppr, '{%s}sp3d' % NS['a'])
+sp3d.set('extrusionH', '76200')
+etree.SubElement(sp3d, '{%s}bevelT' % NS['a'])
+bodyPr = tb._element.txBody.find('a:bodyPr', NS)
+warp = etree.SubElement(bodyPr, '{%s}prstTxWarp' % NS['a'])
+warp.set('prst', 'textWave1')
+# a SmartArt frame, an OLE frame, an equation paragraph, an animation tree and a comment relationship
+tree = s.shapes._spTree
+gf_dgm = etree.fromstring("""<p:graphicFrame xmlns:p="%(p)s" xmlns:a="%(a)s"><p:nvGraphicFramePr><p:cNvPr id="50" name="SmartArt 1"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr><p:xfrm><a:off x="100000" y="100000"/><a:ext cx="2000000" cy="1000000"/></p:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/diagram"/></a:graphic></p:graphicFrame>""" % NS)
+gf_ole = etree.fromstring("""<p:graphicFrame xmlns:p="%(p)s" xmlns:a="%(a)s"><p:nvGraphicFramePr><p:cNvPr id="51" name="Worksheet 1"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr><p:xfrm><a:off x="100000" y="100000"/><a:ext cx="2000000" cy="1000000"/></p:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/presentationml/2006/ole"/></a:graphic></p:graphicFrame>""" % NS)
+tree.append(gf_dgm)
+tree.append(gf_ole)
+eq = tb._element.txBody
+p2 = etree.fromstring("""<a:p xmlns:a="%(a)s" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><mc:AlternateContent><mc:Choice Requires="a14"><a14:m xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"><m:oMathPara><m:oMath><m:r><m:t>x=1</m:t></m:r></m:oMath></m:oMathPara></a14:m></mc:Choice><mc:Fallback><a:r><a:t>x=1</a:t></a:r></mc:Fallback></mc:AlternateContent></a:p>""" % NS)
+eq.append(p2)
+timing = etree.fromstring("""<p:timing xmlns:p="%(p)s"><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"/></p:par></p:tnLst></p:timing>""" % NS)
+s._element.append(timing)
+# a slide with a transition the model does not have
+s2 = prs.slides.add_slide(prs.slide_layouts[6])
+add_transition(s2, '<p:transition xmlns:p="%s" spd="med"><p:checker dir="horz"/></p:transition>' % NS['p'])
+prs.save(os.path.join(HERE, 'python_pptx_unsupported.pptx'))
+print('wrote python_pptx_unsupported.pptx')
