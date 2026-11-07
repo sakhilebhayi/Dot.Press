@@ -69,7 +69,7 @@ class DeckShareController extends Controller
             'role' => ['required', Rule::in(DeckAccess::SHARE_ROLES)],
         ]);
 
-        $person = Sharing::findPerson($data['user_id'] ?? null, $data['email'] ?? null);
+        $person = Sharing::findPerson($data['user_id'] ?? null, $data['email'] ?? null, $request->user());
         Sharing::addPerson($deck, $request->user(), $person, $data['role']);
 
         return response()->json(['people' => Sharing::shares($deck)], 201);

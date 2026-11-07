@@ -69,7 +69,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::put('sharing', [DeckShareController::class, 'update'])->middleware('throttle:60,1,press-share');
         Route::post('sharing/rotate-link', [DeckShareController::class, 'rotate'])->middleware('throttle:20,1,press-rotate');
         Route::get('sharing/people', [DeckShareController::class, 'people']);
-        Route::post('sharing/people', [DeckShareController::class, 'addPerson'])->middleware('throttle:60,1,press-share');
+        // Looking people up by address is the one thing here worth guessing at, so it has the tightest limit.
+        Route::post('sharing/people', [DeckShareController::class, 'addPerson'])->middleware('throttle:20,1,press-share-add');
         Route::patch('sharing/people/{user}', [DeckShareController::class, 'updatePerson'])->middleware('throttle:60,1,press-share');
         Route::delete('sharing/people/{user}', [DeckShareController::class, 'removePerson'])->middleware('throttle:60,1,press-share');
         Route::get('people', [DeckPeopleController::class, 'index']);
