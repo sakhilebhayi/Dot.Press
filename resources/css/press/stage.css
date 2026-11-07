@@ -65,32 +65,12 @@
 }
 .es-sheet .ps-wrap { pointer-events: none; }
 .es-readonly .es-sheet .pt-in,
-.es-readonly .es-sheet .pt-in * { pointer-events: auto; }
+.es-readonly .es-sheet .pt-in * { pointer-events: auto; user-select: text; -webkit-user-select: text; cursor: text; }
 .es-sheet-out { z-index: 0; }
 .es-sheet-in { z-index: 1; }
 .es-moving .es-sheet { will-change: transform; }
 .es-sheet [data-es-ghost] { opacity: 0.72; }
 
-@keyframes es-enter-down {
-    from { transform: translateY(var(--es-travel, 120px)); }
-    to { transform: translateY(0); }
-}
-@keyframes es-enter-up {
-    from { transform: translateY(calc(var(--es-travel, 120px) * -1)); }
-    to { transform: translateY(0); }
-}
-@keyframes es-leave-up {
-    from { transform: translateY(0); }
-    to { transform: translateY(calc(var(--es-travel, 120px) * -0.35)); }
-}
-@keyframes es-leave-down {
-    from { transform: translateY(0); }
-    to { transform: translateY(calc(var(--es-travel, 120px) * 0.35)); }
-}
-.es-travel-in-down { animation: es-enter-down var(--d-3) var(--spring) both; }
-.es-travel-in-up { animation: es-enter-up var(--d-3) var(--spring) both; }
-.es-travel-out-up { animation: es-leave-up var(--d-3) var(--ease-settle) both; }
-.es-travel-out-down { animation: es-leave-down var(--d-3) var(--ease-settle) both; }
 
 /* ---- grid, margins, centre lines ------------------------------------------------------------------- */
 .es-furniture { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: visible; }
@@ -482,8 +462,8 @@
     font: 400 14px/1.4 var(--f-ui);
     resize: vertical;
 }
-.es-pop textarea:focus, .es-pop input[type='url']:focus { outline: 2px solid var(--focus); outline-offset: 0; }
-.es-pop input[type='url'] { width: 260px; height: 32px; border: 1px solid var(--line-strong); border-radius: var(--r-1); background: var(--sheet); color: var(--ink); padding: 0 8px; font: 400 14px/1 var(--f-ui); }
+.es-pop textarea:focus, .es-pop .es-url:focus { outline: 2px solid var(--focus); outline-offset: 0; }
+.es-pop .es-url { width: 260px; height: 32px; border: 1px solid var(--line-strong); border-radius: var(--r-1); background: var(--sheet); color: var(--ink); padding: 0 8px; font: 400 14px/1 var(--f-ui); }
 .es-pop-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 8px 4px 2px; }
 .es-pop-actions button { height: 30px; padding: 0 12px; border-radius: var(--r-2); border: 1px solid var(--line-strong); background: var(--raised); color: var(--ink); font: 500 13px/1 var(--f-ui); cursor: pointer; }
 .es-pop-actions button.es-primary { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
@@ -536,7 +516,7 @@
 .es-media video, .es-media audio { width: 100%; height: 100%; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
-    .es-travel-in-down, .es-travel-in-up, .es-travel-out-up, .es-travel-out-down, .es-bar, .es-pop, .es-menu { animation: none; }
+    .es-bar, .es-pop, .es-menu { animation: none; }
     .es-btn, .es-pin { transition: none; }
 }
 @media (forced-colors: active) {

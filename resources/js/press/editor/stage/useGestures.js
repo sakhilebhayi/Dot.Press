@@ -2,7 +2,7 @@
 //
 // All geometry comes from ./lib (and the core). This file only turns pointer events into those calls and applies the result.
 //
-// How a drag stays fast (decision, documented in stage/README.md):
+// How a drag stays fast (decision, also in the header of EditorStage.vue):
 //   - move and rotate write `transform` straight onto the dragged elements' wrappers (`.p-el`), nothing else runs;
 //   - resize, line ends and drawing hand a `preview` patch map to the stage, which gives SlideView a slide with those
 //     patches applied for this frame (Vue re-renders only the changed elements, their content reflows live);
@@ -123,6 +123,7 @@ export function useGestures(env) {
         }
       }
     }
+    ui.pointer = e.pointerType === 'touch' ? null : slidePt(pt);
     const key = `${h.id}|${h.handle}|${h.lockedId}`;
     if (key !== `${hover.value.id}|${hover.value.handle}|${hover.value.lockedId}`) hover.value = h;
     if (c !== lastCursorKey) { lastCursorKey = c; cursor.value = c; }
@@ -193,6 +194,9 @@ export function useGestures(env) {
     if (t.closest?.('[data-es-ui]')) return; // bars, menus, the text editor, the crop layer, rulers handle themselves
     rect = rootRef.value.getBoundingClientRect();
     const pt = local(e);
+    // a read only deck still lets people select and copy text: a press on the text of an already selected box is the browser's
+    const inText = t.closest?.('.pt-in');
+    if (inText && !canEdit() && e.button === 0 && selIds().includes(inText.closest('[data-eid]')?.getAttribute('data-eid'))) return;
     pointers.set(e.pointerId, { pt, type: e.pointerType });
     try { rootRef.value.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
 
@@ -369,6 +373,14 @@ export function useGestures(env) {
     const e = pendingEv;
     pendingEv = null;
     if (!e) return;
+    // manual measurement hook: set window.__stageTiming = [] and drag; each entry is the milliseconds of JavaScript for one frame
+    const timing = typeof window !== 'undefined' ? window.__stageTiming : null;
+    const t0 = timing ? performance.now() : 0;
+    runFrame(e);
+    if (timing) timing.push(performance.now() - t0);
+  }
+
+  function runFrame(e) {
     if (!g) {
       if (e.pointerType !== 'touch') { rect = rootRef.value.getBoundingClientRect(); updateHover(e); }
       return;
@@ -602,13 +614,14 @@ export function useGestures(env) {
 
   function commitMove(done, e, undoKey) {
     const r = done.last;
-    const over = done.over;
+    const over = done.over && done.over !== state().slideId ? done.over : null;
     const copy = done.dup;
     revertDom();
     const els = done.els;
     clearGesture();
     if (!r || (!r.delta.dx && !r.delta.dy && !copy)) return;
-    // dropped on a Spine row: the shell moves or copies the elements to that slide
+    // dropped on a Spine row: the shell moves or copies the elements to that slide (it can take the event over with
+    // preventDefault); otherwise the stage does it with plain ops
     if (over) {
       const ids = els.map((x) => x.id);
       const ev = new CustomEvent('press:drop-elements', {
@@ -616,9 +629,16 @@ export function useGestures(env) {
       });
       rootRef.value.dispatchEvent(ev);
       if (!ev.defaultPrevented) {
-        const ops = els.map((el) => ({ op: 'el.move', from: state().slideId, id: el.id, to: over }));
-        if (copy) hooks.toast?.('Drop a copy on a slide from the Spine with the shell.', 'info');
-        else store.dispatch(ops, { label: 'Move to slide' });
+        const target = state().doc.slides.find((s) => s.id === over);
+        if (target) {
+          if (copy) {
+            const cl = cloneElements(els, usedIds(target));
+            store.dispatch(cl.els.map((el) => ({ op: 'el.add', slide: over, el })), { label: 'Copy to slide' });
+          } else {
+            store.dispatch(els.map((el) => ({ op: 'el.move', from: state().slideId, id: el.id, to: over })), { label: 'Move to slide' });
+          }
+          hooks.announce?.(`${copy ? 'Copied' : 'Moved'} to slide ${state().doc.slides.indexOf(target) + 1}`);
+        }
       }
       return;
     }
@@ -675,6 +695,7 @@ export function useGestures(env) {
   }
 
   function onPointerLeave() {
+    ui.pointer = null;
     if (!g) hover.value = { id: null, handle: null, lockedId: null };
   }
 

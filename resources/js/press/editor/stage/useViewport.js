@@ -67,13 +67,16 @@ export function useViewport(editor, rootRef, deckRef) {
     withLock(() => {
       const s = store.getState();
       if (ui.zoom === 'fit') {
-        if (s.zoomMode !== 'fit') store.zoomFit();
-      } else if (typeof ui.zoom === 'number' && (s.zoomMode !== 'manual' || s.zoom !== ui.zoom)) {
-        store.setZoom(ui.zoom);
+        // fit always means centred
+        if (s.zoomMode !== 'fit' || s.pan.x || s.pan.y) store.zoomFit();
+        if (ui.panX || ui.panY) { ui.panX = 0; ui.panY = 0; }
+        return;
       }
+      if (typeof ui.zoom === 'number' && (s.zoomMode !== 'manual' || s.zoom !== ui.zoom)) store.setZoom(ui.zoom);
       const px = ui.panX || 0;
       const py = ui.panY || 0;
-      if (s.pan.x !== px || s.pan.y !== py) store.setPan(px, py);
+      const now = store.getState();
+      if (now.pan.x !== px || now.pan.y !== py) store.setPan(px, py);
     });
   });
 

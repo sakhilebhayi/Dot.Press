@@ -1,6 +1,37 @@
 <script setup>
-// The canvas area of the editor. Mounted by the shell with no props; everything comes from useEditorContext().
-// See stage/README.md for the contract with the shell, the decisions and the keyboard map.
+// EditorStage: the canvas area of the editor. The shell mounts it with no props; everything comes from useEditorContext().
+//
+// What it draws: the current slide (SlideView, mode edit) on a pale stage; a selection layer in screen pixels (outlines, handles,
+// smart guides, readouts); the in place text editor (Tiptap), crop, table cell and media preview overlays; the contextual
+// bar; the context menu; other people's cursors and selections; comment pins; one focusable proxy per element for keyboards
+// and screen readers. All geometry, snapping and history logic is the editor core's, this file only wires events to it.
+//
+// What it needs from the shell (all optional unless marked, see context.js for the rest)
+//   editor.hasPanel(id)               true when the inspector panel is registered; controls that open a missing panel are hidden
+//   editor.commentPins                ref of [{id, slide_id, x, y, count?, resolved?}] drawn as pins; click opens panel 'comments'
+//   editor.clientId                   this tab's presence client id, so the stage does not draw its own cursor
+//   editor.uploadAsset(file, {projectId, onProgress}) -> asset payload   when absent the stage POSTs multipart to /api/assets
+//   editor.registerAsset(id, entry)   when absent the stage writes editor.assets[id] directly
+//   editor.runCommand(cmd, args)      for keymap commands the store does not run (present.*, view.help, edit.find, edit.rename)
+//   ui.dragging                       {kind: 'asset', id, asset?} from the asset panel (native drag and drop onto the stage)
+// What it gives the shell
+//   editor.stage                      {fit, zoomToSelection, zoomToRect, focus, toScreen, toSlide, beginTextEdit, beginCrop,
+//                                      replacePicture, pickFiles, addFiles, announce}; also the exposed API of the component
+//   ui.zoomValue                      the effective zoom as a number (ui.zoom may be 'fit'); ui.panX/panY follow the store
+//   ui.pointer                        {x, y} of the pointer in slide units, or null (for the presence heartbeat)
+//   ui.dragging                       {kind: 'elements', ids, x, y, copy, overSlide} while elements are dragged. Rows of the Spine
+//                                     carry data-spine-slide="<slide id>"; releasing over one dispatches a cancelable DOM event
+//                                     `press:drop-elements` {detail: {ids, slideId, copy, from}} on the stage; when nobody calls
+//                                     preventDefault the stage moves (el.move) or copies (el.add) the elements itself
+//   ui.userGuides                     [{orient: 'v'|'h', pos}] guides pulled from the rulers (kept per deck in localStorage)
+//
+// Decisions: a drag writes `transform` on the dragged wrappers and the store only once, on release, with a unique undo key (one
+// undo step, one op batch); resize, line ends and drawing preview through a patched copy of the slide so content reflows live;
+// text never receives store updates while it is edited (IME safe) and is written back as one el.set on Escape or blur.
+// Zoom: 'fit' or a number, mirrored both ways with the store's own zoom, zoomMode and pan so the keymap's view.* commands work.
+// Keyboard map: arrows nudge 1, Shift+arrows 10, Alt+arrows resize 1, Alt+Shift+arrows resize 10 (the brief's Shift+arrows resize
+// collides with the core keymap's nudge by 10), Enter or typing edits, Tab and Shift+Tab walk the element proxies, Shift+1 fit,
+// Shift+2 zoom to selection, Alt+F10 focus the contextual bar, Space+drag pans.
 import {
     computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, unref, watch,
 } from 'vue';
@@ -19,6 +50,7 @@ import { createFormat } from './format.js';
 import SelectionLayer from './SelectionLayer.vue';
 import TextEditor from './TextEditor.vue';
 import CropLayer from './CropLayer.vue';
+import TableLayer from './TableLayer.vue';
 import ContextBar from './ContextBar.vue';
 import ContextMenu from './ContextMenu.vue';
 import StageRulers from './StageRulers.vue';
@@ -32,6 +64,9 @@ import {
     elementLabel, stageLabel, selectionAnnouncement, moveAnnouncement, resizeAnnouncement, resizeByKey, slideAnnouncement,
 } from './lib/a11y.js';
 import { pasteStylePatch, copyStyle } from './lib/style.js';
+import {
+    insertRow, insertCol, deleteRow, deleteCol, mergeRange, unmerge, canMerge, anchorAt, gridSize,
+} from './lib/table.js';
 import '../../../../css/press/stage.css';
 
 const editor = useEditorContext();
@@ -96,7 +131,7 @@ const hooks = {
     beginTextEdit: (id) => beginTextEdit(id),
     startDraftText: (el) => startDraftText(el),
     pickFiles: (kind, pt) => pickFiles(kind, pt),
-    closePopovers: () => barRef.value?.close?.(),
+    closePopovers: () => { barRef.value?.close?.(); tableEdit.value = null; },
     clicked: () => {},
     moved: (ids) => {
         const els = store.selectedElements();
@@ -135,24 +170,37 @@ const sheetStyle = computed(() => ({
     transform: `translate(${origin.value.x}px, ${origin.value.y}px)`,
 }));
 const outgoing = ref(null);
-const travel = ref({ dir: 1 });
+const inBody = ref(null);
+const outBody = ref(null);
 let lastSlide = slide.value;
-let travelTimer = 0;
+let inAnim = null;
+let outAnim = null;
 watch(slide, (s) => { lastSlide = s; }, { flush: 'post' });
-watch(() => state.value.slideId, (next, prev) => {
+const cssTime = (name, fallback) => {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    if (!v) return fallback;
+    return v.endsWith('ms') ? parseFloat(v) : parseFloat(v) * 1000;
+};
+// The next slide travels in along the rail (vertical), the old one eases away underneath: short travel, one small overshoot, still.
+watch(() => state.value.slideId, async (next, prev) => {
     const a = slides.value.findIndex((s) => s.id === prev);
     const b = slides.value.findIndex((s) => s.id === next);
-    clearTimeout(travelTimer);
-    if (a < 0 || b < 0 || a === b || reducedMotion.value || !vp.size.value.w) { outgoing.value = null; return; }
+    inAnim?.cancel();
+    outAnim?.cancel();
+    if (a < 0 || b < 0 || a === b || reducedMotion.value || !vp.size.value.w || typeof Element.prototype.animate !== 'function') { outgoing.value = null; return; }
     const dir = b > a ? 1 : -1;
-    travel.value = { dir, key: Date.now() };
-    outgoing.value = { slide: lastSlide, dir, key: travel.value.key };
-    travelTimer = setTimeout(() => { outgoing.value = null; }, 420);
+    outgoing.value = { slide: lastSlide, dir };
     announce(slideAnnouncement(slides.value[b], b, slides.value.length));
+    await nextTick();
+    if (!inBody.value || !outBody.value) { outgoing.value = null; return; }
+    const dist = Math.min(deck.value.h * zoom.value * 0.55, 320) * dir;
+    const dur = cssTime('--d-3', 380);
+    const spring = getComputedStyle(document.documentElement).getPropertyValue('--spring').trim() || 'cubic-bezier(0.2, 0.9, 0.25, 1)';
+    inAnim = inBody.value.animate([{ transform: `translateY(${dist}px)` }, { transform: 'translateY(0)' }], { duration: dur, easing: spring });
+    outAnim = outBody.value.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${-dist * 0.35}px)` }], { duration: dur, easing: 'cubic-bezier(0.2, 0.9, 0.25, 1)', fill: 'forwards' });
+    const mine = outgoing.value;
+    inAnim.finished.then(() => { if (outgoing.value === mine) outgoing.value = null; }).catch(() => {});
 });
-const travelPx = computed(() => Math.min(deck.value.h * zoom.value * 0.55, 320));
-const inClass = computed(() => (outgoing.value ? (travel.value.dir > 0 ? 'es-travel-in-down' : 'es-travel-in-up') : ''));
-const outClass = computed(() => (travel.value.dir > 0 ? 'es-travel-out-up' : 'es-travel-out-down'));
 
 // ---- grid, margins, centre lines ---------------------------------------------------------------------
 const furniture = computed(() => {
@@ -552,6 +600,45 @@ function onDblClick(e) {
     if (el.type === 'table') { store.select([id]); tableEdit.value = id; }
 }
 const tableEdit = ref(null);
+const tableRef = ref(null);
+const tableRange = ref(null);
+const tableTarget = computed(() => (tableEdit.value ? slide.value.els.find((x) => x.id === tableEdit.value && x.type === 'table') || null : null));
+watch(tableTarget, (t) => { if (!t) { tableEdit.value = null; tableRange.value = null; } });
+const tableState = computed(() => {
+    const el = selected.value.length === 1 && selected.value[0].type === 'table' ? selected.value[0] : null;
+    if (!el) return {};
+    const size = gridSize(el);
+    const r = tableEdit.value === el.id ? tableRange.value : null;
+    return {
+        active: !!r, rows: size.rows, cols: size.cols,
+        canMerge: !!r && canMerge(el, r),
+        canUnmerge: !!r && (anchorAt(el, r.r1, r.c1)?.rs > 1 || anchorAt(el, r.r1, r.c1)?.cs > 1),
+    };
+});
+function applyTable(op) {
+    const el = selected.value[0];
+    if (!el || el.type !== 'table') return;
+    const r = tableEdit.value === el.id ? tableRange.value : null;
+    const size = gridSize(el);
+    let patch = null;
+    let label = 'Edit table';
+    if (op === 'rowBelow') { patch = insertRow(el, r ? r.r2 + 1 : size.rows); label = 'Add row'; }
+    else if (op === 'rowAbove') { patch = insertRow(el, r ? r.r1 : 0); label = 'Add row'; }
+    else if (op === 'colRight') { patch = insertCol(el, r ? r.c2 + 1 : size.cols); label = 'Add column'; }
+    else if (op === 'colLeft') { patch = insertCol(el, r ? r.c1 : 0); label = 'Add column'; }
+    else if (op === 'delRow') {
+        let tmp = el;
+        for (let i = r ? r.r2 : size.rows - 1; i >= (r ? r.r1 : size.rows - 1); i--) { const p = deleteRow(tmp, i); if (p) { patch = { ...(patch || {}), ...p }; tmp = { ...tmp, ...p }; } }
+        label = 'Delete row';
+    } else if (op === 'delCol') {
+        let tmp = el;
+        for (let i = r ? r.c2 : size.cols - 1; i >= (r ? r.c1 : size.cols - 1); i--) { const p = deleteCol(tmp, i); if (p) { patch = { ...(patch || {}), ...p }; tmp = { ...tmp, ...p }; } }
+        label = 'Delete column';
+    } else if (op === 'delTable') { tableEdit.value = null; store.deleteSelection(); return; }
+    else if (op === 'merge' && r) { patch = mergeRange(el, r); label = 'Merge cells'; }
+    else if (op === 'unmerge' && r) { patch = unmerge(el, r.r1, r.c1); label = 'Split cell'; }
+    if (patch) store.patch([{ id: el.id, p: patch }], { label });
+}
 
 // ---- video and audio preview ---------------------------------------------------------------------------
 const previewId = ref(null);
@@ -578,6 +665,7 @@ watch(selIds, (ids, old) => {
     }, 160);
     if (ui.editingText && !ids.includes(ui.editingText) && !(draft.value && draft.value.id === ui.editingText)) finishText();
     if (ui.cropping && !ids.includes(ui.cropping)) cropRef.value?.commit?.();
+    if (tableEdit.value && !ids.includes(tableEdit.value)) tableEdit.value = null;
     // the proxy that had focus may be gone
     nextTick(() => {
         const a = document.activeElement;
@@ -595,7 +683,7 @@ function onFocusIn(e) {
     }
 }
 function onFocusOut(e) {
-    if (!root.value.contains(e.relatedTarget)) lastFocusInside = false;
+    if (!root.value?.contains(e.relatedTarget)) lastFocusInside = false;
 }
 
 // ---- the contextual bar ------------------------------------------------------------------------------------
@@ -614,7 +702,6 @@ const barOn = computed(() => canEdit.value
     && !!barAnchor.value
     && ui.tool === 'select'
     && !ui.cropping
-    && !tableEdit.value
     && !['pinch', 'pan', 'marquee', 'draw'].includes(live.value.mode)
     && !!barKind(editTarget.value ? [editTarget.value] : selected.value));
 const barHidden = computed(() => dragging.value);
@@ -749,7 +836,6 @@ watch(() => ui.userGuides, (g) => {
 onBeforeUnmount(() => {
     window.removeEventListener('keyup', onKeyUp);
     gestures.destroy();
-    clearTimeout(travelTimer);
     clearTimeout(selTimer);
     clearTimeout(nudgeTimer);
     try { if (editor.stage === api) editor.stage = null; } catch { /* nothing to clear */ }
@@ -786,13 +872,13 @@ onBeforeUnmount(() => {
             @drop="onDrop"
         >
             <!-- the slide being left, while the next one travels in along the rail -->
-            <div v-if="outgoing" :key="'o' + outgoing.key" class="es-sheet es-sheet-out" :style="[sheetStyle, { '--es-travel': travelPx + 'px' }]" aria-hidden="true">
-                <div class="es-sheet-body" :class="outClass">
+            <div v-if="outgoing" class="es-sheet es-sheet-out" :style="sheetStyle" aria-hidden="true">
+                <div ref="outBody" class="es-sheet-body">
                     <SlideView :slide="outgoing.slide" :deck="deck" :assets="assets" mode="thumb" />
                 </div>
             </div>
             <div class="es-sheet es-sheet-in" :style="sheetStyle">
-                <div :key="'i' + (travel.key || 0)" class="es-sheet-body" :class="inClass" :style="{ '--es-travel': travelPx + 'px' }">
+                <div ref="inBody" class="es-sheet-body">
                     <SlideView ref="viewRef" :slide="viewSlide" :deck="deck" :assets="assets" mode="edit" />
                 </div>
             </div>
@@ -839,6 +925,16 @@ onBeforeUnmount(() => {
                     <video v-if="previewEl.type === 'video'" :src="previewSrc.url" controls autoplay playsinline :loop="!!previewEl.loop" :muted="!!previewEl.muted"></video>
                     <audio v-else :src="previewSrc.url" controls autoplay :loop="!!previewEl.loop"></audio>
                 </div>
+                <TableLayer
+                    v-if="tableTarget"
+                    ref="tableRef"
+                    :key="tableTarget.id"
+                    :el="tableTarget"
+                    :get-node="(id) => viewRef?.nodes?.().get(id)"
+                    :vp="vp"
+                    @range="(r) => (tableRange = r)"
+                    @exit="tableEdit = null"
+                />
                 <CropLayer
                     v-if="cropTarget"
                     ref="cropRef"
@@ -863,7 +959,7 @@ onBeforeUnmount(() => {
                 :slide-els="slide.els"
                 :live="live"
                 :hover="gestures.hover.value"
-                :show-handles="canEdit && !editTarget && !cropTarget && ui.tool === 'select' && live.mode !== 'move' && live.mode !== 'rotate'"
+                :show-handles="canEdit && !editTarget && !cropTarget && !tableTarget && ui.tool === 'select' && live.mode !== 'move' && live.mode !== 'rotate'"
                 :dragging="false"
                 :coarse="coarse"
                 :presence="presence"
@@ -918,6 +1014,8 @@ onBeforeUnmount(() => {
                 :hidden="barHidden"
                 :previewing="previewId"
                 @preview="togglePreview"
+                :table="tableState"
+                @table="applyTable"
                 @crop="beginCrop"
                 @replace="replacePicture"
                 @refocus="() => (editTarget ? textRef?.focus() : viewport?.focus({ preventScroll: true }))"

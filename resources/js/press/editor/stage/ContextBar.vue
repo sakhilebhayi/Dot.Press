@@ -10,7 +10,6 @@ import { FONTS } from '../../fonts.js';
 import { normalizeTheme, resolveColor, TOKEN_NAMES } from '../../render/theme.js';
 import { safeHref } from '../../render/doc.js';
 import { barKind, barControls, placeBar } from './lib/bar.js';
-import { stepFor } from './format.js';
 import StageIcon from './StageIcon.vue';
 
 const props = defineProps({
@@ -22,6 +21,7 @@ const props = defineProps({
     hasPanel: { type: Function, default: () => true },
     hidden: { type: Boolean, default: false },
     previewing: { type: String, default: null },
+    table: { type: Object, default: () => ({}) },
 });
 const emit = defineEmits(['crop', 'replace', 'refocus', 'preview', 'table']);
 
@@ -144,30 +144,9 @@ const fontName = computed(() => {
 // ---- other controls -------------------------------------------------------------------------------------
 const el = computed(() => props.elements[0]);
 function tableOp(op) {
-  const t = el.value;
-  if (!t || t.type !== 'table') return;
-  const rows = t.rows.map((r) => r.map((c) => ({ ...c })));
-  const cols = rows[0]?.length || 1;
-  if (op === 'row') {
-    const rh = t.rowh[t.rowh.length - 1] || 60;
-    store.patch([{ id: t.id, p: { rows: [...rows, Array.from({ length: cols }, () => ({ t: '' }))], rowh: [...t.rowh, rh], h: Math.round((t.h + rh) * 100) / 100 } }], { label: 'Add row' });
-  } else if (op === 'col') {
-    const n = t.colw.length;
-    const colw = [...t.colw.map((w) => Math.round(((w * n) / (n + 1)) * 1e4) / 1e4), 0];
-    colw[n] = Math.round((1 - colw.slice(0, n).reduce((a, b) => a + b, 0)) * 1e4) / 1e4;
-    store.patch([{ id: t.id, p: { rows: rows.map((r) => [...r, { t: '' }]), colw } }], { label: 'Add column' });
-  } else if (op === 'delRow' && rows.length > 1) {
-    store.patch([{ id: t.id, p: { rows: rows.slice(0, -1), rowh: t.rowh.slice(0, -1), h: Math.round((t.h - (t.rowh[t.rowh.length - 1] || 0)) * 100) / 100 } }], { label: 'Delete row' });
-  } else if (op === 'delCol' && cols > 1) {
-    const colw = t.colw.slice(0, -1);
-    const sum = colw.reduce((a, b) => a + b, 0) || 1;
-    store.patch([{ id: t.id, p: { rows: rows.map((r) => r.slice(0, -1)), colw: colw.map((w) => Math.round((w / sum) * 1e4) / 1e4) } }], { label: 'Delete column' });
-  } else if (op === 'delTable') {
-    store.deleteSelection();
-  }
-  open.value = null;
+    open.value = null;
+    emit('table', op);
 }
-const canMergeCells = computed(() => false);
 
 function sizeInput(e) {
     const n = parseFloat(e.target.value);
@@ -199,9 +178,9 @@ function run(id) {
         case 'loop': props.format.toggle('loop', props.elements); break;
         case 'ungroup': store.ungroup(); break;
         case 'group': store.group(); break;
-        case 'addRow': tableOp('row'); break;
-        case 'addCol': tableOp('col'); break;
-        case 'merge': emit('table', 'merge'); break;
+        case 'addRow': tableOp('rowBelow'); break;
+        case 'addCol': tableOp('colRight'); break;
+        case 'merge': emit('table', props.table.canMerge ? 'merge' : 'unmerge'); break;
         case 'editText': editShapeText(); break;
         default: break;
     }
@@ -324,9 +303,9 @@ defineExpose({ close, focusFirst, openLink: () => toggleOpen('link') });
                 <button :ref="(n) => (btnRefs[c.id] = n)" data-bar-item type="button" class="es-btn" :aria-pressed="!!val('link')" :aria-expanded="open === c.id" aria-haspopup="dialog" aria-label="Link" title="Link" @click="toggleOpen(c.id)">
                     <StageIcon name="link" />
                 </button>
-                <form v-if="open === c.id" class="es-pop" :style="popStyle(leftOf(c.id))" @submit.prevent="applyLink">
+                <form v-if="open === c.id" class="es-pop" novalidate :style="popStyle(leftOf(c.id))" @submit.prevent="applyLink">
                     <div class="es-pop-title">{{ editing ? 'LINK FOR THE SELECTED TEXT' : 'LINK FOR THIS BOX' }}</div>
-                    <input v-model="linkDraft" type="url" placeholder="https://" aria-label="Link address" />
+                    <input v-model="linkDraft" class="es-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://" aria-label="Link address" />
                     <div v-if="linkError" class="es-pop-title" role="alert" style="color: var(--bad)">{{ linkError }}</div>
                     <div class="es-pop-actions">
                         <button v-if="val('link')" type="button" @click="linkDraft = ''; applyLink()">Remove</button>
@@ -402,13 +381,13 @@ defineExpose({ close, focusFirst, openLink: () => toggleOpen('link') });
                 <button :ref="(n) => (btnRefs[c.id] = n)" data-bar-item type="button" class="es-btn" :aria-expanded="open === c.id" aria-haspopup="menu" aria-label="Delete" title="Delete" @click="toggleOpen(c.id)"><StageIcon name="trash" /><StageIcon name="chevron" /></button>
                 <div v-if="open === c.id" class="es-pop" :style="popStyle(leftOf(c.id))">
                     <ul class="es-list" role="menu">
-                        <li role="none"><button type="button" role="menuitem" @click="tableOp('delRow')">Delete last row</button></li>
-                        <li role="none"><button type="button" role="menuitem" @click="tableOp('delCol')">Delete last column</button></li>
+                        <li role="none"><button type="button" role="menuitem" :disabled="(table.rows || 0) < 2" @click="tableOp('delRow')">Delete row</button></li>
+                        <li role="none"><button type="button" role="menuitem" :disabled="(table.cols || 0) < 2" @click="tableOp('delCol')">Delete column</button></li>
                         <li role="none"><button type="button" role="menuitem" @click="tableOp('delTable')">Delete table</button></li>
                     </ul>
                 </div>
             </template>
-            <button v-if="c.id === 'merge'" data-bar-item type="button" class="es-btn es-btn-text" disabled :aria-label="c.label" title="Select two cells to merge them"><StageIcon name="merge" />Merge</button>
+            <button v-if="c.id === 'merge'" data-bar-item type="button" class="es-btn es-btn-text" :disabled="!table.canMerge && !table.canUnmerge" :aria-label="table.canMerge || !table.canUnmerge ? 'Merge cells' : 'Split cell'" :title="table.active ? 'Select two or more cells to merge them' : 'Double click the table, then select cells'" @click="run('merge')"><StageIcon name="merge" />{{ table.canUnmerge && !table.canMerge ? 'Split' : 'Merge' }}</button>
 
             <!-- media -->
             <button v-if="c.id === 'play'" data-bar-item type="button" class="es-btn es-btn-text" :aria-pressed="previewing === elements[0].id" aria-label="Play preview" @click="run('play')"><StageIcon :name="previewing === elements[0].id ? 'pause' : 'play'" />Preview</button>
