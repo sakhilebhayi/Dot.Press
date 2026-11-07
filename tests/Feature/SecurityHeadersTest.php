@@ -53,12 +53,14 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'self'", $policy);
         $this->assertStringContainsString("object-src 'none'", $policy);
         $this->assertStringContainsString("base-uri 'self'", $policy);
-        $this->assertStringContainsString('https://fonts.bunny.net', $policy);
-        $this->assertStringContainsString('https://fonts.gstatic.com', $policy);
-        $this->assertStringContainsString('https://images.unsplash.com https://ui-avatars.com', $policy);
+        $this->assertStringContainsString("font-src 'self'", $policy);
+        foreach (['bunny.net', 'googleapis.com', 'gstatic.com', 'unsplash.com', 'ui-avatars.com', 'unsafe-eval'] as $gone) {
+            $this->assertStringNotContainsString($gone, $policy, "{$gone} is not loaded by any page any more");
+        }
         $this->assertStringContainsString('https://www.youtube.com https://player.vimeo.com', $policy);
         $this->assertStringContainsString('img-src \'self\' data: blob:', $policy);
-        $this->assertStringContainsString("connect-src 'self' wss: https:", $policy);
+        $this->assertStringContainsString("connect-src 'self' wss:", $policy);
+        $this->assertStringContainsString("form-action 'self'", $policy);
     }
 
     public function test_violation_reports_are_accepted_without_a_session_and_keep_only_the_directive_and_host(): void
