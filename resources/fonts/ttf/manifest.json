@@ -1,0 +1,74 @@
+{
+  "Public Sans": {
+    "Regular": "PublicSans-Regular.ttf",
+    "Bold": "PublicSans-Bold.ttf",
+    "Italic": "PublicSans-Italic.ttf",
+    "BoldItalic": "PublicSans-BoldItalic.ttf"
+  },
+  "Inter": {
+    "Regular": "Inter-Regular.ttf",
+    "Bold": "Inter-Bold.ttf",
+    "Italic": "Inter-Italic.ttf",
+    "BoldItalic": "Inter-BoldItalic.ttf"
+  },
+  "IBM Plex Sans": {
+    "Regular": "IBMPlexSans-Regular.ttf",
+    "Bold": "IBMPlexSans-Bold.ttf",
+    "Italic": "IBMPlexSans-Italic.ttf",
+    "BoldItalic": "IBMPlexSans-BoldItalic.ttf"
+  },
+  "IBM Plex Serif": {
+    "Regular": "IBMPlexSerif-Regular.ttf",
+    "Bold": "IBMPlexSerif-Bold.ttf",
+    "Italic": "IBMPlexSerif-Italic.ttf",
+    "BoldItalic": "IBMPlexSerif-BoldItalic.ttf"
+  },
+  "IBM Plex Mono": {
+    "Regular": "IBMPlexMono-Regular.ttf",
+    "Bold": "IBMPlexMono-Bold.ttf",
+    "Italic": "IBMPlexMono-Italic.ttf",
+    "BoldItalic": "IBMPlexMono-BoldItalic.ttf"
+  },
+  "Literata": {
+    "Regular": "Literata-Regular.ttf",
+    "Bold": "Literata-Bold.ttf",
+    "Italic": "Literata-Italic.ttf",
+    "BoldItalic": "Literata-BoldItalic.ttf"
+  },
+  "DM Sans": {
+    "Regular": "DMSans-Regular.ttf",
+    "Bold": "DMSans-Bold.ttf",
+    "Italic": "DMSans-Italic.ttf",
+    "BoldItalic": "DMSans-BoldItalic.ttf"
+  },
+  "Space Grotesk": {
+    "Regular": "SpaceGrotesk-Regular.ttf",
+    "Bold": "SpaceGrotesk-Bold.ttf",
+    "Italic": "SpaceGrotesk-Regular.ttf",
+    "BoldItalic": "SpaceGrotesk-Bold.ttf"
+  },
+  "Playfair Display": {
+    "Regular": "PlayfairDisplay-Regular.ttf",
+    "Bold": "PlayfairDisplay-Bold.ttf",
+    "Italic": "PlayfairDisplay-Italic.ttf",
+    "BoldItalic": "PlayfairDisplay-BoldItalic.ttf"
+  },
+  "Manrope": {
+    "Regular": "Manrope-Regular.ttf",
+    "Bold": "Manrope-Bold.ttf",
+    "Italic": "Manrope-Regular.ttf",
+    "BoldItalic": "Manrope-Bold.ttf"
+  },
+  "Source Serif 4": {
+    "Regular": "SourceSerif4-Regular.ttf",
+    "Bold": "SourceSerif4-Bold.ttf",
+    "Italic": "SourceSerif4-Italic.ttf",
+    "BoldItalic": "SourceSerif4-BoldItalic.ttf"
+  },
+  "Caveat": {
+    "Regular": "Caveat-Regular.ttf",
+    "Bold": "Caveat-Bold.ttf",
+    "Italic": "Caveat-Regular.ttf",
+    "BoldItalic": "Caveat-Bold.ttf"
+  }
+}
