@@ -46,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('decks/{deck}/presence', [PresenceController::class, 'store'])->middleware('throttle:press-presence');
 
     Route::get('decks/{deck}/versions', [DeckVersionController::class, 'index'])->middleware('throttle:press-read');
-    Route::post('decks/{deck}/versions', [DeckVersionController::class, 'store'])->middleware('throttle:press-read');
+    Route::post('decks/{deck}/versions', [DeckVersionController::class, 'store'])->middleware('throttle:10,1,press-version');
     Route::get('decks/{deck}/versions/{version}', [DeckVersionController::class, 'show'])->whereNumber('version')->middleware('throttle:press-read');
     Route::post('decks/{deck}/versions/{version}/restore', [DeckVersionController::class, 'restore'])->whereNumber('version')->middleware('throttle:press-read');
 
@@ -69,7 +69,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::put('sharing', [DeckShareController::class, 'update'])->middleware('throttle:60,1,press-share');
         Route::post('sharing/rotate-link', [DeckShareController::class, 'rotate'])->middleware('throttle:20,1,press-rotate');
         Route::get('sharing/people', [DeckShareController::class, 'people']);
-        Route::post('sharing/people', [DeckShareController::class, 'addPerson'])->middleware('throttle:60,1,press-share');
+        // Looking people up by address is the one thing here worth guessing at, so it has the tightest limit.
+        Route::post('sharing/people', [DeckShareController::class, 'addPerson'])->middleware('throttle:20,1,press-share-add');
         Route::patch('sharing/people/{user}', [DeckShareController::class, 'updatePerson'])->middleware('throttle:60,1,press-share');
         Route::delete('sharing/people/{user}', [DeckShareController::class, 'removePerson'])->middleware('throttle:60,1,press-share');
         Route::get('people', [DeckPeopleController::class, 'index']);
@@ -118,8 +119,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
     // R-40 intelligence over a stored deck. analyze, story and spine are local rules and free;
     // suggest spends AI quota only when a language model answers.
     Route::prefix('decks/{deck}/intel')->group(function (): void {
+        // The review reads every element of every slide: a deck at its limits takes ten seconds and half a gigabyte, so it
+        // gets its own small allowance. Story and spine are about a second at that size.
+        Route::post('analyze', [DeckIntelController::class, 'analyze'])->middleware('throttle:12,1,press-analyze');
         Route::middleware('throttle:120,1')->group(function (): void {
-            Route::post('analyze', [DeckIntelController::class, 'analyze']);
             Route::post('story', [DeckIntelController::class, 'story']);
             Route::get('spine', [DeckIntelController::class, 'spine']);
             Route::post('spine', [DeckIntelController::class, 'spineEdit']);

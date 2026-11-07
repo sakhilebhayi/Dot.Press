@@ -14,7 +14,7 @@
         <meta name="theme-color" content="#101214" media="(prefers-color-scheme: dark)">
 
         {{-- Theme before first paint: the saved choice (press:theme), else the system setting. Storage can be blocked, so every access is guarded. --}}
-        <script>
+        <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             (function () {
                 var root = document.documentElement, mode = null;
                 try { mode = localStorage.getItem('press:theme'); } catch (e) {}
@@ -75,7 +75,7 @@
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
         @endif
 
-        @routes
+        @routes(null, \Illuminate\Support\Facades\Vite::cspNonce())
         {{-- A page for a big deck (Press/Deferred) names the real page; its code is preloaded now so it loads beside the data. --}}
         @php
             $entries = ['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"];

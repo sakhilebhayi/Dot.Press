@@ -48,6 +48,12 @@ return Application::configure(basePath: dirname(__DIR__))
             fn ($request) => $request->is('api/decks/*/ops'),
         ]);
 
+        // The same goes for spaces: a rich text run that ends in a space ("This is ", then a bold word) is a string whose
+        // edges matter. The document sanitiser trims the fields it means to trim (titles, section names) itself.
+        $middleware->trimStrings(except: [
+            fn ($request) => $request->is('api/decks/*/ops') || $request->is('api/layouts', 'api/layouts/*'),
+        ]);
+
         $middleware->alias([
             'operator' => EnsurePlatformOperator::class,
         ]);

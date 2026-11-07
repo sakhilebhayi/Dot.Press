@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Concerns\ResolvesPressTeam;
 use App\Http\Controllers\Controller;
+use App\Models\Asset;
 use App\Models\BrandKit;
+use App\Models\Project;
 use App\Models\Theme;
 use App\Services\Press\ThemeLibrary;
 use App\Services\Press\ThemeTokens;
@@ -50,7 +52,7 @@ class ThemeController extends Controller
         $this->requireTeamRole($request, $team, 'create');
 
         $name = $this->validatedName($request);
-        $tokens = $this->validatedTokens($request->only(['c', 't', 's', 'bg']));
+        $tokens = $this->validatedTokens($request->only(['c', 't', 's', 'bg']), $team->id);
 
         if (Theme::query()->where('team_id', $team->id)->count() >= Theme::MAX_PER_TEAM) {
             throw ValidationException::withMessages(['name' => 'A team can keep up to '.Theme::MAX_PER_TEAM.' custom themes. Delete one first.']);
@@ -89,7 +91,7 @@ class ThemeController extends Controller
             $merged['bg'] = $request->input('bg');
         }
 
-        $tokens = $this->validatedTokens($merged);
+        $tokens = $this->validatedTokens($merged, $theme->team_id);
 
         if ($request->has('name')) {
             $theme->name = $this->validatedName($request);
@@ -125,12 +127,24 @@ class ThemeController extends Controller
      * @param  array<string, mixed>  $input
      * @return array{tokens: array<string, mixed>}
      */
-    private function validatedTokens(array $input): array
+    private function validatedTokens(array $input, int $teamId): array
     {
         $result = ThemeTokens::validate($input);
 
         if ($result['errors'] !== []) {
             throw ValidationException::withMessages($result['errors']);
+        }
+
+        // A background picture must be in this team's own library, like a brand kit logo.
+        $asset = $input['bg']['img']['asset'] ?? null;
+        if ($asset !== null) {
+            $own = Asset::withoutGlobalScopes()
+                ->whereKey((int) $asset)
+                ->whereIn('project_id', Project::withoutGlobalScopes()->where('team_id', $teamId)->select('id'))
+                ->exists();
+            if (! $own) {
+                throw ValidationException::withMessages(['bg' => 'That background picture does not exist in this team\'s asset library.']);
+            }
         }
 
         return ['tokens' => ThemeTokens::normalise($input)];

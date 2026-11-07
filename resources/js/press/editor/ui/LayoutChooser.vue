@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
                     <span class="lc-name">{{ it.name }}</span>
                 </button>
             </div>
-            <p v-if="!hasLibrary" class="lc-note pr-hint">Layouts are not installed in this build, so any choice adds a blank slide.</p>
+            <p v-if="!hasLibrary" class="lc-note pr-hint">The layout list could not be loaded, so any choice adds a blank slide. Reload the page to try again.</p>
         </div>
     </Teleport>
 </template>

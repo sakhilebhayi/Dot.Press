@@ -40,7 +40,6 @@ class SharedDeckController extends Controller
             'title' => $locked ? 'Protected presentation' : $deck->title,
             'needsPassword' => $locked,
             'error' => $request->session()->pull('share_error'),
-            'allowDownload' => (bool) $deck->share_allow_download,
             'token' => $token,
         ];
 
@@ -166,8 +165,15 @@ class SharedDeckController extends Controller
     {
         $doc = DeckAccessScope::without(fn () => DeckDocument::toArray($deck));
 
+        // No speaker notes, and a hidden slide is sent as an empty place holder: the owner hid it, so a guest must not be
+        // able to read its content in the page data even though the player skips it.
         $slides = array_map(function (array $slide): array {
             $slide['notes'] = null;
+            if (! empty($slide['hidden'])) {
+                $slide['title'] = null;
+                $slide['bg'] = null;
+                $slide['els'] = [];
+            }
 
             return $slide;
         }, $doc['slides']);

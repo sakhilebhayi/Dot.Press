@@ -7,6 +7,8 @@ use App\Models\Asset;
 use App\Models\Deck;
 use App\Models\PresentSession;
 use App\Models\Slide;
+use App\Models\User;
+use App\Services\Press\DeckAccess;
 use App\Services\Press\DeckDocument;
 use App\Services\Press\DeferredPage;
 use App\Services\Press\JsonStream;
@@ -16,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -74,7 +77,7 @@ class PresentSessionController extends Controller
 
         return $this->page($request, $deck, 'Audience', 'audience', false, [
             'follow' => null,
-            'channelKey' => preg_match('/^[a-z0-9]{6,24}$/', $key) === 1 ? $key : null,
+            'channelKey' => preg_match('/^[a-z0-9]{6,24}$/D', $key) === 1 ? $key : null,
         ]);
     }
 
@@ -260,7 +263,7 @@ class PresentSessionController extends Controller
 
         $json = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $etag = '"'.md5($json).'"';
-        $headers = ['ETag' => $etag, 'Cache-Control' => 'no-cache, private', 'Content-Type' => 'application/json'];
+        $headers = ['ETag' => $etag, 'Cache-Control' => 'no-cache, private', 'Content-Type' => 'application/json', 'X-Robots-Tag' => 'noindex, nofollow'];
         if (trim((string) $request->header('If-None-Match')) === $etag) {
             return response('', 304, $headers);
         }
@@ -410,9 +413,37 @@ class PresentSessionController extends Controller
         return $session->created_at->copy()->addHours(self::TTL_HOURS);
     }
 
+    /**
+     * Live means: not ended, not expired, and the person who started it still holds the right to present the deck
+     * (they are still in the team or on the share, the deck is not archived and not made private to others). A link
+     * is a bearer secret, so it must not outlive the access of whoever made it; the session is then closed for good.
+     * The access check is remembered for a few seconds because followers poll every second.
+     */
     private function isLive(PresentSession $session): bool
     {
-        return $session->ended_at === null && $this->expiresAt($session)->isFuture();
+        if ($session->ended_at !== null || ! $this->expiresAt($session)->isFuture()) {
+            return false;
+        }
+
+        if ($this->creatorKeepsAccess($session)) {
+            return true;
+        }
+
+        $session->forceFill(['ended_at' => now()])->save();
+
+        return false;
+    }
+
+    private function creatorKeepsAccess(PresentSession $session): bool
+    {
+        $ttl = (int) config('security.live_access_cache_seconds', 15);
+
+        return (bool) Cache::remember('press-live-access:'.$session->id, $ttl, function () use ($session): bool {
+            $deck = Deck::withoutGlobalScopes()->find($session->deck_id);
+            $user = User::find($session->user_id);
+
+            return $deck !== null && $user !== null && $deck->archived_at === null && DeckAccess::can($user, $deck, 'present');
+        });
     }
 
     private function ownSession(Request $request, string $token): PresentSession

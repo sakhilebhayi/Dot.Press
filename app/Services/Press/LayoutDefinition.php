@@ -78,7 +78,7 @@ final class LayoutDefinition
         $out = [];
 
         $id = $element['id'] ?? 'p'.($index + 1);
-        if (! is_string($id) || preg_match('/^[A-Za-z0-9_-]{1,40}$/', $id) !== 1) {
+        if (! is_string($id) || preg_match('/^[A-Za-z0-9_-]{1,40}$/D', $id) !== 1) {
             $errors["{$path}.id"] = 'The id is 1 to 40 characters of letters, digits, underscore or hyphen.';
         }
         $out['id'] = $id;

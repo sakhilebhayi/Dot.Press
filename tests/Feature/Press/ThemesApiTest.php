@@ -112,7 +112,8 @@ class ThemesApiTest extends TestCase
             ->assertJsonPath('theme.c.accent', '#0891b2', 'earlier colours survive a partial update')
             ->assertJsonPath('theme.t.heading', 'Lora');
 
-        $this->actingAs($this->owner)->patchJson("/api/themes/{$id}", ['bg' => ['img' => ['asset' => 4], 'fit' => 'cover', 'dim' => 0.4]])->assertOk()->assertJsonPath('theme.bg.img.asset', 4);
+        $assetId = $this->upload($this->owner, $this->pngBytes(), 'bg.png')->assertCreated()->json('asset.id');
+        $this->actingAs($this->owner)->patchJson("/api/themes/{$id}", ['bg' => ['img' => ['asset' => $assetId], 'fit' => 'cover', 'dim' => 0.4]])->assertOk()->assertJsonPath('theme.bg.img.asset', $assetId);
         $this->actingAs($this->owner)->patchJson("/api/themes/{$id}", ['bg' => null])->assertOk()->assertJsonPath('theme.bg', null);
         $this->actingAs($this->owner)->patchJson("/api/themes/{$id}", ['c' => ['ink' => 'dark']])->assertUnprocessable()->assertJsonValidationErrors('c.ink');
         $this->actingAs($this->owner)->getJson("/api/themes/{$id}")->assertOk()->assertJsonPath('theme.c.ink', '#f9fafb');

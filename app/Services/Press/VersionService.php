@@ -79,6 +79,26 @@ class VersionService
     }
 
     /**
+     * Called before a batch that destroys content (it removes slides or resizes the deck). The history is otherwise
+     * written after a batch, so what such a batch removed would exist nowhere unless an older snapshot happened to be
+     * close. One copy per two minutes at most: a person deleting slides one after another gets one safety copy of the
+     * deck as it stood before the first of them, not one per click.
+     */
+    public function safetyBefore(Deck $deck, ?User $user, string $why): ?DeckVersion
+    {
+        $recent = DeckVersion::query()->where('deck_id', $deck->id)->where('created_at', '>', now()->subMinutes(2))->exists();
+        if ($recent) {
+            return null;
+        }
+        $last = DeckVersion::query()->where('deck_id', $deck->id)->orderByDesc('id')->first(['id', 'hash']);
+        if ($last !== null && $last->hash === DeckHash::compute($deck)) {
+            return null; // the newest version already is this deck
+        }
+
+        return $this->create($deck, $user, 'auto', Str::limit($why, 120, ''));
+    }
+
+    /**
      * Newest first, without the snapshot body.
      *
      * @return array{versions: list<array<string, mixed>>, next_before: int|null}

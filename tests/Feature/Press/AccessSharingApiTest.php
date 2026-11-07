@@ -99,7 +99,8 @@ class AccessSharingApiTest extends AccessTestCase
 
     public function test_adding_people_by_id_and_email_with_roles(): void
     {
-        $byId = User::factory()->create(['name' => 'By Id']);
+        // By number only for someone already in one of your teams; anyone else is found by address.
+        $byId = $this->member('viewer', 'By Id');
         $byEmail = User::factory()->create(['name' => 'By Email', 'email' => 'Someone@Example.test']);
 
         $this->actingAs($this->owner)->postJson($this->url('/people'), ['user_id' => $byId->id, 'role' => 'viewer'])->assertCreated();
@@ -133,7 +134,7 @@ class AccessSharingApiTest extends AccessTestCase
     public function test_update_and_remove_a_person(): void
     {
         $person = User::factory()->create();
-        $this->actingAs($this->owner)->postJson($this->url('/people'), ['user_id' => $person->id, 'role' => 'viewer'])->assertCreated();
+        $this->actingAs($this->owner)->postJson($this->url('/people'), ['email' => $person->email, 'role' => 'viewer'])->assertCreated();
 
         $this->actingAs($this->owner)->patchJson($this->url("/people/{$person->id}"), ['role' => 'commenter'])->assertOk()
             ->assertJsonPath('people.0.role', 'commenter');

@@ -69,6 +69,14 @@ class OpApplier
                 ->whereIn('project_id', Project::withoutGlobalScopes()->where('team_id', $teamId)->select('id'))
                 ->count() === count($ids);
         });
+
+        // What this batch is about to destroy is saved first (see VersionService::safetyBefore).
+        $removes = collect($ops)->contains(fn ($op) => is_array($op) && ($op['op'] ?? null) === 'slide.remove');
+        $resizes = collect($ops)->contains(fn ($op) => is_array($op) && ($op['op'] ?? null) === 'deck.resize');
+        if ($removes || $resizes) {
+            $this->versions->safetyBefore($locked, $user, $removes ? 'Before removing slides' : 'Before resizing the deck');
+        }
+
         $batch->run($ops);
 
         if ($batch->applied === []) {

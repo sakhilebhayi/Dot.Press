@@ -12,7 +12,7 @@ class AccessActivityTest extends AccessTestCase
     {
         ActivityRecorder::record($this->deck, $this->editor, 'created');
         ActivityRecorder::record($this->deck, $this->editor, 'renamed', ['to' => 'Q4 plan']);
-        $this->actingAs($this->owner)->postJson("/api/decks/{$this->deck->id}/sharing/people", ['user_id' => $this->outsider->id, 'role' => 'viewer'])->assertCreated();
+        $this->actingAs($this->owner)->postJson("/api/decks/{$this->deck->id}/sharing/people", ['email' => $this->outsider->email, 'role' => 'viewer'])->assertCreated();
         $this->actingAs($this->viewer)->postJson("/api/decks/{$this->deck->id}/comments", ['body' => 'hi'])->assertCreated();
 
         $feed = $this->actingAs($this->admin)->getJson("/api/decks/{$this->deck->id}/activity")->assertOk();
