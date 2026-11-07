@@ -64,16 +64,20 @@ const presentItems = computed(() => [
     { separator: true },
     { label: 'Copy audience link', icon: 'link', run: () => editor.copyAudienceLink() },
 ]);
+const openExport = (format, section = null) => editor.openPanel('export', { format, section });
 const exportItems = computed(() => [
-    ...(editor.hasPanel('export') ? [{ label: 'Export options', icon: 'export', run: () => editor.openPanel('export') }, { separator: true }] : []),
-    { label: 'Download PDF', icon: 'document', href: editor.exportLinks.pdf },
-    { label: 'Download PowerPoint', icon: 'document', href: editor.exportLinks.pptx },
+    { label: 'PDF', icon: 'document', run: () => openExport('pdf') },
+    { label: 'PowerPoint', icon: 'document', run: () => openExport('pptx') },
+    { label: 'Present package (offline)', icon: 'download', run: () => openExport('package') },
+    { label: 'Images (PNG)', icon: 'image', run: () => openExport('images') },
+    { label: 'Print view', icon: 'folder', run: () => openExport('print') },
+    { separator: true },
+    { label: 'Import PowerPoint', icon: 'upload', run: () => openExport('pdf', 'import') },
 ]);
 const overflowItems = computed(() => [
     ...(editor.hasPanel('share') ? [{ label: 'Share', icon: 'share', run: () => editor.openPanel('share') }] : []),
     ...(editor.hasPanel('review') ? [{ label: 'Review', icon: 'review', run: () => editor.openPanel('review') }] : []),
-    { label: 'Download PDF', icon: 'document', href: editor.exportLinks.pdf },
-    { label: 'Download PowerPoint', icon: 'document', href: editor.exportLinks.pptx },
+    ...(canExport.value ? [{ label: 'Export', icon: 'export', run: () => openExport('pdf') }] : []),
     { separator: true },
     { label: 'Keyboard shortcuts', icon: 'help', run: () => { ui.help = true; } },
 ]);
