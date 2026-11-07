@@ -67,9 +67,9 @@ chart: { type: "bar"|"column"|"line"|"area"|"pie"|"doughnut"|"scatter"|"bubble"|
          data: { categories: [string], series: [{ name, values: [number|null], color?, kind?: "bar"|"line", points?: [{x,y,r?}] }], totals?: [index] , kpis?: [{label,value,delta?,unit?,note?}] , regions?: [{code, value}] },
          opt:  { title?, sub?, legend: "none"|"bottom"|"right"|"top", labels: "none"|"value"|"percent", stacked: bool, smooth: bool, grid: bool, fmt?: "num"|"pct"|"cur"|"compact", cur?: "R", dec?: 0..3,
                  ax: { x: {title?, show}, y: {title?, show, min?, max?} }, colors?: [colour], anim?: bool },
-         src:  { kind: "manual"|"csv"|"sheet", ref?: string, at?: iso8601 } }
+         src:  { kind: "manual"|"file", name?: string, at?: iso8601 } }
 ```
-Charts draw from `data` only, never from decoration. `src.kind="sheet"` records where the numbers came from; the numbers themselves are still stored in `data`.
+Charts draw from `data` only, never from decoration. `src.kind="file"` records that the numbers were imported from a CSV, TSV or XLSX file (for example an export from Dot.Sheets); the numbers themselves are always stored in `data`. There are no live links to other platforms because none of them has a data API yet.
 
 ### table
 `rows` (array of arrays of cell objects `{t: string, b?: bool, i?: bool, al?: "l|c|r", fill?: colour, color?: colour, span?: [rows, cols]}`), `colw` (array of fractions summing to 1), `rowh` (array of units), `header` (first row is a header), `band` (zebra rows), `size`, `font`, `lines` (`none|rows|grid`).
