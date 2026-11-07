@@ -2,7 +2,7 @@
 // plain autosave, going offline, closing the tab with unsent changes, killing the server for 20 seconds, the server answering 500.
 // After each the saved document is read back and compared with what the person did.
 import { spawn, execSync } from 'node:child_process';
-import { MOD, launch, newContext, suite, ok, eq, sleep, shot, savedDoc, saved, openDeck, createDeck, sendOps, clickEl, APP, BASE } from './lib.mjs';
+import { waitUntil, MOD, launch, newContext, suite, ok, eq, sleep, shot, savedDoc, saved, openDeck, createDeck, sendOps, clickEl, APP, BASE } from './lib.mjs';
 
 const t = suite('04-autosave');
 const browser = await launch();
@@ -18,7 +18,7 @@ const reader = await ctx.newPage();
 await reader.goto(BASE + '/dashboard');
 const serverX = async () => (await savedDoc(reader, deckId)).slides[0].els.find((e) => e.id === 'box').x;
 const bead = () => cur.locator('.tb-save');
-const waitKey = (key, timeout = 20000) => cur.waitForFunction((k) => document.querySelector('.tb-save')?.classList.contains('is-' + k), key, { timeout });
+const waitKey = (key, timeout = 20000) => waitUntil(cur, (k) => document.querySelector('.tb-save')?.classList.contains('is-' + k), key, { timeout });
 async function nudge(n) {
     await cur.locator('.es-viewport').focus();
     await cur.keyboard.press('Escape');

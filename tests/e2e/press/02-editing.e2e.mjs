@@ -2,7 +2,7 @@
 // Everything is made and changed with real pointer and keyboard events on the stage and in the inspector; the saved document is read back.
 import fs from 'node:fs';
 import path from 'node:path';
-import { MOD, launch, newContext, suite, ok, eq, sleep, shot, savedDoc, saved, openDeck, createDeck, clickEl, center, dragEl, makePng, SHOTS, BASE } from './lib.mjs';
+import { waitUntil, MOD, launch, newContext, suite, ok, eq, sleep, shot, savedDoc, saved, openDeck, createDeck, clickEl, center, dragEl, makePng, SHOTS, BASE } from './lib.mjs';
 
 const t = suite('02-editing');
 const browser = await launch();
@@ -17,7 +17,7 @@ const stageBox = () => page.locator('.es-sheet-in').boundingBox();
 const els = async () => (await savedDoc(page, deckId)).slides[0].els;
 const elById = async (id) => (await els()).find((e) => e.id === id);
 async function flush() { await sleep(250); await saved(page); }
-async function waitNew(before) { await page.waitForFunction((b) => [...document.querySelectorAll('.es-proxy')].some((e) => !b.includes(e.dataset.id)), before); const now = await proxyIds(); return now.find((i) => !before.includes(i)); }
+async function waitNew(before) { await waitUntil(page, (b) => [...document.querySelectorAll('.es-proxy')].some((e) => !b.includes(e.dataset.id)), before); const now = await proxyIds(); return now.find((i) => !before.includes(i)); }
 /** A rectangle on the slide, in slide fractions of the stage, dragged with the pointer. */
 async function drag(tool, fx, fy, fw, fh) {
     const sb = await stageBox();
@@ -105,7 +105,7 @@ await t.step('13', 'images: upload a real PNG from the Insert panel; it lands on
     const e = await elById(imgId);
     eq(e.type, 'image');
     ok(e.src && e.src.asset, 'src is an asset: ' + JSON.stringify(e.src));
-    await page.waitForFunction((id) => { const i = document.querySelector(`.es-sheet-in [data-eid="${id}"] img`); return i && i.complete && i.naturalWidth > 0; }, imgId);
+    await waitUntil(page, (id) => { const i = document.querySelector(`.es-sheet-in [data-eid="${id}"] img`); return i && i.complete && i.naturalWidth > 0; }, imgId);
     const dim = await page.evaluate((id) => { const i = document.querySelector(`.es-sheet-in [data-eid="${id}"] img`); return [i.naturalWidth, i.naturalHeight]; }, imgId);
     eq(dim, [640, 400], 'the stored picture is the uploaded one');
     const d = await savedDoc(page, deckId);

@@ -124,14 +124,25 @@ export async function savedDoc(page, id) {
 export async function apiGet(page, url) {
     return page.evaluate(async (u) => { const r = await fetch(u, { credentials: 'same-origin', headers: { Accept: 'application/json' } }); return { status: r.status, body: await r.json().catch(() => null) }; }, url);
 }
+/** Like page.waitForFunction, but through evaluate: the app's Content Security Policy forbids the eval that waitForFunction needs. */
+export async function waitUntil(page, fn, arg, { timeout = 8000, every = 80 } = {}) {
+    const end = Date.now() + timeout;
+    let last;
+    while (Date.now() < end) {
+        last = await page.evaluate(fn, arg).catch(() => false);
+        if (last) return last;
+        await new Promise((r) => setTimeout(r, every));
+    }
+    throw new Error('timed out waiting for a condition in the page: ' + String(fn).slice(0, 120));
+}
 export async function openDeck(page, id, qs = '') {
     await page.goto(`${BASE}/decks/${id}${qs}`);
     await page.waitForSelector('.es-viewport');
-    await page.waitForFunction(() => document.fonts?.status !== 'loading');
+    await waitUntil(page, () => document.fonts?.status !== 'loading');
 }
 /** Waits until the save bead says Saved and the server has everything (pending is empty). */
 export async function saved(page, timeout = 15000) {
-    await page.waitForFunction(() => document.querySelector('.tb-save')?.classList.contains('is-saved'), null, { timeout });
+    await waitUntil(page, () => document.querySelector('.tb-save')?.classList.contains('is-saved'), null, { timeout });
 }
 export const slideEls = (d, i = 0) => d.slides[i].els;
 /** Screen centre of an element of the current slide, from its rendered node. */
