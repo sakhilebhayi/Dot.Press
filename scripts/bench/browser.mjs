@@ -17,7 +17,7 @@ const EMAIL = process.env.PRESS_EMAIL || 'bench@press.test';
 const PASSWORD = process.env.PRESS_PASSWORD || 'password';
 const sizes = String(a.sizes || '10,100,300').split(',').map(Number);
 const cpuRates = String(a.cpu || '1,4').split(',').map(Number);
-const only = new Set(String(a.only || 'load,drag,spine,thumbs,leak,poll').split(','));
+const only = new Set(String(a.only || 'load,drag,spine,thumbs,leak,poll,library').split(','));
 const rec = recorder(`Dot.Press browser benchmark (${BASE})`);
 
 function loadPlaywright() {
@@ -287,12 +287,45 @@ async function openEditor(page, id) {
         await s.context.close();
     }
 
+    if (only.has('library')) {
+        // The library with 200 decks (php artisan press:bench --only=library --use-current-db creates them).
+        for (const cpu of cpuRates) {
+            const s = await newSession(cpu);
+            await login(s.page);
+            const t0 = Date.now();
+            await s.page.goto(`${BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
+            await s.page.waitForSelector('.lw-grid:not(.lw-grid--wait) > li', { timeout: 60000 }).catch(() => {});
+            await s.page.waitForFunction(() => document.querySelectorAll('.lw-grid .ps-wrap').length >= 6, null, { timeout: 60000 }).catch(() => {});
+            const ready = Date.now() - t0;
+            await s.page.waitForTimeout(1500);
+            const lt = await longTasks(s.page);
+            const stats = await s.page.evaluate(() => ({ nodes: document.querySelectorAll('*').length, cards: document.querySelectorAll('.ps-wrap').length, heap: performance.memory?.usedJSHeapSize / 1048576 }));
+            rec.put('library', `cpu${cpu}x.cards_drawn_ms`, ready);
+            rec.put('library', `cpu${cpu}x.thumbnails_drawn`, stats.cards);
+            rec.put('library', `cpu${cpu}x.dom_nodes`, stats.nodes);
+            rec.put('library', `cpu${cpu}x.long_tasks`, lt.count);
+            rec.put('library', `cpu${cpu}x.blocking_ms`, lt.blocking);
+            rec.put('library', `cpu${cpu}x.transfer_kb`, s.net.bytes / 1024);
+            rec.put('library', `cpu${cpu}x.js_heap_mb`, stats.heap);
+            await s.context.close();
+        }
+    }
+
     if (only.has('poll')) {
-        const seconds = Number(a.seconds || 30);
-        for (const state of ['active_with_pointer', 'idle_focused', 'hidden']) {
+        // Requests per minute of one open tab. A deck nobody else has touched in the last 20 seconds is used, so the tab
+        // is alone (presence rows of earlier sessions would otherwise count as company). The idle state is measured over
+        // the last 30 seconds of a 100 second wait, after the tab has been untouched for more than a minute.
+        const quiet = ids[sizes[0]];
+        await new Promise((r) => setTimeout(r, 25000));
+        const states = [
+            ['active_alone_with_pointer', 30, 30],
+            ['idle_focused_after_a_minute', 100, 30],
+            ['hidden', 65, 65],
+        ];
+        for (const [state, total, window] of states) {
             const s = await newSession(1);
             await login(s.page);
-            await openEditor(s.page, ids[mid]);
+            await openEditor(s.page, quiet);
             await s.page.waitForTimeout(1000);
             if (state === 'hidden') {
                 await s.page.evaluate(() => {
@@ -304,15 +337,17 @@ async function openEditor(page, id) {
             }
             s.net.api.length = 0;
             const t0 = Date.now();
-            if (state === 'active_with_pointer') {
-                for (let i = 0; i < seconds * 2; i++) { await s.page.mouse.move(300 + (i % 40) * 10, 300 + (i % 20) * 5); await s.page.waitForTimeout(500); }
+            if (state.startsWith('active')) {
+                for (let i = 0; i < total * 2; i++) { await s.page.mouse.move(300 + (i % 40) * 10, 300 + (i % 20) * 5); await s.page.waitForTimeout(500); }
             } else {
-                await s.page.waitForTimeout(seconds * 1000);
+                await s.page.waitForTimeout(total * 1000);
             }
-            const mins = (Date.now() - t0) / 60000;
+            const from = t0 + (total - window) * 1000;
+            const counted = s.net.api.filter(([at]) => at >= from);
+            const mins = window / 60;
             const byPath = {};
-            for (const [, method, path] of s.net.api) byPath[`${method} ${path}`] = (byPath[`${method} ${path}`] || 0) + 1;
-            rec.put('poll', `${state}.requests_per_minute`, s.net.api.length / mins);
+            for (const [, method, path] of counted) byPath[`${method} ${path}`] = (byPath[`${method} ${path}`] || 0) + 1;
+            rec.put('poll', `${state}.requests_per_minute`, counted.length / mins);
             for (const [k, n] of Object.entries(byPath)) rec.put('poll', `${state}.${k}.per_minute`, n / mins);
             await s.context.close();
         }

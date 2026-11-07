@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Deck;
 use App\Models\DeckVersion;
 use App\Services\Press\ActivityRecorder;
+use App\Services\Press\JsonStream;
 use App\Services\Press\VersionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeckVersionController extends Controller
 {
@@ -44,11 +46,18 @@ class DeckVersionController extends Controller
         return response()->json($versions->present($version->load('user:id,name')), 201);
     }
 
-    public function show(Deck $deck, int $version, VersionService $versions): JsonResponse
+    /**
+     * One version with its snapshot. The snapshot is stored as JSON text, so it is passed on as it is instead of being
+     * decoded and encoded again (52 MB of PHP memory for a 300 slide deck, none now).
+     */
+    public function show(Request $request, Deck $deck, int $version, VersionService $versions): StreamedResponse
     {
         $this->authorize('view', $deck);
 
-        return response()->json($versions->present($versions->find($deck, $version), true));
+        $found = $versions->find($deck, $version);
+        $meta = json_encode($versions->present($found), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+
+        return JsonStream::response($request, [substr((string) $meta, 0, -1).',"snapshot":', $found->snapshot ?? 'null', '}']);
     }
 
     public function restore(Request $request, Deck $deck, int $version, VersionService $versions): JsonResponse

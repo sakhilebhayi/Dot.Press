@@ -1,5 +1,6 @@
+import { defineAsyncComponent } from 'vue';
+// Loaded when the panel is first opened, not with the editor (R-40 performance).
 import { registerPanel } from '../registry.js';
-import AssetsPanel from './AssetsPanel.vue';
 
 // The asset library: search, upload, insert, replace, rename, usage and delete.
 registerPanel({
@@ -8,5 +9,5 @@ registerPanel({
   icon: 'folder',
   scope: 'deck',
   order: 40,
-  component: AssetsPanel,
+  component: defineAsyncComponent(() => import('./AssetsPanel.vue')),
 });

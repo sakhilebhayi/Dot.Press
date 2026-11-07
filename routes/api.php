@@ -32,8 +32,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function (): void {
-    Route::apiResource('projects', ProjectController::class);
-    Route::apiResource('decks', DeckController::class);
+    Route::apiResource('projects', ProjectController::class)->middleware('throttle:press-library');
+    Route::apiResource('decks', DeckController::class)->middleware('throttle:press-library');
     Route::post('decks/{deck}/duplicate', [DeckController::class, 'duplicate']);
     Route::post('decks/{deck}/unarchive', [DeckController::class, 'unarchive']);
     Route::post('decks/{deck}/favourite', [DeckController::class, 'favourite'])->middleware('throttle:press-read');
@@ -52,9 +52,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::get('slides/{slide}', [SlideController::class, 'show'])->name('slides.show');
     // Asset library (R-40). The signed routes stream the stored file with Range support.
-    Route::apiResource('assets', AssetController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
-    Route::get('assets/{asset}/usage', [AssetController::class, 'usage'])->name('assets.usage');
-    Route::post('assets/{asset}/poster', [AssetController::class, 'poster'])->name('assets.poster');
+    Route::apiResource('assets', AssetController::class)->only(['index', 'show', 'update', 'destroy'])->middleware('throttle:press-assets');
+    Route::post('assets', [AssetController::class, 'store'])->middleware('throttle:press-upload')->name('assets.store');
+    Route::get('assets/{asset}/usage', [AssetController::class, 'usage'])->middleware('throttle:press-assets')->name('assets.usage');
+    Route::post('assets/{asset}/poster', [AssetController::class, 'poster'])->middleware('throttle:press-upload')->name('assets.poster');
     Route::get('assets/{asset}/file', [AssetController::class, 'file'])
         ->middleware('signed:relative')
         ->name('assets.file');
@@ -134,7 +135,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('decks/{deck}/exports/preflight', [DeckExportController::class, 'preflight'])->middleware('throttle:press-export');
     Route::post('decks/{deck}/exports', [DeckExportController::class, 'store'])->middleware('throttle:press-export');
     Route::get('decks/{deck}/exports', [DeckExportController::class, 'index']);
-    Route::get('exports/{export}', [DeckExportController::class, 'show'])->whereNumber('export');
+    Route::get('exports/{export}', [DeckExportController::class, 'show'])->whereNumber('export')->middleware('throttle:press-export-status');
     Route::get('exports/{export}/download', [DeckExportController::class, 'download'])->whereNumber('export')->name('press.exports.download');
     Route::post('imports/pptx', [DeckImportController::class, 'store'])->middleware('throttle:press-import');
 

@@ -431,6 +431,12 @@ class PressBench extends Command
             // One slide add + move + delete cycle.
             $r = $post([['op' => 'slide.add', 'tid' => 'tmp1', 'after' => $slideIds[0], 'slide' => ['title' => 'New', 'els' => []]]]);
             $this->putCall('ops', "{$size}.slide_add", $r);
+
+            // A batch that removes a slide first takes a safety version of the deck (VersionService::safetyBefore), unless
+            // one was taken in the last two minutes: the versions are cleared here to measure the batch that pays for it.
+            DB::table('deck_versions')->where('deck_id', $deck->id)->delete();
+            $r = $post([['op' => 'slide.remove', 'id' => $slideIds[count($slideIds) - 1]]]);
+            $this->putCall('ops', "{$size}.slide_remove_with_safety_version", $r);
         }
     }
 

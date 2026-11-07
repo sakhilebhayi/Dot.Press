@@ -1,5 +1,6 @@
+import { defineAsyncComponent } from 'vue';
+// Loaded when the panel is first opened, not with the editor (R-40 performance).
 import { registerPanel } from '../registry.js';
-import BackgroundPanel from './BackgroundPanel.vue';
 
 registerPanel({
     id: 'background',
@@ -7,5 +8,5 @@ registerPanel({
     icon: 'image',
     scope: 'slide',
     order: 30,
-    component: BackgroundPanel,
+    component: defineAsyncComponent(() => import('./BackgroundPanel.vue')),
 });

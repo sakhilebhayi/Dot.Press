@@ -15,6 +15,9 @@ return [
 
     // Decks up to this many slides, without video, are rendered inside the request.
     'fast_path_slides' => 12,
+    // The most PHP memory, in MB, the PDF exporter plans one part of a deck to use. A deck that costs more is drawn in
+    // parts and joined (PdfMerger); the memory limit lowers this further.
+    'pdf_part_budget_mb' => (float) env('PRESS_PDF_PART_MB', 150),
     'max_export_slides' => 600,
     'job_attempts' => 2,
     'job_timeout' => 280,

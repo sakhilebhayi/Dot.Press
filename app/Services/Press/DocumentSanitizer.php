@@ -2,6 +2,8 @@
 
 namespace App\Services\Press;
 
+use App\Services\Press\Export\Support\Memory;
+
 /**
  * Validates and normalises everything that may enter a presentation document (docs/programme/R40_DOCUMENT_SPEC.md
  * sections 2 to 8 and 10). Pure: no database, no request. Unknown keys are dropped and never stored; a value that is
@@ -21,6 +23,24 @@ class DocumentSanitizer
     public const MAX_OPS = 200;
 
     public const MAX_REQUEST_BYTES = 8 * 1024 * 1024;
+
+    /**
+     * How large an operations request this process can take. The limit is 8 MB, but the request exists in PHP several
+     * times over as arrays (decoded, validated, sanitised, applied), about 32 times its size: a 2 MB request peaked at
+     * 64 MB. A host with the common 128 MB limit would die, uncatchably, on a 4 MB request, so the limit follows the
+     * memory: what is left after the 48 MB the server itself needs, divided by 40 (never above 8 MB or below 512 KB).
+     * That is 2 MB at 128 MB. The client sends batches of at most 1.5 MB and splits one that is refused with 413, so
+     * nothing it does is affected.
+     */
+    public static function requestBudget(?int $memoryLimitBytes = null): int
+    {
+        $limit = $memoryLimitBytes ?? Memory::limit();
+        if ($limit <= 0) {
+            return self::MAX_REQUEST_BYTES;
+        }
+
+        return max(512 * 1024, min(self::MAX_REQUEST_BYTES, intdiv($limit - 48 * 1048576, 40)));
+    }
 
     public const MAX_SECTIONS = 100;
 

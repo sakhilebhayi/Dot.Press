@@ -11,6 +11,7 @@ use App\Jobs\QueueHeartbeat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -47,3 +48,15 @@ Schedule::command(PruneDeckExports::class)->hourly()->name('press-exports-prune'
 
 // Old plain-JSON version snapshots are packed a few at a time (new ones are packed when they are written).
 Schedule::command(CompressDeckVersions::class)->dailyAt('03:40')->name('press-versions-compress')->onOneServer();
+
+// Expired sessions are removed here, in slices, instead of by the 2 percent of requests that Laravel picks to do it
+// (one of them used to pay for the whole backlog). Only when sessions live in the database.
+Schedule::call(function (): void {
+    if (config('session.driver') !== 'database') {
+        return;
+    }
+    $cutoff = time() - (int) config('session.lifetime', 120) * 60;
+    do {
+        $n = DB::table(config('session.table', 'sessions'))->where('last_activity', '<=', $cutoff)->limit(5000)->delete();
+    } while ($n === 5000);
+})->hourly()->name('press-sessions-prune');

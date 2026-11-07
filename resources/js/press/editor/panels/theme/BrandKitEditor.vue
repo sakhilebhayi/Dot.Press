@@ -86,7 +86,7 @@ const touched = ref(false);
         <PanelSection id="kit.logos" title="Logos" :state="`${draft.logos.length} of ${limits.logos}`">
             <ul v-if="draft.logo_assets.length" class="dz-logos" aria-label="Logos">
                 <li v-for="(l, i) in draft.logo_assets" :key="l.id" class="dz-logo">
-                    <img :src="l.thumb || l.url" :alt="l.name" />
+                    <img :src="l.thumb || l.url" :alt="l.name" loading="lazy" decoding="async" />
                     <IconButton icon="close" :label="`Remove logo ${l.name}`" size="sm" :disabled="readOnly" @click="up(removeAt(draft, 'logos', i))" />
                 </li>
             </ul>

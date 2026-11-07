@@ -91,7 +91,7 @@ class VersionService
             return null;
         }
         $last = DeckVersion::query()->where('deck_id', $deck->id)->orderByDesc('id')->first(['id', 'hash']);
-        if ($last !== null && $last->hash === DeckHash::compute($deck)) {
+        if ($last !== null && $last->hash === DeckHash::current($deck)) {
             return null; // the newest version already is this deck
         }
 

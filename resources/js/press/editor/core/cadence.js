@@ -6,14 +6,16 @@
  * file keeps (requests per minute for one open tab):
  *
  *   state                                              presence        changes feed
- *   active, other people in the deck                   20 (every 3 s)  only when presence says the log moved
- *   active, alone                                      10 (every 6 s)  only when presence says the log moved
- *   idle for a minute (no key, pointer or touch)       4 (every 15 s)  only when presence says the log moved
- *   idle for five minutes                              2 (every 30 s)  only when presence says the log moved
+ *   active, other people in the deck                   20 (every 3 s)  when presence says the log moved
+ *   active, alone                                      10 (every 6 s)  when presence says the log moved
+ *   idle for a minute (no key, pointer or touch)       4 (every 15 s)  when presence says the log moved
+ *   idle for five minutes                              2 (every 30 s)  when presence says the log moved
  *   hidden tab or window without focus                 none            1 safety poll every 30 s
  *
  * Presence answers with the current log position (`seq`), so "has anything changed" costs nothing extra: the changes
- * feed is read only when that position is ahead of the tab's own, or as a safety net every `SAFETY_MS`.
+ * feed is read when that position is ahead of the tab's own, and otherwise once every `SAFETY_MS` (4 requests a minute
+ * while focused, 2 while hidden) in case a presence answer was lost. Before this the tab did both on a 3 s clock:
+ * 40 requests a minute whatever happened.
  *
  *   presenceMs({focused, hidden, idleMs, others})  -> ms until the next presence beat, or null for none
  *   changesSafetyMs({focused, hidden})             -> ms between safety polls of the changes feed
@@ -52,4 +54,4 @@ export function requestsPerMinute(state) {
   return { presence, safetyPolls: safety, total: presence + safety };
 }
 
-export const cadence = { presenceMs, changesSafetyMs, needsChanges, requestsPerMinute };
+export const cadence = { presenceMs, changesSafetyMs, needsChanges, requestsPerMinute, IDLE_AFTER_MS, LONG_IDLE_AFTER_MS };

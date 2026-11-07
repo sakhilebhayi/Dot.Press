@@ -35,7 +35,12 @@ class PruneDeckChanges extends Command
                     return;
                 }
 
-                $deleted += DeckChange::query()->where('deck_id', $deckId)->where('id', '<', $newestOld)->delete();
+                // In slices: one DELETE of a million rows would hold the database write lock, and so block every
+                // editor's save, for as long as it ran.
+                do {
+                    $slice = DeckChange::query()->where('deck_id', $deckId)->where('id', '<', $newestOld)->limit(5000)->delete();
+                    $deleted += $slice;
+                } while ($slice === 5000);
 
                 DeckChange::query()->whereKey($newestOld)->update([
                     'key' => self::TOMBSTONE_KEY,

@@ -2,7 +2,7 @@
 // One presentation on the wall: its first slide, a bead for its status, the title, a line of facts.
 import { computed, nextTick, ref, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { SlideView } from '../render/index.js';
+import LazyThumb from '../editor/ui/LazyThumb.vue';
 import DropMenu from '../editor/ui/DropMenu.vue';
 import Bead from '../editor/ui/Bead.vue';
 import Ico from '../editor/ui/Ico.vue';
@@ -61,7 +61,7 @@ defineExpose({ openMenu: () => menuRef.value?.show() });
 <template>
     <li class="dt" :class="{ 'is-archived': archived }" :data-id="row.id">
         <Link :href="href" class="dt-sheet" :tabindex="focusable ? 0 : -1" :aria-label="`${row.title}. ${bead.word}. ${facts}`" data-tile>
-            <div class="dt-thumb" :style="{ aspectRatio: `${deck.w} / ${deck.h}` }"><SlideView :slide="slide" :deck="deck" mode="thumb" /></div>
+            <div class="dt-thumb" :style="{ aspectRatio: `${deck.w} / ${deck.h}` }"><LazyThumb :slide="slide" :deck="deck" /></div>
         </Link>
         <button v-if="!archived" type="button" class="dt-fav" :class="{ 'is-on': row.favourite }" :aria-pressed="row.favourite" :aria-label="`Favourite ${row.title}`" tabindex="-1" @click="emit('favourite')">
             <Ico name="star2" size="sm" :stroke="row.favourite ? 2 : 1.75" />

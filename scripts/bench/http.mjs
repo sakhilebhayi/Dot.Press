@@ -2,7 +2,7 @@
 //
 //   php artisan press:bench --seed-only --use-current-db --sizes=10,100,300      prints deck ids and a bearer token
 //   /path/to/serve   (PHP_CLI_SERVER_WORKERS=4 php -d opcache.enable_cli=1 -S 127.0.0.1:8853 ... or php artisan serve)
-//   node scripts/bench/http.mjs --base http://127.0.0.1:8853 --token <token> --decks 10:3,100:4,300:5 [--editors 20] [--seconds 40] [--mode old|new] [--tokens storage/app/bench/tokens.txt]
+//   node scripts/bench/http.mjs --base http://127.0.0.1:8853 --token <token> --decks 10:3,100:4,300:5 [--editors 20] [--seconds 40] [--mode old|new] [--writers 4] [--tokens storage/app/bench/tokens.txt]
 //   (php artisan press:bench --seed-only --use-current-db --tokens=20 writes one token per virtual editor, so each editor
 //   is a different user with its own rate limit, as in real use)
 //
@@ -83,6 +83,7 @@ rec.put('request_cost', 'get_document_100_slides.content_encoding', withEncoding
 const editors = Number(a.editors || 20);
 const seconds = Number(a.seconds || 40);
 const mode = String(a.mode || 'new');
+const writers = a.writers === undefined ? Math.max(1, Math.round(editors / 5)) : Number(a.writers);
 const lat = [];
 let errors = 0;
 let throttled = 0;
@@ -122,8 +123,8 @@ async function editor(i) {
             }
         })());
     }
-    // One editor in five is actively changing the deck: a single el.set every 6 seconds.
-    if (i % 5 === 0) {
+    // --writers editors (default one in five) are actively changing the deck: a single el.set every 6 seconds.
+    if (i < writers) {
         loops.push((async () => {
             let k = 0;
             while (Date.now() < end) {
@@ -139,7 +140,7 @@ async function editor(i) {
 await Promise.all(Array.from({ length: editors }, (_, i) => editor(i)));
 const cpu = cpuSeconds() - cpu0;
 const total = counts.presence + counts.changes + counts.ops;
-const key = `${editors}_editors_${mode}`;
+const key = `${editors}_editors_${writers}_writing_${mode}`;
 rec.put('load', `${key}.seconds`, seconds);
 rec.put('load', `${key}.requests_total`, total);
 rec.put('load', `${key}.requests_per_minute_per_editor`, (total / editors) / (seconds / 60));

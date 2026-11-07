@@ -61,6 +61,17 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('present-session', fn (Request $request): Limit => Limit::perMinute(20)->by('sess|'.(optional($request->user())->id ?? $request->ip())));
         RateLimiter::for('present-push', fn (Request $request): Limit => Limit::perMinute(240)->by('push|'.(optional($request->user())->id ?? $request->ip())));
 
+        // R-40 performance. Routes that had no limit at all. The library lists decks and projects (about three requests a
+        // page view); assets are listed by the picker and uploaded one decode at a time (a 12 megapixel photograph is half a
+        // second of CPU and 40 MB of memory); an export is polled while it renders.
+        RateLimiter::for('press-library', fn (Request $request): Limit => Limit::perMinute(180)->by('lib|'.(optional($request->user())->id ?? $request->ip())));
+        RateLimiter::for('press-assets', fn (Request $request): Limit => Limit::perMinute(300)->by('assets|'.(optional($request->user())->id ?? $request->ip())));
+        RateLimiter::for('press-upload', fn (Request $request): array => [
+            Limit::perMinute(30)->by('up-m|'.(optional($request->user())->id ?? $request->ip())),
+            Limit::perHour(400)->by('up-h|'.(optional($request->user())->id ?? $request->ip())),
+        ]);
+        RateLimiter::for('press-export-status', fn (Request $request): Limit => Limit::perMinute(150)->by('xs|'.(optional($request->user())->id ?? $request->ip())));
+
         // Dot.Press document traffic is limited per person and deck, so one busy deck cannot starve another.
         foreach (['press-ops' => 300, 'press-changes' => 240, 'press-presence' => 150, 'press-read' => 120] as $name => $perMinute) {
             RateLimiter::for($name, function (Request $request) use ($perMinute): Limit {

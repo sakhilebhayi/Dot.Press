@@ -344,6 +344,8 @@ export function createSync(opts) {
       pushState();
     } finally {
       polling = false;
+      // Any read of the feed, whoever asked for it, restarts the wait for the next safety poll.
+      if (pollActive && !destroyed && pollTimer) { clock.clearTimeout(pollTimer); pollTimer = null; schedulePoll(); }
     }
   }
   function schedulePoll() {
@@ -461,6 +463,8 @@ export function createSync(opts) {
     startPolling() { pollActive = true; if (!pollTimer) schedulePoll(); },
     stopPolling() { pollActive = false; if (pollTimer) { clock.clearTimeout(pollTimer); pollTimer = null; } },
     pollNow,
+    /** Read the feed only when the log is known to be ahead of this tab (the presence answer carries its position). */
+    pollIfBehind(seq) { return base && Number(seq) > base.seq ? pollNow() : Promise.resolve(); },
     reload,
 
     /** Unsent changes left by a closed or crashed tab, or null. */

@@ -92,10 +92,11 @@ final class ExportService
      * memory error is fatal in PHP and cannot be caught, so it has to be foreseen.
      *
      * @param  list<int|string>|null  $onlySlides  the slides the export is limited to, when it is
+     * @param  int|null  $limitBytes  the limit to test against instead of the process's own (tests)
      */
-    public static function assertFits(Deck $deck, string $format, ?array $onlySlides = null): void
+    public static function assertFits(Deck $deck, string $format, ?array $onlySlides = null, ?int $limitBytes = null): void
     {
-        $limit = Memory::limit();
+        $limit = $limitBytes ?? Memory::limit();
         if ($limit < 0) {
             return;
         }

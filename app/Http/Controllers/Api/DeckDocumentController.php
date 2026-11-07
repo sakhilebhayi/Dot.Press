@@ -38,8 +38,11 @@ class DeckDocumentController extends Controller
     {
         $this->authorize('update', $deck);
 
-        if (strlen($request->getContent()) > DocumentSanitizer::MAX_REQUEST_BYTES) {
-            return response()->json(['message' => 'The request is larger than 8 MB.'], 413);
+        $budget = DocumentSanitizer::requestBudget();
+        if (strlen($request->getContent()) > $budget) {
+            return response()->json(['message' => $budget < DocumentSanitizer::MAX_REQUEST_BYTES
+                ? 'The request is larger than this server can take at once ('.round($budget / 1048576, 1).' MB). Send fewer changes at a time.'
+                : 'The request is larger than 8 MB.'], 413);
         }
 
         $v = $request->validate([

@@ -30,6 +30,7 @@ import { computed, onBeforeUnmount, onMounted, provide, reactive, ref, shallowRe
 import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 import { createSync, createStore, realClock, matchShortcut } from '../core/index.js';
+import { cadence, SAFETY_MS } from '../core/cadence.js';
 import { EDITOR_KEY, createEditorUi } from '../context.js';
 import { createApi, createKeepaliveBeacon, createTransport, safeStorage } from './transport.js';
 import { createToasts } from './toasts.js';
@@ -79,6 +80,8 @@ export function useEditor(props) {
     clock: realClock,
     clientId,
     deckId,
+    // The changes feed is read when presence says the log moved; this is only the safety net (core/cadence.js).
+    config: { pollMs: { focused: SAFETY_MS.focused, hidden: SAFETY_MS.hidden } },
   });
   sync.init(props.document);
   const store = createStore({ sync: canEdit ? sync : readOnlySync(sync) });
@@ -235,8 +238,18 @@ export function useEditor(props) {
   let focused = typeof document === 'undefined' ? true : document.hasFocus() && !document.hidden;
   let presenceTimer = null;
   let nudgeTimer = null;
+  let lastInput = Date.now();
+  let lastBeat = 0;
+  const touch = () => {
+    const wasIdle = Date.now() - lastInput >= cadence.IDLE_AFTER_MS;
+    lastInput = Date.now();
+    // Coming back after a pause: do not wait out the slow idle beat.
+    if (wasIdle && presenceTimer !== undefined && focused) { beat(); scheduleBeat(); }
+  };
+  const TOUCH_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
   async function beat() {
     if (!focused || document.hidden) return;
+    lastBeat = Date.now();
     const s = state.value;
     const body = {
       client: clientId,
@@ -250,9 +263,24 @@ export function useEditor(props) {
         client: o.client, user_id: o.user_id, name: o.name, color: o.color, slide_id: o.slide != null ? String(o.slide) : null,
         selection: o.selection || [], cursor: o.cursor || null,
       }));
+      // The answer carries the position of the change log: read the feed only if it is ahead of this tab.
+      if (res.seq != null) sync.pollIfBehind(res.seq);
     } catch { /* presence is best effort */ }
   }
-  const nudgeBeat = () => { window.clearTimeout(nudgeTimer); nudgeTimer = window.setTimeout(beat, 500); };
+  // The next beat: 3 s with other people in the deck, 6 s alone, slower when the person has stopped touching the page,
+  // none when the tab is hidden (core/cadence.js has the table).
+  function scheduleBeat() {
+    window.clearTimeout(presenceTimer);
+    presenceTimer = null;
+    const ms = cadence.presenceMs({ focused, hidden: document.hidden, idleMs: Date.now() - lastInput, others: presence.value.length });
+    if (ms == null) return;
+    presenceTimer = window.setTimeout(async () => { await beat(); scheduleBeat(); }, ms);
+  }
+  // A change of slide or selection is worth a beat of its own soon, but not one per pointer move of a marquee.
+  const nudgeBeat = () => {
+    window.clearTimeout(nudgeTimer);
+    nudgeTimer = window.setTimeout(() => { if (Date.now() - lastBeat >= 1500) { beat(); scheduleBeat(); } }, 500);
+  };
   watch(() => [state.value.slideId, state.value.selection.ids.join(',')], nudgeBeat);
   const setCursor = (x, y) => { cursor.value = x == null ? null : { x, y }; };
 
@@ -260,8 +288,10 @@ export function useEditor(props) {
   function setFocus(f) {
     focused = f && !document.hidden;
     sync.setFocused(focused);
+    touch();
     if (!focused) sync.blur();
     else beat();
+    scheduleBeat();
   }
   const onFocus = () => setFocus(true);
   const onBlur = () => setFocus(false);
@@ -381,8 +411,8 @@ export function useEditor(props) {
     sync.setOnline(navigator.onLine !== false);
     sync.setFocused(focused);
     sync.startPolling();
-    presenceTimer = window.setInterval(beat, 3000);
-    beat();
+    for (const name of TOUCH_EVENTS) window.addEventListener(name, touch, { passive: true });
+    beat().then(scheduleBeat);
     checkRecovery().then(() => {
       // A tab closed a few seconds ago still looks alive to the recovery check; look once more after that window.
       if (!recovery.value) recoverTimer = window.setTimeout(checkRecovery, 16000);
@@ -400,8 +430,9 @@ export function useEditor(props) {
     document.removeEventListener('copy', onCopy);
     document.removeEventListener('cut', onCut);
     document.removeEventListener('paste', onPaste);
-    window.clearInterval(presenceTimer);
+    window.clearTimeout(presenceTimer);
     window.clearTimeout(nudgeTimer);
+    for (const name of TOUCH_EVENTS) window.removeEventListener(name, touch);
     window.clearTimeout(recoverTimer);
     sync.flush({ unloading: true });
     sync.stopPolling();

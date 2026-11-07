@@ -138,7 +138,7 @@ const fitHint = { cover: 'Fills the frame and trims the edges.', contain: 'Shows
         <PanelSection id="image.source" :title="single ? 'Picture' : `${els.length} pictures`" :state="single ? '' : 'mixed ok'">
             <template v-if="single">
                 <div class="pm-src">
-                    <div class="pm-src-img"><img v-if="thumb" :src="thumb" alt="" /><Ico v-else name="image" /></div>
+                    <div class="pm-src-img"><img v-if="thumb" :src="thumb" alt="" loading="lazy" decoding="async" /><Ico v-else name="image" /></div>
                     <div class="pm-src-t">
                         <span class="pm-src-n" :title="srcName">{{ srcName }}</span>
                         <span class="pm-src-s pr-state">{{ sizeWord }}</span>

@@ -158,7 +158,7 @@ const start = computed(() => pc.value('start', { fallback: 0 }));
         <PanelSection id="video.poster" title="Poster" :state="single ? (posterSrc ? 'set' : 'none') : ''">
             <template v-if="single">
                 <div class="pm-poster">
-                    <div class="pm-src-img"><img v-if="posterSrc" :src="posterSrc.thumb" alt="" /><Ico v-else name="image" /></div>
+                    <div class="pm-src-img"><img v-if="posterSrc" :src="posterSrc.thumb" alt="" loading="lazy" decoding="async" /><Ico v-else name="image" /></div>
                     <p class="c-hint" style="margin: 0">The picture shown before the video plays and on the slide thumbnails.</p>
                 </div>
                 <div class="pm-actions">

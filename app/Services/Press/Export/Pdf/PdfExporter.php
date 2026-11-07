@@ -20,6 +20,9 @@ final class PdfExporter
     /** @var list<array{slide: int, element: ?string, note: string}> */
     public array $notes = [];
 
+    /** @var list<array{slide: int, element: ?string, note: string}> things lost only because the deck was drawn in parts */
+    private array $joinNotes = [];
+
     public function __construct(private AssetResolver $assets, private ?IconLibrary $icons = null)
     {
         $this->icons ??= new IconLibrary;
@@ -102,12 +105,9 @@ final class PdfExporter
             if ($chunked && $estimated > 0) {
                 $scale = max($scale, min(4.0, $used / $estimated));
             }
-            if (getenv('PRESS_PDF_DEBUG')) {
-                fwrite(STDERR, sprintf("part %d-%d est=%.1f used=%.1f usage=%.1f\n", $from, $to, $estimated, $used, memory_get_usage() / 1048576));
-            }
             $from = $to;
         }
-        $this->notes = $renderer->notes;
+        $this->notes = [...$renderer->notes, ...$this->joinNotes];
 
         if ($partFiles === []) {
             file_put_contents($path, $parts[0]);
@@ -164,7 +164,7 @@ final class PdfExporter
         return $out;
     }
 
-    /** Most PHP memory, in MB, one part may be planned to use however much the server allows. */
+    /** Most PHP memory, in MB, one part may be planned to use however much the server allows (config press_export.pdf_part_budget_mb). */
     private const PART_BUDGET_MB = 150.0;
 
     /**
@@ -176,8 +176,8 @@ final class PdfExporter
     private function chunkEnd(array $slides, int $from, float $scale): int
     {
         $limit = Memory::limit();
-        $room = $limit > 0 ? max(4.0, ($limit - memory_get_usage()) * 0.6 / 1048576 - 12.0) : self::PART_BUDGET_MB;
-        $budget = min($room, self::PART_BUDGET_MB);
+        $room = $limit > 0 ? max(0.5, ($limit - memory_get_usage()) * 0.6 / 1048576 - 12.0) : self::PART_BUDGET_MB;
+        $budget = min($room, (float) config('press_export.pdf_part_budget_mb', self::PART_BUDGET_MB));
 
         $sum = 0.0;
         $to = $from;
@@ -247,7 +247,7 @@ final class PdfExporter
             preg_match_all('/#slide:([A-Za-z0-9_-]+)/', $json, $m);
             foreach (array_unique($m[1]) as $target) {
                 if (isset($ids[$target]) && ! isset($local[$target])) {
-                    $this->notes[] = ['slide' => $i + 1, 'element' => null, 'note' => 'A link to another slide is not kept: this deck is too big for the server to draw in one piece, so links between its parts are dropped.'];
+                    $this->joinNotes[] = ['slide' => $i + 1, 'element' => null, 'note' => 'A link to another slide is not kept: this deck is too big for the server to draw in one piece, so links between its parts are dropped.'];
                     break;
                 }
             }

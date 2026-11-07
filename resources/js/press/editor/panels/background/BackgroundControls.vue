@@ -64,7 +64,7 @@ const set = (v) => emit('update:modelValue', v);
         <template v-else-if="kind === 'image'">
             <div class="dz-img">
                 <span class="dz-img-t" aria-hidden="true">
-                    <img v-if="asset" :src="asset.thumb || asset.url" alt="" />
+                    <img v-if="asset" :src="asset.thumb || asset.url" alt="" loading="lazy" decoding="async" />
                     <Ico v-else name="image" />
                 </span>
                 <span class="dz-img-n">

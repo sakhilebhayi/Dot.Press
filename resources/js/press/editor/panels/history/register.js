@@ -1,4 +1,5 @@
+import { defineAsyncComponent } from 'vue';
+// Loaded when the panel is first opened, not with the editor (R-40 performance).
 import { registerPanel } from '../registry.js';
-import HistoryPanel from './HistoryPanel.vue';
 
-registerPanel({ id: 'history', label: 'History', icon: 'restore', scope: 'deck', order: 33, component: HistoryPanel });
+registerPanel({ id: 'history', label: 'History', icon: 'restore', scope: 'deck', order: 33, component: defineAsyncComponent(() => import('./HistoryPanel.vue')) });
