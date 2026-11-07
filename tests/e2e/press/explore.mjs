@@ -1,0 +1,12 @@
+import { launch, newContext, shot, BASE, sleep } from './lib.mjs';
+const b = await launch();
+const { page } = await newContext(b, 'owner@demo.test');
+await page.getByRole('button', { name: /^New/ }).first().click();
+await sleep(800);
+await shot(page, 'x-new');
+console.log(await page.locator('.ns').innerText());
+await page.getByRole('tab', { name: 'Templates' }).click();
+await sleep(500);
+await shot(page, 'x-tpl');
+console.log(await page.locator('.ns').innerText());
+await b.close();

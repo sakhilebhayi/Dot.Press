@@ -189,3 +189,11 @@
     .ns-tab { height: 48px; }
     .ns-size, .ns-theme { min-height: 44px; }
 }
+
+/* template gallery */
+.ns-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ns-chip { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; font-size: var(--t-sm); color: var(--ink-2, inherit); }
+.ns-chip.is-on { border-color: var(--amber); background: var(--paper); font-weight: 600; }
+.ns-tpl-thumb { display: block; position: relative; width: 100%; overflow: hidden; background: var(--sheet); box-shadow: var(--sheet-shadow); }
+.ns-tpl-b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ns-tpl:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }

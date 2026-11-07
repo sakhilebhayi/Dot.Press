@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FILTERS, SORTS, SIZES, relativeTime, sizeLabel, statusBead, emptyCopy, gridMove, previewDeck, previewSlide } from '../libraryModel.js';
+import { FILTERS, SORTS, SIZES, relativeTime, sizeLabel, statusBead, emptyCopy, gridMove, previewDeck, previewSlide, normalizeTemplates, templateCategories } from '../libraryModel.js';
 
 const NOW = Date.parse('2026-11-07T12:00:00');
 
@@ -68,4 +68,22 @@ test('preview helpers fall back sensibly', () => {
   assert.equal(previewDeck({}).w, 1920);
   assert.deepEqual(previewSlide({ id: 4, first_slide: 9, preview: { bg: null, els: [{ id: 'a' }] } }), { id: '9', bg: null, els: [{ id: 'a' }] });
   assert.deepEqual(previewSlide({ id: 4 }), { id: '4', bg: null, els: [] });
+});
+
+test('normalizeTemplates reads the shape GET /api/templates sends (the id is the key)', () => {
+  const res = {
+    data: [
+      { key: 'executive-summary', name: 'Executive summary', category: 'business', category_name: 'Business and executive', blurb: 'Answer first', narrative: 'Pyramid Principle', slides: 9, theme: 'boardroom', aspect: '16:9' },
+      { key: 'lesson', name: 'Lesson', category: 'education', category_name: 'Education and training', slides: 7 },
+      { name: 'no key' },
+    ],
+    categories: [{ id: 'business', name: 'Business and executive', count: 1 }, { id: 'sales', name: 'Sales', count: 0 }, { id: 'education', name: 'Education and training', count: 1 }],
+  };
+  const list = normalizeTemplates(res);
+  assert.equal(list.length, 2);
+  assert.equal(list[0].id, 'executive-summary');
+  assert.equal(list[0].categoryName, 'Business and executive');
+  assert.equal(list[1].blurb, '');
+  assert.deepEqual(templateCategories(list, res.categories).map((c) => [c.id, c.count]), [['business', 1], ['education', 1]]);
+  assert.deepEqual(normalizeTemplates(null), []);
 });

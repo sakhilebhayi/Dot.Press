@@ -130,3 +130,33 @@ export function previewDeck(row) {
 export function previewSlide(row) {
   return { id: String(row.first_slide ?? row.id), bg: row.preview?.bg ?? null, els: row.preview?.els ?? [] };
 }
+
+/**
+ * GET /api/templates answers {data: [{key, name, category, category_name, blurb, narrative, slides, theme, aspect, tags}], categories}.
+ * The sheet works with {id, name, category, categoryName, blurb, narrative, slides, theme, aspect}; the id is the template key.
+ */
+export function normalizeTemplates(res) {
+  const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.templates) ? res.templates : [];
+  return list
+    .filter((t) => t && (t.key != null || t.id != null) && (t.name || t.title))
+    .map((t) => ({
+      id: String(t.key ?? t.id),
+      name: t.name || t.title,
+      category: t.category || 'other',
+      categoryName: t.category_name || t.categoryName || '',
+      blurb: t.blurb || '',
+      narrative: t.narrative || '',
+      slides: Number(t.slides) || 0,
+      theme: t.theme || null,
+      aspect: t.aspect || '16:9',
+    }));
+}
+
+/** The category chips of the template gallery, in the order the server sent them, only those that hold a template. */
+export function templateCategories(list, categories = []) {
+  const counts = new Map();
+  for (const t of list) counts.set(t.category, (counts.get(t.category) || 0) + 1);
+  const known = (Array.isArray(categories) ? categories : []).filter((c) => counts.has(c.id)).map((c) => ({ id: c.id, name: c.name, count: counts.get(c.id) }));
+  for (const [id, count] of counts) if (!known.some((c) => c.id === id)) known.push({ id, name: list.find((t) => t.category === id)?.categoryName || id, count });
+  return known;
+}

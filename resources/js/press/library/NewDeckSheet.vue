@@ -8,7 +8,8 @@ import { createApi } from '../editor/ui/transport.js';
 import { newId } from '../editor/core/doc.js';
 import Ico from '../editor/ui/Ico.vue';
 import LazyThumb from '../editor/ui/LazyThumb.vue';
-import { SIZES } from './libraryModel.js';
+import { SIZES, normalizeTemplates, templateCategories } from './libraryModel.js';
+import TemplateThumb from './TemplateThumb.vue';
 import { buildOps, modeLabel, moveBeat, normalizeImport, normalizeOutline, outlineToDeck, titleFromBrief } from './outlineModel.js';
 
 const props = defineProps({
@@ -21,6 +22,10 @@ const api = createApi(axios.create({ withCredentials: true, headers: { 'X-Reques
 const box = ref(null);
 const tab = ref('blank');
 const templates = ref([]);
+const tplCategories = ref([]);
+const tplFilter = ref('all');
+const visibleTemplates = computed(() => (tplFilter.value === 'all' ? templates.value : templates.value.filter((t) => t.category === tplFilter.value)));
+const tplChips = computed(() => templateCategories(templates.value, tplCategories.value));
 const busy = ref(false);
 const error = ref('');
 let opener = null;
@@ -161,15 +166,15 @@ async function importPptx() {
 async function loadTemplates() {
     try {
         const res = await api.get('/api/templates');
-        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.templates) ? res.templates : [];
-        templates.value = list.filter((t) => t && (t.id != null) && (t.name || t.title));
+        templates.value = normalizeTemplates(res);
+        tplCategories.value = Array.isArray(res?.categories) ? res.categories : [];
     } catch { templates.value = []; }
 }
 async function useTemplate(t) {
     if (busy.value) return;
     busy.value = true; error.value = '';
     try {
-        const body = { title: t.name || t.title, template: String(t.id) };
+        const body = { title: t.name, template: t.id, size: t.aspect === '4:3' ? '4:3' : t.aspect === '9:16' ? 'portrait' : '16:9' };
         const deck = await api.post('/api/decks', body);
         open(deck.id);
     } catch (e) { fail(e); }
@@ -351,11 +356,16 @@ onBeforeUnmount(() => { document.documentElement.style.overflow = ''; });
 
                     <!-- templates -->
                     <div v-else-if="tab === 'templates'" class="ns-form" role="tabpanel">
+                        <div class="ns-chips" role="group" aria-label="Template category">
+                            <button type="button" class="ns-chip" :class="{ 'is-on': tplFilter === 'all' }" :aria-pressed="tplFilter === 'all'" @click="tplFilter = 'all'">All <span class="pr-state">{{ templates.length }}</span></button>
+                            <button v-for="c in tplChips" :key="c.id" type="button" class="ns-chip" :class="{ 'is-on': tplFilter === c.id }" :aria-pressed="tplFilter === c.id" @click="tplFilter = c.id">{{ c.name }} <span class="pr-state">{{ c.count }}</span></button>
+                        </div>
                         <ul class="ns-tpls">
-                            <li v-for="t in templates" :key="t.id">
-                                <button type="button" class="ns-tpl" :disabled="busy" @click="useTemplate(t)">
-                                    <span v-if="t.preview" class="ns-tpl-thumb"><LazyThumb :slide="{ id: 'p', bg: t.preview.bg ?? null, els: t.preview.els ?? [] }" :deck="{ w: t.w || 1920, h: t.h || 1080, theme: t.theme }" /></span>
-                                    <span class="ns-tpl-n">{{ t.name || t.title }}</span>
+                            <li v-for="t in visibleTemplates" :key="t.id">
+                                <button type="button" class="ns-tpl" :disabled="busy" :aria-label="`Use the template ${t.name}, ${t.slides} slides`" @click="useTemplate(t)">
+                                    <TemplateThumb :template-id="t.id" />
+                                    <span class="ns-tpl-n">{{ t.name }}</span>
+                                    <span class="ns-tpl-b pr-small pr-muted">{{ t.blurb }}</span>
                                     <span v-if="t.slides" class="pr-state pr-muted">{{ t.slides }} slides</span>
                                 </button>
                             </li>

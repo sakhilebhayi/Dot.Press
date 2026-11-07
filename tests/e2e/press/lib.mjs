@@ -1,0 +1,101 @@
+// Shared helpers for the Dot.Press end to end tests.
+// Needs a running app (E2E_BASE, default http://127.0.0.1:8850) seeded by PressDemoSeeder, and the sqlite file it uses (E2E_DB).
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+export const BASE = process.env.E2E_BASE || 'http://127.0.0.1:8850';
+export const APP = process.env.E2E_APP || path.resolve(HERE, '../../..');
+export const DB = process.env.E2E_DB || `/tmp/press-demo-${path.basename(APP)}.sqlite`;
+export const SHOTS = process.env.E2E_SHOTS || path.join(os.tmpdir(), 'press-e2e-shots');
+fs.mkdirSync(SHOTS, { recursive: true });
+const req = createRequire(path.join(HERE, 'noop.js'));
+
+export async function launch() {
+    const mod = await import(req.resolve('playwright-core'));
+    const chromium = mod.chromium || mod.default.chromium;
+    const args = ['--no-first-run', '--disable-features=Translate'];
+    const exes = [
+        process.env.CHROME_BIN,
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        path.join(os.homedir(), 'Library/Caches/ms-playwright/chromium-1148/chrome-mac/Chromium.app/Contents/MacOS/Chromium'),
+        '/usr/bin/google-chrome', '/usr/bin/chromium',
+    ].filter(Boolean);
+    for (const exe of exes) {
+        if (fs.existsSync(exe)) { try { return await chromium.launch({ executablePath: exe, args }); } catch (e) { /* next */ } }
+    }
+    return chromium.launch({ channel: 'chrome', args });
+}
+
+/** Runs a small PHP snippet inside the app with the test database. */
+export function sqlite(sql) {
+    return execFileSync('sqlite3', ['-json', DB, sql], { encoding: 'utf8' }).trim();
+}
+export function rows(sql) { const out = sqlite(sql); return out ? JSON.parse(out) : []; }
+
+export async function login(page, email = 'owner@demo.test', password = 'password') {
+    await page.goto(BASE + '/login');
+    await page.fill('input[name=email]', email);
+    await page.fill('input[name=password]', password);
+    await Promise.all([page.waitForURL((u) => !/\/login/.test(u.pathname)), page.click('button[type=submit]')]);
+}
+
+export async function newContext(browser, email, opts = {}) {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, ...opts });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+    page.errors = errors;
+    await login(page, email);
+    return { ctx, page };
+}
+
+/** Tiny PNG writer (no dependencies): a w x h gradient with a visible border, so crops and masks can be seen. */
+export function makePng(file, w = 640, h = 400) {
+    const crc = (buf) => { let c, crcv = 0xffffffff; for (let n = 0; n < buf.length; n++) { c = (crcv ^ buf[n]) & 0xff; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crcv = (crcv >>> 8) ^ c; } return (crcv ^ 0xffffffff) >>> 0; };
+    const chunk = (type, data) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const td = Buffer.concat([Buffer.from(type), data]); const cr = Buffer.alloc(4); cr.writeUInt32BE(crc(td)); return Buffer.concat([len, td, cr]); };
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+    const raw = Buffer.alloc((w * 3 + 1) * h);
+    for (let y = 0; y < h; y++) {
+        raw[y * (w * 3 + 1)] = 0;
+        for (let x = 0; x < w; x++) {
+            const o = y * (w * 3 + 1) + 1 + x * 3;
+            const border = x < 6 || y < 6 || x >= w - 6 || y >= h - 6;
+            raw[o] = border ? 255 : Math.round((x / w) * 255);
+            raw[o + 1] = border ? 255 : Math.round((y / h) * 200);
+            raw[o + 2] = border ? 255 : 160;
+        }
+    }
+    fs.writeFileSync(file, Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]));
+    return file;
+}
+
+// A tiny test runner: each step is recorded with PASS or FAIL and the run continues, so one broken check never hides the rest.
+export function suite(name) {
+    const results = [];
+    const api = {
+        results,
+        async step(id, title, fn) {
+            const t = Date.now();
+            try { await fn(); results.push({ id, title, ok: true }); console.log(`PASS  ${id}  ${title}  (${Date.now() - t} ms)`); }
+            catch (e) { results.push({ id, title, ok: false, err: e.message.split('\n')[0] }); console.log(`FAIL  ${id}  ${title}\n      ${e.message.split('\n').slice(0, 3).join('\n      ')}`); }
+        },
+        summary() {
+            const bad = results.filter((r) => !r.ok);
+            console.log(`\n${name}: ${results.length - bad.length}/${results.length} steps passed`);
+            fs.writeFileSync(path.join(SHOTS, `${name}.json`), JSON.stringify(results, null, 1));
+            return bad.length;
+        },
+    };
+    return api;
+}
+export function ok(cond, msg) { if (!cond) throw new Error(msg || 'assertion failed'); }
+export function eq(a, b, msg) { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg || 'not equal'}: got ${JSON.stringify(a)} expected ${JSON.stringify(b)}`); }
+export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export async function shot(page, name) { const f = path.join(SHOTS, name + '.png'); await page.screenshot({ path: f }); return f; }

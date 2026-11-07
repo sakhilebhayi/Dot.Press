@@ -1,0 +1,7 @@
+{
+  "name": "press-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Dot.Press end to end tests (real Chrome, real pointer and keyboard events)",
+  "dependencies": { "playwright-core": "1.49.1" }
+}
