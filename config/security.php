@@ -19,4 +19,12 @@ return [
     | remembered this many seconds (followers poll every second). 0 checks on every request.
     */
     'live_access_cache_seconds' => (int) env('SECURITY_LIVE_ACCESS_SECONDS', 15),
+
+    /*
+    | Growth limits for the presentation document (ops). One request may add at most this many bytes of slide content
+    | (duplicating, adding, enlarging), and a deck may hold at most press_deck_bytes of it in total. Pictures and media
+    | are assets, not slide content, so a normal deck is far below both.
+    */
+    'press_batch_growth_bytes' => (int) env('PRESS_BATCH_GROWTH_BYTES', 8 * 1024 * 1024),
+    'press_deck_bytes' => (int) env('PRESS_DECK_BYTES', 32 * 1024 * 1024),
 ];
