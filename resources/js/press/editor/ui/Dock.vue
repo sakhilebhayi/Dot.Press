@@ -62,7 +62,7 @@ const toggles = computed(() => [
 
 <template>
     <div class="dk" role="toolbar" aria-label="Insert and view tools">
-        <button type="button" class="dk-b dk-insp" :aria-pressed="ui.inspector.open" aria-controls="ed-insp" aria-label="Inspector" data-tip="Inspector" data-tip-up @click="editor.toggleInspector()"><Ico name="inspector" /></button>
+        <button type="button" class="dk-b dk-insp" :aria-pressed="ui.inspector.open" :aria-controls="ui.inspector.open ? 'ed-insp' : undefined" aria-label="Inspector" data-tip="Inspector" data-tip-up @click="editor.toggleInspector()"><Ico name="inspector" /></button>
         <div class="dk-group" role="group" aria-label="Insert">
             <button type="button" class="dk-b" :aria-pressed="ui.tool === 'select'" aria-label="Select" data-tip="Select" data-tip-up @click="ui.tool = 'select'"><Ico name="select" /></button>
             <button type="button" class="dk-b dk-hand" :aria-pressed="ui.tool === 'hand'" aria-label="Hand, move around the slide" data-tip="Hand" data-tip-up @click="ui.tool = ui.tool === 'hand' ? 'select' : 'hand'"><Ico name="hand" /></button>
@@ -89,17 +89,17 @@ const toggles = computed(() => [
         <div class="dk-group dk-group--end">
             <div class="dk-group" role="group" aria-label="History">
                 <button type="button" class="dk-b" :disabled="locked || !state.canUndo" aria-label="Undo" :data-tip="state.undoLabel ? `Undo ${state.undoLabel}` : 'Undo'" data-tip-up @click="store.undo()"><Ico name="undo" /></button>
-                <button type="button" class="dk-b" :disabled="locked || !state.canRedo" aria-label="Redo" :data-tip="state.redoLabel ? `Redo ${state.redoLabel}` : 'Redo'" data-tip-up @click="store.redo()"><Ico name="redo" /></button>
+                <button type="button" class="dk-b dk-redo" :disabled="locked || !state.canRedo" aria-label="Redo" :data-tip="state.redoLabel ? `Redo ${state.redoLabel}` : 'Redo'" data-tip-up @click="store.redo()"><Ico name="redo" /></button>
             </div>
             <span class="dk-sep" aria-hidden="true"></span>
             <div class="dk-group" role="group" aria-label="Zoom">
-                <button type="button" class="dk-b" aria-label="Zoom out" data-tip="Zoom out" data-tip-up @click="store.zoomOut()"><Ico name="minus" /></button>
+                <button type="button" class="dk-b dk-zstep" aria-label="Zoom out" data-tip="Zoom out" data-tip-up @click="store.zoomOut()"><Ico name="minus" /></button>
                 <DropMenu :items="zoomItems" up align="end" label="Zoom" :min-width="180">
                     <template #trigger="{ toggle, open }">
                         <button type="button" class="dk-zoom pr-state" aria-haspopup="menu" :aria-expanded="open" :aria-label="`Zoom ${pct}${fit ? ', fitted' : ''}`" @click="toggle"><span>{{ pct }}</span><span v-if="fit" class="dk-fit">fit</span></button>
                     </template>
                 </DropMenu>
-                <button type="button" class="dk-b" aria-label="Zoom in" data-tip="Zoom in" data-tip-up @click="store.zoomIn()"><Ico name="plus" /></button>
+                <button type="button" class="dk-b dk-zstep" aria-label="Zoom in" data-tip="Zoom in" data-tip-up @click="store.zoomIn()"><Ico name="plus" /></button>
             </div>
             <span class="dk-sep" aria-hidden="true"></span>
             <div class="dk-group dk-aids" role="group" aria-label="View aids">
@@ -111,7 +111,7 @@ const toggles = computed(() => [
                 </template>
             </DropMenu>
             <span class="dk-sep" aria-hidden="true"></span>
-            <button type="button" class="dk-b" :aria-pressed="ui.help" aria-label="Keyboard shortcuts" data-tip="Shortcuts ?" data-tip-up @click="ui.help = !ui.help"><Ico name="help" /></button>
+            <button type="button" class="dk-b dk-help" :aria-pressed="ui.help" aria-label="Keyboard shortcuts" data-tip="Shortcuts ?" data-tip-up @click="ui.help = !ui.help"><Ico name="help" /></button>
         </div>
     </div>
 </template>

@@ -97,7 +97,7 @@ const statusText = computed(() => ({
     <div class="pr prt">
         <header class="prt-bar">
             <div class="prt-id">
-                <p class="prt-title">{{ deck.title || 'Untitled presentation' }}</p>
+                <h1 class="prt-title">{{ deck.title || 'Untitled presentation' }}</h1>
                 <p class="prt-meta">
                     <span class="pr-bead pr-bead--sm" :class="{ 'pr-bead--ok': status !== 'loading', 'pr-bead--busy': status === 'loading' }" aria-hidden="true"></span>
                     <span class="pr-state">{{ statusWord }}</span>
@@ -140,7 +140,7 @@ const statusText = computed(() => ({
 .prt-meta { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--muted); font-size: var(--t-sm); }
 .prt-meta-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prt-act { display: flex; gap: 8px; }
-.prt-hint { grid-column: 1 / -1; margin: 0; font-size: var(--t-sm); color: var(--muted); max-width: 70ch; }
+.prt-hint { grid-column: 1 / -1; margin: 0; font-size: var(--t-sm); color: var(--muted); max-width: 110ch; text-wrap: pretty; }
 .prt-stage { padding: 24px 16px 64px; display: grid; justify-items: center; gap: 28px; }
 .prt-empty { margin: 48px 0; color: var(--muted); max-width: 48ch; text-align: center; }
 .prt-sheet { width: var(--sw); }

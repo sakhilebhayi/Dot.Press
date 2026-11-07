@@ -78,7 +78,8 @@ watch(() => props.renaming, (on) => { if (on) settled = false; });
             <div class="sp-meta pr-state">{{ stateWord }}</div>
             <div v-if="current" class="sp-thumb"><LazyThumb :slide="slide" :deck="deck" :assets="assets" eager /></div>
         </div>
-        <button v-if="!readOnly" class="sp-ins" type="button" tabindex="-1" aria-hidden="true" data-nodrag title="Add a slide here" @click.stop="emit('insert', $event)" @pointerdown.stop><Ico name="plus" size="sm" :stroke="2.2" /></button>
-        <button class="sp-more" type="button" tabindex="-1" aria-hidden="true" data-nodrag title="Slide actions" @click.stop="emit('menu', $event)" @pointerdown.stop><Ico name="more" size="sm" /></button>
+        <!-- pointer shortcuts only (the keyboard has the context menu and Enter), so they are plain spans: a button inside an option is nested interactive content -->
+        <span v-if="!readOnly" class="sp-ins" role="presentation" data-nodrag title="Add a slide here" @click.stop="emit('insert', $event)" @pointerdown.stop><Ico name="plus" size="sm" :stroke="2.2" /></span>
+        <span class="sp-more" role="presentation" data-nodrag title="Slide actions" @click.stop="emit('menu', $event)" @pointerdown.stop><Ico name="more" size="sm" /></span>
     </li>
 </template>

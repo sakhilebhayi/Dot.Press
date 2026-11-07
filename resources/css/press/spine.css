@@ -94,9 +94,9 @@ body.sp-dragging { cursor: grabbing !important; user-select: none; -webkit-user-
 .sp-ghost { position: fixed; left: 0; top: 0; z-index: 400; display: flex; align-items: center; gap: 10px; max-width: 260px; padding: 8px 12px; border-radius: var(--r-3); background: var(--sheet); box-shadow: var(--lift); border: 1px solid var(--ink); pointer-events: none; font-size: 0.8125rem; font-weight: 500; }
 .sp-ghost-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-ghost-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--r-3); background: var(--ink); color: var(--sheet); }
-.sp-preview { position: fixed; z-index: 250; width: 300px; padding: 8px; border-radius: var(--r-3); background: var(--sheet); box-shadow: var(--lift); border: 1px solid var(--line); pointer-events: none; animation: pr-pop var(--d-2) var(--ease-settle); }
+.sp-preview { position: fixed; z-index: 250; width: 216px; padding: 6px; border-radius: var(--r-3); background: var(--sheet); box-shadow: var(--lift); border: 1px solid var(--line); pointer-events: none; animation: pr-pop var(--d-2) var(--ease-settle); }
 .sp-preview .lt { box-shadow: 0 0 0 1px rgb(20 23 26 / 0.08); }
-.sp-preview-t { margin-top: 8px; font-size: 0.8125rem; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sp-preview-t { margin-top: 6px; font-size: 0.8125rem; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 .sp-empty { padding: 32px 20px; color: var(--muted); font-size: var(--t-lg); }
 .sp-foot { flex: none; display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); background: var(--paper); }

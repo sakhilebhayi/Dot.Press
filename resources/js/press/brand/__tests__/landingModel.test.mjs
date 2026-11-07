@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { SAMPLE_DECK, SAMPLE_PREFLIGHT, SAMPLE_REVIEW } from '../sampleDeck.js';
-import { COMPAT, LEVEL_WORD, SECTIONS, applyTitleSize, currentSection, progress, railFill, sampleBeads, sectionState, titleSize } from '../landingModel.js';
+import { COMPAT, LEVEL_WORD, SECTIONS, applyTitleSize, currentSection, progress, railFill, sampleBeads, sectionState, splitCompat, titleSize, withTextScale, TELLING_ROWS } from '../landingModel.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -82,4 +82,31 @@ test('visible copy has no em or en dashes', () => {
         const lines = text.split('\n').filter((l) => /[–—]/.test(l));
         assert.deepEqual(lines, [], `${f} has a dash`);
     }
+});
+
+test('the compatibility table is summarised to the four most telling rows, and nothing is lost', () => {
+    const { lead, rest } = splitCompat();
+    assert.equal(lead.length, 4);
+    assert.deepEqual(lead.map((r) => r.what), COMPAT.filter((r) => TELLING_ROWS.includes(r.what)).map((r) => r.what));
+    assert.equal(lead.length + rest.length, COMPAT.length);
+    assert.deepEqual([...lead, ...rest].map((r) => r.what).sort(), COMPAT.map((r) => r.what).sort());
+});
+
+test('every summarised row is one where a format gives something up, and every hidden row is kept in both formats', () => {
+    const { lead, rest } = splitCompat();
+    for (const r of lead) assert.ok(['pptx', 'pdf'].some((f) => r[f].level !== 'native'), `${r.what} is native in both, so it is not telling`);
+    const keptInBoth = rest.filter((r) => r.pptx.level === 'native' && r.pdf.level === 'native');
+    assert.ok(keptInBoth.length >= 4, 'the rows behind the control are the ones with nothing lost');
+});
+
+test('withTextScale sets the theme text scale, never below 1, and leaves the deck untouched', () => {
+    const deck = SAMPLE_DECK.deck;
+    const before = JSON.stringify(deck);
+    const big = withTextScale(deck, 1.3);
+    assert.equal(big.theme.t.scale, 1.3);
+    assert.equal(big.w, deck.w);
+    assert.equal(big.theme.c.accent, deck.theme.c.accent);
+    assert.equal(withTextScale(deck, 0.4).theme.t.scale, 1);
+    assert.equal(withTextScale(deck, 'x').theme.t.scale, 1);
+    assert.equal(JSON.stringify(deck), before);
 });

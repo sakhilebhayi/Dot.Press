@@ -44,16 +44,16 @@
 .cs-go .pr-ico { transition: transform var(--d-3) var(--spring); }
 .cs-go:hover .pr-ico { transform: translateX(3px); }
 
-/* filters: a short rail with a bead under every word; the amber one is where you are ------------------- */
+/* filters: words on a rail. The amber bead marks where you are; it is decoration, the words are the controls ------------ */
 .lw-bar { position: relative; display: flex; align-items: flex-end; gap: 16px; justify-content: space-between; }
 .lw-bar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 1.5px; background: var(--line-strong); pointer-events: none; }
-.lw-filters { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; }
+.lw-filters { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; min-width: 0; }
 .lw-filters::-webkit-scrollbar { display: none; }
 .lw-f { position: relative; flex: none; height: 38px; min-width: 44px; padding: 0 12px; border: 0; background: transparent; font-size: var(--t-md); font-weight: 500; color: var(--muted); white-space: nowrap; }
-.lw-f::after { content: ''; position: absolute; left: 50%; bottom: -10px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--paper); z-index: 1; transition: background-color var(--d-2), transform var(--d-3) var(--spring); }
+.lw-f::after { content: ''; position: absolute; left: 50%; bottom: -10px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--amber); z-index: 1; pointer-events: none; opacity: 0; transform: scale(0.4); transition: opacity var(--d-2), transform var(--d-3) var(--spring); }
 .lw-f:hover { color: var(--ink); }
 .lw-f.is-on { color: var(--ink); font-weight: 600; }
-.lw-f.is-on::after { background: var(--amber); transform: scale(1.3); }
+.lw-f.is-on::after { opacity: 1; transform: none; }
 .lw-sort { display: flex; align-items: center; gap: 8px; padding-bottom: 14px; flex: none; }
 .lw-select { width: auto; height: 34px; padding-right: 30px; font-size: 0.8125rem; font-weight: 500; }
 
@@ -73,7 +73,7 @@
 @media (hover: none) { .dt-fav { opacity: 1; transform: none; } }
 /* the rail runs under the sheets and through the gaps; the bead sits on it */
 .dt-rail { position: relative; height: 12px; margin-top: 18px; }
-.dt-rail::before { content: ''; position: absolute; left: -14px; right: -14px; top: 5px; height: 1.5px; background: var(--line-strong); }
+.dt-rail::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 1.5px; background: var(--line-strong); }
 .dt-rail .pr-bead { position: absolute; left: 0; top: 0; box-shadow: 0 0 0 4px var(--paper); background-color: var(--paper); }
 .dt-rail .pr-bead[data-state='solid'] { background-color: var(--ink); }
 .dt-rail .pr-bead[data-state='issue'] { background-color: var(--warn); }
@@ -167,8 +167,12 @@
     .lh-team { display: none; }
 }
 @media (max-width: 639px) {
-    .lw-sort > .pr-small { display: none; }
-    .lw-bar { gap: 8px; }
+    /* the filters get the whole row (the last of them used to hide under Sort); Sort sits under them, to the right */
+    .lw-bar { flex-direction: column; align-items: stretch; gap: 0; }
+    .lw-bar::after { display: none; }
+    .lw-filters { background: linear-gradient(var(--line-strong), var(--line-strong)) left bottom 4px / 100% 1.5px no-repeat; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
+    .lw-sort { justify-content: flex-end; padding: 14px 0 0; }
+    .lw-sort > .pr-small { display: inline; }
     .lh { gap: 6px; padding: 0 10px; }
     .lh-word { display: none; }
     .lh-search { padding: 0 4px; }
@@ -199,3 +203,10 @@
 .ns-tpl-thumb { display: block; position: relative; width: 100%; overflow: hidden; background: var(--sheet); box-shadow: var(--sheet-shadow); }
 .ns-tpl-b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .ns-tpl:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+/* the last place on the wall: a blank sheet to start from (shown while the wall is short, so it never reads as a dead end) */
+.dt-new { list-style: none; }
+.dt-new-b { display: grid; place-items: center; align-content: center; gap: 10px; width: 100%; aspect-ratio: 16 / 9; padding: 0; border: 1.5px dashed var(--line-strong); border-radius: var(--r-1); background: transparent; color: var(--ink-2); font-size: var(--t-md); font-weight: 500; transition: border-color var(--d-2), background-color var(--d-2), transform var(--d-3) var(--spring); }
+.dt-new-b:hover { border-color: var(--ink); background: var(--raised); color: var(--ink); transform: translateY(-3px); }
+.dt-new-b:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.dt-new-plus { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid currentColor; }

@@ -196,6 +196,8 @@ onMounted(() => {
 });
 onBeforeUnmount(() => { window.removeEventListener('keydown', onWindowKey); io?.disconnect(); });
 const showMore = () => load({ more: true });
+// While the wall is short, its last place is a blank sheet to start from.
+const showNewTile = computed(() => props.canCreate && !archived.value && !q.value.trim() && !next.value && items.value.length > 0 && items.value.length < 8);
 </script>
 
 <template>
@@ -232,6 +234,7 @@ const showMore = () => load({ more: true });
                         @favourite="toggleFavourite(row)" @rename-start="renamingId = row.id" @rename="rename(row, $event)" @rename-cancel="renamingId = null" @duplicate="duplicate(row)"
                         @archive="archive(row)" @restore="restore(row)" @delete="confirm = { row, busy: false }"
                     />
+                    <li v-if="showNewTile" class="dt dt-new"><button type="button" class="dt-new-b" aria-haspopup="dialog" @click="newOpen = true"><span class="dt-new-plus" aria-hidden="true"><Ico name="plus" size="sm" :stroke="2" /></span>New presentation</button></li>
                 </ul>
                 <ul v-else-if="loading" class="lw-grid lw-grid--wait" aria-busy="true" aria-label="Loading presentations"><li v-for="n in 6" :key="n" class="dt-wait" aria-hidden="true"><div class="dt-wait-sheet"></div><div class="dt-wait-line"></div></li></ul>
 

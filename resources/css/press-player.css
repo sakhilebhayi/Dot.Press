@@ -10,7 +10,7 @@
     --pp-bg: #07080a;
     --pp-ink: #f4f1ea;
     --pp-ink-2: rgb(244 241 234 / 0.64);
-    --pp-ink-3: rgb(244 241 234 / 0.4);
+    --pp-ink-3: rgb(244 241 234 / 0.62);
     --pp-line: rgb(244 241 234 / 0.16);
     --pp-line-2: rgb(244 241 234 / 0.28);
     --pp-surface: #121316;
@@ -65,9 +65,9 @@
 /* typed slide number, hint, toast */
 .pp-jump { position: absolute; right: 24px; bottom: 28px; font: 500 28px/1 var(--pp-mono); color: var(--pp-ink); background: var(--pp-surface); border: 1px solid var(--pp-line-2); border-radius: var(--pp-radius); padding: 10px 14px; opacity: 0; transform: translateY(6px); transition: opacity var(--pp-fast) var(--pp-ease), transform var(--pp-fast) var(--pp-ease); pointer-events: none; }
 .pp-jump.is-on { opacity: 1; transform: none; }
-.pp-hint { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); font: 400 12px/1.4 var(--pp-font); letter-spacing: 0.01em; color: var(--pp-ink-2); background: var(--pp-surface); border: 1px solid var(--pp-line); padding: 7px 12px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity 400ms var(--pp-ease); pointer-events: none; }
+.pp-hint { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); font: 400 12px/1.4 var(--pp-font); letter-spacing: 0.01em; color: var(--pp-ink-2); background: var(--pp-surface); border: 1px solid var(--pp-line); padding: 7px 12px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity 400ms var(--pp-ease); pointer-events: none; }
 .pp-hint.is-on { opacity: 0.92; }
-.pp-hint kbd { font: 500 11px var(--pp-mono); color: var(--pp-ink); padding: 0 3px; }
+.pp-hint kbd { font: 500 12px var(--pp-mono); color: var(--pp-ink); padding: 0 3px; }
 .pp-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -6px); font: 500 13px/1 var(--pp-font); color: var(--pp-ink); background: var(--pp-surface); border: 1px solid var(--pp-line-2); padding: 10px 14px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity var(--pp-base) var(--pp-ease), transform var(--pp-base) var(--pp-ease); }
 .pp-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
 

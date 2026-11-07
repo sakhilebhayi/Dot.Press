@@ -57,6 +57,7 @@ async function close() {
 
 <template>
     <aside class="in" aria-label="Inspector">
+        <h2 class="pr-sr">{{ current ? current.label : 'Inspector' }}</h2>
         <header class="in-head">
             <DropMenu :items="pickItems" label="Inspector panels" :min-width="230">
                 <template #trigger="{ toggle, open }">

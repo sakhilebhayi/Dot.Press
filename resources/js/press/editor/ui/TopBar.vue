@@ -114,16 +114,16 @@ const canPresent = computed(() => editor.can.present !== false);
                 <li v-if="more" class="pr-avatar tb-more" :title="`${more} more`">+{{ more }}</li>
             </ul>
             <ApprovalChip />
-            <button type="button" class="pr-btn tb-act tb-insp" :aria-pressed="ui.inspector.open" aria-controls="ed-insp" aria-label="Inspector" data-tip="Inspector" @click="editor.toggleInspector()"><Ico name="inspector" size="sm" /><span class="tb-lbl">Inspector</span></button>
+            <button type="button" class="pr-btn tb-act tb-insp" :aria-pressed="ui.inspector.open" :aria-controls="ui.inspector.open ? 'ed-insp' : undefined" aria-label="Inspector" data-tip="Inspector" @click="editor.toggleInspector()"><Ico name="inspector" size="sm" /><span class="tb-lbl">Inspector</span></button>
             <button v-if="editor.hasPanel('share')" type="button" class="pr-btn tb-act" @click="editor.openPanel('share')"><Ico name="share" size="sm" /><span class="tb-lbl">Share</span></button>
-            <button v-if="editor.hasPanel('review')" type="button" class="pr-btn tb-act" @click="editor.openPanel('review')"><Ico name="review" size="sm" /><span class="tb-lbl">Review</span></button>
+            <button v-if="editor.hasPanel('review')" type="button" class="pr-btn tb-act tb-act--review" @click="editor.openPanel('review')"><Ico name="review" size="sm" /><span class="tb-lbl">Review</span></button>
             <DropMenu v-if="canExport" :items="exportItems" align="end" label="Export">
                 <template #trigger="{ toggle, open }">
                     <button type="button" class="pr-btn tb-act" aria-haspopup="menu" :aria-expanded="open" @click="toggle"><Ico name="export" size="sm" /><span class="tb-lbl">Export</span></button>
                 </template>
             </DropMenu>
             <span v-if="canPresent" class="tb-present">
-                <button type="button" class="pr-btn pr-btn--primary tb-go" @click="editor.present('here')"><Ico name="present" size="sm" /><span>Present</span></button>
+                <button type="button" class="pr-btn pr-btn--primary tb-go" @click="editor.present('here')"><Ico name="present" size="sm" /><span class="tb-go-l">Present</span></button>
                 <DropMenu :items="presentItems" align="end" label="Present options">
                     <template #trigger="{ toggle, open }">
                         <button type="button" class="pr-btn pr-btn--primary tb-more-btn" aria-haspopup="menu" :aria-expanded="open" aria-label="More ways to present" @click="toggle"><Ico name="chevronDown" size="sm" /></button>

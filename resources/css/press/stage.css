@@ -110,7 +110,7 @@
     left: 0;
     top: 0;
     font-family: var(--f-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.02em;
@@ -122,7 +122,7 @@
 }
 .es-chip-guide { background: var(--amber); color: #14171a; }
 .es-readout { background: var(--es-ink); color: var(--es-white); font-size: 12px; padding: 5px 8px; z-index: 3; box-shadow: var(--lift); }
-.es-who-name { background: var(--who, var(--ink)); color: #fff; font-family: var(--f-ui); font-weight: 600; font-size: 11px; border-radius: var(--r-1) var(--r-1) var(--r-1) 0; }
+.es-who-name { background: var(--who, var(--ink)); color: #fff; font-family: var(--f-ui); font-weight: 600; font-size: 12px; border-radius: var(--r-1) var(--r-1) var(--r-1) 0; }
 .es-who-name-cursor { border-radius: 0 var(--r-1) var(--r-1) var(--r-1); }
 
 /* ---- comment pins and presence -------------------------------------------------------------------- */
@@ -492,3 +492,15 @@
     .es-hnd, .es-knob { stroke: CanvasText; fill: Canvas; }
     .es-box, .es-stem { stroke: Highlight; }
 }
+
+/* ---- the bead chip: the slide's Spine state, outside the slide's box (editor furniture, never printed) --------------- */
+.es-beadchip { position: absolute; left: 0; top: 0; z-index: 14; display: inline-flex; align-items: center; gap: 8px; max-width: calc(100% - 16px); min-height: 32px; padding: 0 4px 0 10px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--paper); color: var(--ink); box-shadow: var(--lift); animation: es-chip-in var(--d-3) var(--ease-settle) both; }
+.es-beadchip-t { display: flex; align-items: baseline; gap: 8px; min-width: 0; margin: 0; font-size: var(--t-sm); line-height: 1.2; }
+.es-beadchip-w { flex: none; color: var(--ink-2); }
+.es-beadchip-m { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.es-beadchip.is-solid .es-beadchip-m { color: var(--ink-2); font-weight: 400; }
+.es-beadchip-x { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); }
+.es-beadchip-x:hover { background: var(--raised); color: var(--ink); }
+.es-beadchip-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+@keyframes es-chip-in { from { opacity: 0; translate: 0 -4px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .es-beadchip { animation: none; } }

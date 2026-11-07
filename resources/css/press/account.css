@@ -27,6 +27,9 @@
 .gs-lead { margin-top: 12px; color: var(--ink-2); font-size: var(--t-md); line-height: 1.55; max-width: 34em; }
 .gs-lead + .gs-lead { margin-top: 8px; }
 .gs-form { margin-top: 28px; display: grid; gap: 18px; }
+.gs-foot.gs-foot--stack { margin-top: 0; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 16px; }
+.gs-foot--stack .gs-submit { --h: 44px; width: 100%; font-size: var(--t-md); }
+.gs-foot--stack .pr-textlink { align-self: flex-start; }
 .gs-foot { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
 .gs-aside { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
 .gs-legal { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 20px; padding: 20px clamp(16px, 4vw, 40px) 28px; color: var(--muted); font-size: var(--t-sm); }
