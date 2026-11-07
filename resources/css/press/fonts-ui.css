@@ -1,0 +1,5 @@
+/* Dot.Press interface fonts, self hosted (OFL). Slide fonts live in public/fonts and resources/css/press-player.css. */
+@font-face { font-family: 'Bricolage'; src: url('/fonts/ui/bricolage-300_800-normal.woff2') format('woff2'); font-weight: 300 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Instrument'; src: url('/fonts/ui/instrument-400_700-normal.woff2') format('woff2'); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PlexMono'; src: url('/fonts/ui/plexmono-400-normal.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PlexMono'; src: url('/fonts/ui/plexmono-500-normal.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }

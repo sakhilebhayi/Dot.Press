@@ -1,0 +1,126 @@
+/*
+ * Dot.Press design tokens: "The Spine" (see DESIGN.md).
+ * Ink is the identity. Amber appears only where the user is: the current bead, the focus ring, the live slide.
+ * Hollow bead = a claim without evidence yet. Solid bead = a claim with evidence. Never colour alone.
+ */
+:root {
+    --paper: #eef0f1;
+    --sheet: #ffffff;
+    --raised: #f7f8f8;
+    --ink: #14171a;
+    --ink-2: #3a4046;
+    --muted: #5b6269;
+    --faint: #7a828a;
+    --line: #d6dadd;
+    --line-strong: #b9bfc4;
+    --amber: #f2a100;
+    --amber-ink: #6b4600;
+    --amber-wash: #fff1cf;
+    --good: #1d7a46;
+    --warn: #9a5b00;
+    --bad: #b3261e;
+    --focus: #f2a100;
+    --selection: #14171a;
+    --stage: #e2e5e7;
+
+    --f-display: 'Bricolage', 'Instrument', system-ui, sans-serif;
+    --f-ui: 'Instrument', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --f-mono: 'PlexMono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+    --t-xs: 0.75rem;
+    --t-sm: 0.8125rem;
+    --t-md: 0.9375rem;
+    --t-lg: 1.125rem;
+    --t-xl: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+    --t-2xl: clamp(2rem, 1.3rem + 2.4vw, 3.25rem);
+    --t-mega: clamp(3rem, 1.2rem + 7vw, 7.5rem);
+
+    --r-1: 4px;
+    --r-2: 8px;
+    --r-3: 14px;
+    --r-pill: 999px;
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 24px;
+    --s-6: 32px;
+    --s-7: 48px;
+    --s-8: 72px;
+
+    --lift: 0 1px 0 rgb(20 23 26 / 0.06), 0 8px 24px -8px rgb(20 23 26 / 0.18);
+    --sheet-shadow: 0 0 0 1px rgb(20 23 26 / 0.08), 0 14px 36px -14px rgb(20 23 26 / 0.28);
+
+    /* Motion: things travel along rails and settle like a bead on a string. */
+    --ease-settle: cubic-bezier(0.2, 0.9, 0.25, 1);
+    --ease-snap: cubic-bezier(0.3, 0, 0.1, 1);
+    --spring: linear(0, 0.18 7%, 0.52 14%, 0.86 22%, 1.06 31%, 1.1 38%, 1.04 47%, 0.99 58%, 1 72%, 1);
+    --d-1: 120ms;
+    --d-2: 220ms;
+    --d-3: 380ms;
+    --d-4: 560ms;
+
+    --bead: 12px;
+    --spine-w: 288px;
+    --bar-h: 52px;
+    --dock-h: 56px;
+
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    --paper: #101214;
+    --sheet: #191c1f;
+    --raised: #1f2327;
+    --ink: #eceef0;
+    --ink-2: #c9ced3;
+    --muted: #a0a7ae;
+    --faint: #7f878f;
+    --line: #2b3035;
+    --line-strong: #3b4147;
+    --amber: #ffb52e;
+    --amber-ink: #ffd88a;
+    --amber-wash: #3a2a08;
+    --good: #5cc98a;
+    --warn: #f0b04a;
+    --bad: #ff8a80;
+    --stage: #0b0c0e;
+    --lift: 0 1px 0 rgb(0 0 0 / 0.4), 0 10px 28px -8px rgb(0 0 0 / 0.6);
+    --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.07), 0 16px 40px -14px rgb(0 0 0 / 0.7);
+    color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+        --paper: #101214;
+        --sheet: #191c1f;
+        --raised: #1f2327;
+        --ink: #eceef0;
+        --ink-2: #c9ced3;
+        --muted: #a0a7ae;
+        --faint: #7f878f;
+        --line: #2b3035;
+        --line-strong: #3b4147;
+        --amber: #ffb52e;
+        --amber-ink: #ffd88a;
+        --amber-wash: #3a2a08;
+        --good: #5cc98a;
+        --warn: #f0b04a;
+        --bad: #ff8a80;
+        --stage: #0b0c0e;
+        --lift: 0 1px 0 rgb(0 0 0 / 0.4), 0 10px 28px -8px rgb(0 0 0 / 0.6);
+        --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.07), 0 16px 40px -14px rgb(0 0 0 / 0.7);
+        color-scheme: dark;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --d-1: 1ms;
+        --d-2: 1ms;
+        --d-3: 1ms;
+        --d-4: 1ms;
+        --spring: linear(0, 1);
+    }
+}
