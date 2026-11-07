@@ -56,7 +56,8 @@ final class PptxText
             'justify' => 'just',
             default => 'l',
         }.'"';
-        $kids = '<a:lnSpc><a:spcPct val="'.(int) round($style['lh'] * 100000).'"/></a:lnSpc>';
+        $natural = \App\Services\Press\Export\Pdf\FontRegistry::naturalLineHeight($style['font']);
+        $kids = '<a:lnSpc><a:spcPct val="'.(int) round($style['lh'] / $natural * 100000).'"/></a:lnSpc>';
         $kids .= '<a:spcBef><a:spcPts val="0"/></a:spcBef>';
         $after = $spaceAfter ? (int) round($style['ps'] * $size * 0.75 * 100) : 0;
         $kids .= '<a:spcAft><a:spcPts val="'.$after.'"/></a:spcAft>';

@@ -57,6 +57,17 @@ final class FontRegistry
         return ['asc' => (float) $m['asc'], 'desc' => (float) $m['desc']];
     }
 
+    /** The natural line height of a family in em (ascent plus descent): what "100 percent" line spacing means in PowerPoint. */
+    public static function naturalLineHeight(string $family): float
+    {
+        if (self::canonical($family) === null) {
+            return 1.2;
+        }
+        $m = self::vmetrics($family);
+
+        return $m['asc'] + $m['desc'];
+    }
+
     /**
      * How far (in em) DomPDF puts the first baseline of a line below where a browser would, for the given line height.
      * DomPDF's baseline sits at 0.88 x (ascent + descent) x line height from the top of the line, a browser's at
