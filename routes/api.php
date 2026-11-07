@@ -119,8 +119,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
     // R-40 intelligence over a stored deck. analyze, story and spine are local rules and free;
     // suggest spends AI quota only when a language model answers.
     Route::prefix('decks/{deck}/intel')->group(function (): void {
+        // The review reads every element of every slide: a deck at its limits takes ten seconds and half a gigabyte, so it
+        // gets its own small allowance. Story and spine are about a second at that size.
+        Route::post('analyze', [DeckIntelController::class, 'analyze'])->middleware('throttle:12,1,press-analyze');
         Route::middleware('throttle:120,1')->group(function (): void {
-            Route::post('analyze', [DeckIntelController::class, 'analyze']);
             Route::post('story', [DeckIntelController::class, 'story']);
             Route::get('spine', [DeckIntelController::class, 'spine']);
             Route::post('spine', [DeckIntelController::class, 'spineEdit']);

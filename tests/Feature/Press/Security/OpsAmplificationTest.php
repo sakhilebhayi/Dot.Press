@@ -97,4 +97,15 @@ class OpsAmplificationTest extends AccessTestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors('label');
     }
+
+    public function test_the_whole_deck_review_has_a_small_allowance_per_person(): void
+    {
+        $codes = [];
+        for ($i = 0; $i < 15; $i++) {
+            $codes[] = $this->actingAs($this->editor)->postJson("/api/decks/{$this->deck->id}/intel/analyze")->status();
+        }
+
+        $this->assertSame(12, count(array_filter($codes, fn ($c) => $c === 200)));
+        $this->assertSame([429, 429, 429], array_slice($codes, 12));
+    }
 }
