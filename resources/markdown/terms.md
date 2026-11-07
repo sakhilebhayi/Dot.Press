@@ -1,56 +1,64 @@
-_Last updated: 7 August 2026_
+_Last updated: 2026-11-07_
 
-These Terms of Service ("Terms") govern your use of Dot.Press, operated by **BluePin Inc** ("BluePin", "we", "us", "our"). By creating an account or using Dot.Press, you agree to these Terms.
+These terms cover your use of Dot.Press, run by **BluePin Inc** ("we", "us"). By signing in and using Dot.Press you agree to them.
 
 ## 1. What Dot.Press is
 
-Dot.Press is a canvas-based presentation and slide-deck design tool: you create projects, build decks of slides with text, shapes, and images, optionally generate slide content from an AI prompt, and export your decks to PDF or PPTX.
+Dot.Press is a presentation editor. You build decks of slides from text, shapes, pictures, charts and tables, check them with a review, present them, share them and export them to PowerPoint and PDF. You can also import PowerPoint files and chart data from spreadsheets.
 
 ## 2. Your account
 
-You must provide accurate information when creating an account and keep your login credentials secure. You're responsible for all activity that happens under your account. Tell us immediately if you suspect unauthorised access.
+Dot.Press accounts come from InfoDot and are created the first time you sign in through it. Give accurate information, keep your sign-in details to yourself and tell us at once if you think someone else has used your account. You are responsible for what happens under it.
 
 ## 3. Your content
 
-You retain ownership of the projects, decks, slides, and assets you create. You're responsible for having the rights to any content (including uploaded images) you add to your decks, and for the lawfulness of what you create and export.
+Your decks and files stay yours. You are responsible for having the right to use everything you put in them, including pictures, fonts, data and text, and for what you share and export.
 
-## 4. AI-assisted generation
+## 4. Sharing
 
-Dot.Press offers an optional AI-assisted slide generation and text-rewrite feature. It's a drafting aid — you're responsible for reviewing and approving any AI-generated content before using it, including checking it doesn't infringe anyone else's rights.
+When you turn on link sharing, anyone who has the link can open the deck. Share the link only with people who should see it, use a password or an expiry date when the content calls for it, and turn the link off when you are done. You are responsible for who you give a link, a team role or a download to.
 
-## 5. Acceptable use
+## 5. Suggestions and AI
 
-You agree not to:
+Reviews, outlines and suggestions are aids. They arrive as proposals and nothing changes until you accept it. They can be wrong. Check every figure, claim and wording before you rely on a deck, and check that you may use anything a suggestion brings in. A review never decides that a claim is true or false.
 
-- use Dot.Press to create or export unlawful, infringing, or harmful content;
-- attempt to gain unauthorised access to another user's projects, decks, or account data;
-- interfere with or disrupt Dot.Press or the wider Dot Ecosystem; or
-- use automated means to scrape or extract data from Dot.Press without our written permission.
+## 6. Exports and imports
 
-## 6. Ecosystem single sign-on
+An export is a copy of your deck in another format. Other programs draw things differently, so a PowerPoint or PDF file may not look the same as the deck in Dot.Press. Before an export runs, Dot.Press lists what it expects to change, and you should read that list. A file you import is read as well as we can, and we list what we could not read, but we do not promise it will match the original.
 
-Dot.Press is part of the Dot Ecosystem. If you sign in via another Dot Ecosystem platform, you authorise that platform to hand off a short-lived, single-use authentication token confirming your identity to Dot.Press.
+## 7. Acceptable use
 
-## 7. Termination
+Do not:
 
-You may stop using Dot.Press and delete your account at any time. We may suspend or terminate your access if you violate these Terms or use Dot.Press in a way that risks harm to us, other users, or the Dot Ecosystem.
+- use Dot.Press for anything unlawful, infringing or harmful;
+- try to open another person's decks, files or account;
+- interfere with Dot.Press or with other Dot ecosystem services;
+- scrape or copy data from Dot.Press by automated means without our written permission.
 
-## 8. Disclaimers
+## 8. Keeping your own copies
 
-Dot.Press is provided "as is," without warranties of any kind, express or implied. We do not guarantee that Dot.Press will be uninterrupted or error-free, or that any AI-generated content will be accurate, original, or fit for any particular purpose.
+We keep daily backups and we work to keep Dot.Press running, but we do not promise it will always be available or that nothing will be lost. For a talk that matters, download the offline present package and keep an export.
 
-## 9. Limitation of liability
+## 9. Ending your use
 
-To the fullest extent permitted by law, BluePin Inc will not be liable for any indirect, incidental, or consequential damages arising from your use of Dot.Press, including damages arising from content you create, upload, or export.
+You can stop using Dot.Press and delete your account at any time. Deleting it deletes the decks in the projects you created, as the Privacy policy explains. We may suspend or end access if these terms are broken or if your use puts others or the service at risk.
 
-## 10. Changes to these Terms
+## 10. No warranty
 
-We may update these Terms from time to time. If we make material changes, we'll update the "Last updated" date above and, where appropriate, notify you directly.
+Dot.Press is provided as it is, without promises that it is error free, uninterrupted or fit for a particular purpose.
 
-## 11. Governing law
+## 11. Limit of liability
 
-These Terms are governed by the laws of South Africa.
+As far as the law allows, BluePin Inc is not liable for indirect or consequential loss arising from your use of Dot.Press, including loss from content you create, upload, share or export.
 
-## 12. Contact us
+## 12. Changes
 
-If you have questions about these Terms, contact us at privacy@infodot.co.za.
+We may change these terms. If a change matters, we update the date at the top and, where it is fitting, tell you directly.
+
+## 13. Governing law
+
+South African law governs these terms.
+
+## 14. Contact
+
+privacy@infodot.co.za

@@ -1,11 +1,15 @@
 <script setup>
 import SectionTitle from './SectionTitle.vue';
+
+// danger: the section holds a destructive action. It gets its own rule in the warning colour and a square bead.
+defineProps({ danger: { type: Boolean, default: false } });
 </script>
 
 <template>
-    <div class="md:grid md:grid-cols-3 md:gap-6">
+    <section class="ac-sec" :class="{ 'ac-sec--danger': danger }">
         <SectionTitle>
             <template #title>
+                <span v-if="danger" class="pr-bead pr-bead--bad" aria-hidden="true" />
                 <slot name="title" />
             </template>
             <template #description>
@@ -13,10 +17,8 @@ import SectionTitle from './SectionTitle.vue';
             </template>
         </SectionTitle>
 
-        <div class="mt-5 md:mt-0 md:col-span-2">
-            <div class="px-4 py-5 sm:p-6 bg-white shadow sm:rounded-lg">
-                <slot name="content" />
-            </div>
+        <div class="ac-sec-b">
+            <slot name="content" />
         </div>
-    </div>
+    </section>
 </template>

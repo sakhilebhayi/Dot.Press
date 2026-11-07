@@ -19,44 +19,33 @@ const verificationLinkSent = computed(() => props.status === 'verification-link-
 </script>
 
 <template>
-    <Head title="Email Verification" />
+    <Head title="Verify your email" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <h1 class="font-display font-semibold text-2xl mb-1">Verify your email</h1>
-        <div class="mb-4 text-sm text-gray-600">
-            Before continuing, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.
+        <h1 class="gs-title">Verify your email</h1>
+        <p class="gs-lead">
+            We emailed you a link. Open it to confirm your address. If it did not arrive, we can send another.
+        </p>
+
+        <div v-if="verificationLinkSent" class="pr-note" role="status">
+            <span class="pr-bead pr-bead--sm" data-state="solid" aria-hidden="true" />
+            <p><b>sent</b>A new verification link is on its way to the address in your profile.</p>
         </div>
 
-        <div v-if="verificationLinkSent" class="mb-4 font-medium text-sm text-green-600">
-            A new verification link has been sent to the email address you provided in your profile settings.
-        </div>
-
-        <form @submit.prevent="submit">
-            <div class="mt-4 flex items-center justify-between">
-                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Resend Verification Email
+        <form class="gs-form" @submit.prevent="submit">
+            <div class="gs-foot" style="margin-top: 0;">
+                <PrimaryButton :disabled="form.processing">
+                    Send the link again
                 </PrimaryButton>
 
-                <div>
-                    <Link
-                        :href="route('profile.show')"
-                        class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        Edit Profile</Link>
-
-                    <Link
-                        :href="route('logout')"
-                        method="post"
-                        as="button"
-                        class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ms-2"
-                    >
-                        Log Out
-                    </Link>
-                </div>
+                <span style="display: inline-flex; gap: 16px;">
+                    <Link :href="route('profile.show')" class="pr-textlink">Edit profile</Link>
+                    <Link :href="route('logout')" method="post" as="button" class="pr-textlink">Sign out</Link>
+                </span>
             </div>
         </form>
     </AuthenticationCard>

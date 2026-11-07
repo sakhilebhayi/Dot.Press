@@ -30,67 +30,73 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Sign in — Dot.Press" />
+    <Head title="Sign in" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <h1 class="font-display font-semibold text-2xl mb-1">Sign in</h1>
-        <p class="text-sm mb-6 text-gray-600">
-            Don't have an account?
-            <Link :href="route('register')" class="text-indigo-600">Create one free</Link>
+        <h1 class="gs-title">Sign in</h1>
+        <p class="gs-lead">
+            Dot.Press accounts come from InfoDot. An account is created the first time you sign in through InfoDot, so there is no separate sign-up here.
         </p>
 
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
+        <div v-if="status" class="pr-note" role="status">
+            <span class="pr-bead pr-bead--sm" data-state="solid" aria-hidden="true" />
+            <p><b>note</b>{{ status }}</p>
         </div>
 
-        <form @submit.prevent="submit">
+        <form class="gs-form" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" value="Email" />
                 <TextInput
                     id="email"
                     v-model="form.email"
                     type="email"
-                    class="mt-1 block w-full"
+                    name="email"
                     required
                     autofocus
                     autocomplete="username"
+                    inputmode="email"
+                    :aria-invalid="form.errors.email ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
+            <div>
                 <InputLabel for="password" value="Password" />
                 <TextInput
                     id="password"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="password"
                     required
                     autocomplete="current-password"
+                    :aria-invalid="form.errors.password ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError :message="form.errors.password" />
             </div>
 
-            <div class="block mt-4">
-                <label class="flex items-center">
-                    <Checkbox v-model:checked="form.remember" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
-                </label>
-            </div>
+            <label class="pr-check">
+                <Checkbox v-model:checked="form.remember" name="remember" />
+                <span>Keep me signed in on this device</span>
+            </label>
 
-            <div class="flex items-center justify-end mt-4">
-                <Link v-if="canResetPassword" :href="route('password.request')" class="text-sm text-gray-600">
+            <div class="gs-foot" style="margin-top: 0;">
+                <PrimaryButton :disabled="form.processing">
+                    Sign in
+                </PrimaryButton>
+
+                <Link v-if="canResetPassword" :href="route('password.request')" class="pr-textlink">
                     Forgot your password?
                 </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
-                </PrimaryButton>
             </div>
         </form>
+
+        <p class="gs-aside">
+            Came from InfoDot and still landed here? Open Dot.Press again from
+            <a class="pr-textlink" href="https://infodot.co.za" rel="noopener">InfoDot</a>.
+        </p>
     </AuthenticationCard>
 </template>

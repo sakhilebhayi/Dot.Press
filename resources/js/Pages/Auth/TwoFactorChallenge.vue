@@ -38,26 +38,25 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Two-factor Confirmation" />
+    <Head title="Two-factor sign-in" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <h1 class="font-display font-semibold text-2xl mb-4">Two-factor authentication</h1>
-
-        <div class="mb-4 text-sm text-gray-600">
+        <h1 class="gs-title">Two-factor sign-in</h1>
+        <p class="gs-lead">
             <template v-if="! recovery">
-                Please confirm access to your account by entering the authentication code provided by your authenticator application.
+                Enter the code from your authenticator app.
             </template>
 
             <template v-else>
-                Please confirm access to your account by entering one of your emergency recovery codes.
+                Enter one of your recovery codes. Each one works once.
             </template>
-        </div>
+        </p>
 
-        <form @submit.prevent="submit">
+        <form class="gs-form" @submit.prevent="submit">
             <div v-if="! recovery">
                 <InputLabel for="code" value="Code" />
                 <TextInput
@@ -65,41 +64,43 @@ const submit = () => {
                     ref="codeInput"
                     v-model="form.code"
                     type="text"
+                    name="code"
                     inputmode="numeric"
-                    class="mt-1 block w-full"
                     autofocus
                     autocomplete="one-time-code"
+                    :aria-invalid="form.errors.code ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.code" />
+                <InputError :message="form.errors.code" />
             </div>
 
             <div v-else>
-                <InputLabel for="recovery_code" value="Recovery Code" />
+                <InputLabel for="recovery_code" value="Recovery code" />
                 <TextInput
                     id="recovery_code"
                     ref="recoveryCodeInput"
                     v-model="form.recovery_code"
                     type="text"
-                    class="mt-1 block w-full"
+                    name="recovery_code"
                     autocomplete="one-time-code"
+                    :aria-invalid="form.errors.recovery_code ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.recovery_code" />
+                <InputError :message="form.errors.recovery_code" />
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <button type="button" class="text-sm text-gray-600 hover:text-gray-900 underline cursor-pointer" @click.prevent="toggleRecovery">
+            <div class="gs-foot" style="margin-top: 0;">
+                <PrimaryButton :disabled="form.processing">
+                    Sign in
+                </PrimaryButton>
+
+                <button type="button" class="pr-textlink" @click.prevent="toggleRecovery">
                     <template v-if="! recovery">
                         Use a recovery code
                     </template>
 
                     <template v-else>
-                        Use an authentication code
+                        Use an authenticator code
                     </template>
                 </button>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
-                </PrimaryButton>
             </div>
         </form>
     </AuthenticationCard>

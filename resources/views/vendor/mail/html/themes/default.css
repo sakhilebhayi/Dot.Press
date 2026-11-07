@@ -1,14 +1,7 @@
 /*
-Dot.Press brand theme for Laravel's Markdown mail components. The live app is a permanently
-dark UI (Welcome.vue / AuthenticationCard.vue's .press-page/.press-auth blocks force --ink as the
-page background), but email clients render dark templates inconsistently, so — matching the rest
-of the ecosystem's mail theme convention — this uses a dark header band (--ink) over a light body
-(--paper), the same pairing every sibling platform's theme uses regardless of the live app's own
-light/dark identity. Hardcoded hex throughout — email clients don't reliably support CSS custom
-properties. There is no pre-existing "-deep" gold token in this platform's palette (only
---gold/--gold-soft), so #a38427 below is a newly-computed darker gold, deep enough for AA text
-contrast on the light body, following the same pattern every sibling platform's theme uses for
-its own link/hover color.
+Dot.Press theme for Laravel's Markdown mail components ("The Spine", see DESIGN.md): an ink header band over a
+cool paper body, ink buttons, amber only for the panel edge. Hardcoded hex throughout, because email clients do not
+reliably support CSS custom properties. The values are the tokens of resources/css/press/tokens.css in light mode.
 */
 
 /* Base */
@@ -23,8 +16,8 @@ body *:not(html):not(style):not(br):not(tr):not(code) {
 
 body {
     -webkit-text-size-adjust: none;
-    background-color: #f5efe4;
-    color: #4a4038;
+    background-color: #eef0f1;
+    color: #3a4046;
     height: 100%;
     line-height: 1.4;
     margin: 0;
@@ -41,7 +34,8 @@ blockquote {
 }
 
 a {
-    color: #a38427;
+    color: #14171a;
+    text-decoration: underline;
 }
 
 a img {
@@ -51,7 +45,7 @@ a img {
 /* Typography */
 
 h1 {
-    color: #180f08;
+    color: #14171a;
     font-size: 19px;
     font-weight: bold;
     margin-top: 0;
@@ -93,7 +87,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f5efe4;
+    background-color: #eef0f1;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -111,13 +105,13 @@ img {
 /* Header */
 
 .header {
-    background-color: #180f08;
+    background-color: #14171a;
     padding: 32px 0;
     text-align: center;
 }
 
 .header a {
-    color: #f5efe4;
+    color: #eef0f1;
     font-size: 19px;
     font-weight: bold;
     text-decoration: none;
@@ -139,9 +133,9 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: #f5efe4;
-    border-bottom: 1px solid #f5efe4;
-    border-top: 1px solid #f5efe4;
+    background-color: #eef0f1;
+    border-bottom: 1px solid #eef0f1;
+    border-top: 1px solid #eef0f1;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -175,7 +169,7 @@ img {
 
 .subcopy p {
     font-size: 14px;
-    color: #4a4038;
+    color: #3a4046;
 }
 
 /* Footer */
@@ -191,13 +185,13 @@ img {
 }
 
 .footer p {
-    color: #948873;
+    color: #5b6269;
     font-size: 12px;
     text-align: center;
 }
 
 .footer a {
-    color: #948873;
+    color: #5b6269;
     text-decoration: underline;
 }
 
@@ -218,7 +212,7 @@ img {
 }
 
 .table td {
-    color: #4a4038;
+    color: #3a4046;
     font-size: 15px;
     line-height: 18px;
     margin: 0;
@@ -254,49 +248,49 @@ img {
 
 .button-blue,
 .button-primary {
-    background-color: #f0c33a;
-    border-bottom: 8px solid #f0c33a;
-    border-left: 18px solid #f0c33a;
-    border-right: 18px solid #f0c33a;
-    border-top: 8px solid #f0c33a;
-    color: #180f08;
+    background-color: #14171a;
+    border-bottom: 8px solid #14171a;
+    border-left: 18px solid #14171a;
+    border-right: 18px solid #14171a;
+    border-top: 8px solid #14171a;
+    color: #ffffff;
 }
 
 .button-green,
 .button-success {
-    background-color: #e8890f;
-    border-bottom: 8px solid #e8890f;
-    border-left: 18px solid #e8890f;
-    border-right: 18px solid #e8890f;
-    border-top: 8px solid #e8890f;
+    background-color: #1d7a46;
+    border-bottom: 8px solid #1d7a46;
+    border-left: 18px solid #1d7a46;
+    border-right: 18px solid #1d7a46;
+    border-top: 8px solid #1d7a46;
     color: #fff;
 }
 
 .button-red,
 .button-error {
-    background-color: #dc2626;
-    border-bottom: 8px solid #dc2626;
-    border-left: 18px solid #dc2626;
-    border-right: 18px solid #dc2626;
-    border-top: 8px solid #dc2626;
+    background-color: #b3261e;
+    border-bottom: 8px solid #b3261e;
+    border-left: 18px solid #b3261e;
+    border-right: 18px solid #b3261e;
+    border-top: 8px solid #b3261e;
     color: #fff;
 }
 
 /* Panels */
 
 .panel {
-    border-left: #f0c33a solid 4px;
+    border-left: #f2a100 solid 4px;
     margin: 21px 0;
 }
 
 .panel-content {
-    background-color: #f5efe4;
-    color: #4a4038;
+    background-color: #eef0f1;
+    color: #3a4046;
     padding: 16px;
 }
 
 .panel-content p {
-    color: #4a4038;
+    color: #3a4046;
 }
 
 .panel-item {

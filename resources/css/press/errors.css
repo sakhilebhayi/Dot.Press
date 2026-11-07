@@ -1,0 +1,43 @@
+/*
+ * Error pages. These are standalone HTML: tokens.css, fonts-ui.css and this file are inlined into the page, so the page
+ * renders when the build assets fail to load. Each page draws a state of the spine (404: a line with no beads yet,
+ * 500: a broken rail) and says in plain words what happened and where to go.
+ */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; background: var(--paper); color: var(--ink); font-family: var(--f-ui); font-size: var(--t-md); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+::selection { background: var(--amber); color: #14171a; }
+
+.er-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px clamp(16px, 4vw, 40px); }
+.er-home { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; font-family: var(--f-display); font-weight: 600; letter-spacing: -0.02em; font-size: var(--t-lg); }
+.er-home svg { width: 32px; height: 12px; overflow: visible; }
+.er-main { display: grid; align-content: center; justify-items: start; gap: 0; width: min(100%, 72rem); margin: 0 auto; padding: clamp(24px, 6vh, 72px) clamp(16px, 4vw, 40px); }
+.er-rail { width: 100%; height: auto; max-height: 96px; margin-bottom: clamp(24px, 5vh, 56px); overflow: visible; color: var(--ink); }
+.er-code { font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; color: var(--muted); }
+.er-title { --er-t-title: clamp(2.5rem, 1rem + 6vw, 6rem); margin: 10px 0 0; max-width: 14em; font-family: var(--f-display); font-weight: 600; font-size: var(--er-t-title); line-height: 0.96; letter-spacing: -0.04em; font-variation-settings: 'opsz' 96; text-wrap: balance; }
+.er-msg { --er-t-msg: clamp(1rem, 0.95rem + 0.3vw, 1.1875rem); margin: 20px 0 0; max-width: 34em; font-size: var(--er-t-msg); line-height: 1.55; color: var(--ink-2); }
+.er-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 32px; }
+.er-btn { display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 24px 0 20px; border-radius: 8px; background: var(--ink); color: var(--sheet); text-decoration: none; font-weight: 500; font-size: var(--t-lg); transition: background-color 160ms cubic-bezier(0.3, 0, 0.1, 1); }
+.er-btn i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid currentColor; transition: background-color 220ms cubic-bezier(0.2, 0.9, 0.25, 1), border-color 220ms, transform 560ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+.er-btn:hover, .er-btn:focus-visible { background: var(--ink-2); }
+.er-btn:hover i, .er-btn:focus-visible i { background: var(--amber); border-color: var(--amber); transform: translateX(4px); }
+.er-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 5px; text-decoration-color: var(--line-strong); }
+.er-link:hover { text-decoration-color: var(--ink); }
+.er-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 24px; padding: 16px clamp(16px, 4vw, 40px) 28px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--t-sm); }
+.er-foot a { display: inline-flex; align-items: center; min-height: 32px; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.er-foot nav { display: flex; gap: 4px 20px; flex-wrap: wrap; }
+
+/* the drawing: a line, beads, and one thing that is wrong */
+.er-line { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.er-faint { stroke: var(--line-strong); stroke-width: 1.5; fill: none; }
+.er-bead { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; }
+.er-hollow { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.er-slot { fill: none; stroke: var(--line-strong); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.er-here { fill: var(--amber); stroke: var(--ink); stroke-width: 1.5; }
+.er-bad { fill: var(--bad); stroke: var(--bad); stroke-width: 1.5; }
+.er-dash { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 2 7; fill: none; }
+
+@media (prefers-reduced-motion: reduce) { .er-btn, .er-btn i { transition: none; } }

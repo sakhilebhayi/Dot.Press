@@ -52,6 +52,23 @@ Route::get('/cookies', function () {
     ]);
 })->name('cookies');
 
+// The pages a search engine may list: the landing page and the three legal pages. Share links, the library and the
+// editor are never listed (see public/robots.txt, and PrivateShareResponse for share links).
+Route::get('/sitemap.xml', function () {
+    $urls = array_filter([
+        url('/'),
+        Route::has('terms.show') ? route('terms.show') : null,
+        Route::has('policy.show') ? route('policy.show') : null,
+        route('cookies'),
+    ]);
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n".'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+    foreach ($urls as $url) {
+        $xml .= '  <url><loc>'.e($url).'</loc></url>'."\n";
+    }
+
+    return response($xml.'</urlset>'."\n", 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
+})->name('sitemap');
+
 // Public share links (no sign-in). The token is exactly 40 letters and digits, so anything else is a plain 404 before
 // the database is touched. The pages and assets are never cached or indexed (PrivateShareResponse).
 Route::middleware(PrivateShareResponse::class)

@@ -27,52 +27,50 @@ const updateTeamName = () => {
 <template>
     <FormSection @submitted="updateTeamName">
         <template #title>
-            Team Name
+            Team name
         </template>
 
         <template #description>
-            The team's name and owner information.
+            The name people see in the team switcher, and who owns the team.
         </template>
 
         <template #form>
-            <!-- Team Owner Information -->
-            <div class="col-span-6">
-                <InputLabel value="Team Owner" />
+            <div>
+                <InputLabel value="Team owner" />
 
-                <div class="flex items-center mt-2">
-                    <img class="size-12 rounded-full object-cover" :src="team.owner.profile_photo_url" :alt="team.owner.name">
+                <div class="ac-row-main" style="margin-top: 8px;">
+                    <span class="ac-avatar" aria-hidden="true">{{ (team.owner.name || '?').charAt(0).toUpperCase() }}</span>
 
-                    <div class="ms-4 leading-tight">
-                        <div class="text-gray-900">{{ team.owner.name }}</div>
-                        <div class="text-gray-700 text-sm">
-                            {{ team.owner.email }}
-                        </div>
+                    <div>
+                        <div class="ac-row-t">{{ team.owner.name }}</div>
+                        <div class="ac-row-s">{{ team.owner.email }}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Team Name -->
-            <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="name" value="Team Name" />
+            <div>
+                <InputLabel for="name" value="Team name" />
 
                 <TextInput
                     id="name"
                     v-model="form.name"
                     type="text"
-                    class="mt-1 block w-full"
+                    name="name"
+                    autocomplete="off"
                     :disabled="! permissions.canUpdateTeam"
+                    :aria-invalid="form.errors.name ? 'true' : undefined"
                 />
 
-                <InputError :message="form.errors.name" class="mt-2" />
+                <InputError :message="form.errors.name" />
             </div>
         </template>
 
         <template v-if="permissions.canUpdateTeam" #actions>
-            <ActionMessage :on="form.recentlySuccessful" class="me-3">
+            <ActionMessage :on="form.recentlySuccessful">
                 Saved.
             </ActionMessage>
 
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+            <PrimaryButton :disabled="form.processing">
                 Save
             </PrimaryButton>
         </template>
