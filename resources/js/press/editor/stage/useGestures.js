@@ -65,6 +65,11 @@ export function useGestures(env) {
   const snapOn = (e) => ui.snap !== false && !(e.metaKey || e.ctrlKey);
   const showGuides = () => ui.guides !== false;
 
+  // the pointer in slide units goes to the shell (presence), which sends it to the others
+  function publishCursor(p) {
+    if (typeof editor.setCursor === 'function') editor.setCursor(p ? Math.round(p.x) : null, p ? Math.round(p.y) : null);
+    else ui.pointer = p;
+  }
   function setLive(next) { live.value = next; }
   function resetLive() { live.value = EMPTY_LIVE; }
 
@@ -123,7 +128,7 @@ export function useGestures(env) {
         }
       }
     }
-    ui.pointer = e.pointerType === 'touch' ? null : slidePt(pt);
+    publishCursor(e.pointerType === 'touch' ? null : slidePt(pt));
     const key = `${h.id}|${h.handle}|${h.lockedId}`;
     if (key !== `${hover.value.id}|${hover.value.handle}|${hover.value.lockedId}`) hover.value = h;
     if (c !== lastCursorKey) { lastCursorKey = c; cursor.value = c; }
@@ -672,6 +677,7 @@ export function useGestures(env) {
     if (kind === 'text') { hooks.startDraftText(el); return; }
     store.addElement(el);
     if (kind === 'chart') editor.openPanel?.('chart');
+    if (kind === 'icon' && editor.hasPanel?.('icons')) editor.openPanel?.('icons');
     hooks.announce?.(`Added ${kind === 'shape' ? 'shape' : kind}`);
   }
 
@@ -695,7 +701,7 @@ export function useGestures(env) {
   }
 
   function onPointerLeave() {
-    ui.pointer = null;
+    publishCursor(null);
     if (!g) hover.value = { id: null, handle: null, lockedId: null };
   }
 

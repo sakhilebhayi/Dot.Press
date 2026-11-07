@@ -322,7 +322,9 @@
     display: flex;
     align-items: center;
     gap: 2px;
-    height: 44px;
+    flex-wrap: wrap;
+    min-height: 44px;
+    max-width: calc(100% - 16px);
     padding: 4px;
     border-radius: var(--r-3);
     background: var(--raised);
@@ -469,54 +471,18 @@
 .es-pop-actions button.es-primary { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
 .es-pop-actions button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* ---- the context menu ----------------------------------------------------------------------------------- */
-.es-menu {
-    position: fixed;
-    z-index: 70;
-    min-width: 220px;
-    padding: 6px;
-    border-radius: var(--r-2);
-    background: var(--raised);
-    border: 1px solid var(--line);
-    box-shadow: var(--lift);
-    color: var(--ink);
-    font: 400 14px/1 var(--f-ui);
-    animation: es-menu-in var(--d-2) var(--spring) both;
-}
-@keyframes es-menu-in {
-    from { scale: 0.97; translate: 0 -3px; }
-    to { scale: 1; translate: 0 0; }
-}
-.es-menu ul { list-style: none; margin: 0; padding: 0; }
-.es-menu-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    width: 100%;
-    height: 32px;
-    padding: 0 10px;
-    border: 0;
-    border-radius: var(--r-1);
-    background: transparent;
-    color: var(--ink);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-.es-menu-item:hover:not([disabled]), .es-menu-item:focus-visible, .es-menu-item[aria-expanded='true'] { background: var(--line); outline: none; }
-.es-menu-item[disabled] { color: var(--faint); cursor: default; }
-.es-menu-key { font: 500 11.5px/1 var(--f-mono); color: var(--muted); letter-spacing: 0.02em; }
-.es-menu-sep { height: 1px; margin: 5px 4px; background: var(--line); }
-.es-menu-sub { position: absolute; left: calc(100% - 4px); top: -7px; }
-
 /* ---- previews of video and audio ----------------------------------------------------------------------- */
 .es-media { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; pointer-events: auto; background: #0b0f14; }
 .es-media video, .es-media audio { width: 100%; height: 100%; display: block; }
 
+@media (pointer: coarse) {
+    .es-btn { min-width: 40px; height: 40px; }
+    .es-stepper, .es-stepper button { height: 40px; }
+    .es-bar { min-height: 50px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .es-bar, .es-pop, .es-menu { animation: none; }
+    .es-bar, .es-pop { animation: none; }
     .es-btn, .es-pin { transition: none; }
 }
 @media (forced-colors: active) {

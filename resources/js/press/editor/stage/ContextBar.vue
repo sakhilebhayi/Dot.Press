@@ -3,7 +3,7 @@
 // controls chosen by what is selected. Controls that need more room open a popover here or the shell's panel through
 // editor.openPanel(id), which is hidden when that panel is not registered.
 import {
-    computed, nextTick, onMounted, ref, watch,
+    computed, nextTick, onBeforeUnmount, onMounted, ref, watch,
 } from 'vue';
 import { useEditorContext } from '../context.js';
 import { FONTS } from '../../fonts.js';
@@ -59,7 +59,12 @@ function measure() {
     const el = bar.value;
     if (el) barSize.value = { w: el.offsetWidth, h: el.offsetHeight };
 }
-onMounted(() => { measure(); });
+let ro = null;
+onMounted(() => {
+    measure();
+    if (typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(measure); ro.observe(bar.value); }
+});
+onBeforeUnmount(() => ro && ro.disconnect());
 watch(controls, () => nextTick(measure));
 watch(() => props.elements.map((e) => e.id).join(), () => { open.value = null; nextTick(measure); });
 

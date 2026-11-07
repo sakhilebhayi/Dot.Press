@@ -63,18 +63,18 @@ test('the bar floats 12 px above, flips below near the top, and stays inside the
 
 test('context menu for a selection offers the commands from the brief', () => {
   const items = contextItems({ count: 2, canEdit: true, canComment: true, hasStyle: false, hasGroup: false, shortcuts: (c) => shortcutsFor(c, false)[0] || '' });
-  const ids = items.filter((i) => !i.sep).map((i) => i.id);
-  for (const id of ['cut', 'copy', 'paste', 'pastePlain', 'duplicate', 'delete', 'group', 'arrange', 'align', 'flip', 'lock', 'hide', 'copyStyle', 'pasteStyle', 'comment']) {
+  const ids = items.filter((i) => i.id).map((i) => i.id);
+  for (const id of ['cut', 'copy', 'paste', 'pastePlain', 'duplicate', 'delete', 'group', 'front', 'forward', 'backward', 'back', 'align.left', 'flipH', 'flipV', 'lock', 'hide', 'copyStyle', 'pasteStyle', 'comment']) {
     assert.ok(ids.includes(id), id);
   }
   assert.equal(items.find((i) => i.id === 'pasteStyle').disabled, true);
   assert.equal(items.find((i) => i.id === 'copyStyle').disabled, true, 'copy style needs exactly one element');
   assert.equal(items.find((i) => i.id === 'copy').shortcut, 'Ctrl+C');
-  const arrange = items.find((i) => i.id === 'arrange').submenu.map((i) => i.id);
-  assert.deepEqual(arrange, ['front', 'forward', 'backward', 'back']);
-  assert.ok(!items.find((i) => i.id === 'align').submenu.some((i) => i.id === 'distribute.h'), 'distribute needs three');
-  const three = contextItems({ count: 3, canEdit: true, shortcuts: () => '' });
-  assert.ok(three.find((i) => i.id === 'align').submenu.some((i) => i.id === 'distribute.h'));
+  assert.equal(items.find((i) => i.id === 'delete').danger, true);
+  assert.ok(!ids.includes('distribute.h'), 'distribute needs three');
+  assert.ok(contextItems({ count: 3, canEdit: true }).some((i) => i.id === 'distribute.h'));
+  assert.ok(!contextItems({ count: 1, canEdit: true }).some((i) => i.id === 'align.left'), 'one element: no align row');
+  assert.ok(items.some((i) => i.heading === 'Arrange'));
 });
 
 test('context menu: group becomes ungroup, lock becomes unlock, read only keeps copy', () => {
@@ -89,7 +89,8 @@ test('context menu: group becomes ungroup, lock becomes unlock, read only keeps 
   const empty = contextItems({ count: 0, canEdit: true }).map((i) => i.id).filter(Boolean);
   assert.deepEqual(empty, ['paste', 'pastePlain', 'selectAll']);
   const out = contextItems({ count: 0, canEdit: true });
-  assert.ok(!out[0].sep && !out[out.length - 1].sep);
+  assert.ok(!out[0].separator && !out[out.length - 1].separator);
+  for (let i = 1; i < out.length; i++) assert.ok(!(out[i].separator && out[i - 1].separator), 'no doubled separators');
 });
 
 test('copy and paste style move only what belongs to the target', () => {

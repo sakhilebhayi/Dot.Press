@@ -108,6 +108,7 @@ const others = computed(() => props.presence.map((p) => {
 
 const readout = computed(() => (props.live.readout && props.live.readoutAt ? { text: props.live.readout, ...props.live.readoutAt } : null));
 const rotateGlyph = 'M0 -3.2a3.2 3.2 0 1 1 -3.2 3.2';
+const hs = computed(() => (props.coarse ? 7.5 : 5)); // half the handle size in pixels
 </script>
 
 <template>
@@ -145,11 +146,11 @@ const rotateGlyph = 'M0 -3.2a3.2 3.2 0 1 1 -3.2 3.2';
                 <template v-if="handlesOn">
                     <line class="es-halo" :x1="topMid.x" :y1="topMid.y" :x2="layout.rotate.x" :y2="layout.rotate.y" />
                     <line class="es-stem" :x1="topMid.x" :y1="topMid.y" :x2="layout.rotate.x" :y2="layout.rotate.y" />
-                    <circle class="es-knob" :class="{ 'es-on': hover.handle === 'rotate' }" :cx="layout.rotate.x" :cy="layout.rotate.y" r="6.5" />
-                    <path class="es-knob-glyph" :transform="`translate(${layout.rotate.x} ${layout.rotate.y})`" :d="rotateGlyph" />
+                    <circle class="es-knob" :class="{ 'es-on': hover.handle === 'rotate' }" :cx="layout.rotate.x" :cy="layout.rotate.y" :r="coarse ? 9.5 : 6.5" />
+                    <path class="es-knob-glyph" :transform="`translate(${layout.rotate.x} ${layout.rotate.y}) scale(${coarse ? 1.4 : 1})`" :d="rotateGlyph" />
                     <g v-for="[h, p] in handleList" :key="h">
-                        <rect class="es-hnd-halo" :x="p.x - 6.5" :y="p.y - 6.5" width="13" height="13" rx="3.5" />
-                        <rect class="es-hnd" :class="{ 'es-on': hover.handle === h }" :x="p.x - 5" :y="p.y - 5" width="10" height="10" rx="2.5" />
+                        <rect class="es-hnd-halo" :x="p.x - hs - 1.5" :y="p.y - hs - 1.5" :width="2 * hs + 3" :height="2 * hs + 3" rx="3.5" />
+                        <rect class="es-hnd" :class="{ 'es-on': hover.handle === h }" :x="p.x - hs" :y="p.y - hs" :width="2 * hs" :height="2 * hs" rx="2.5" />
                     </g>
                 </template>
             </template>
@@ -159,7 +160,7 @@ const rotateGlyph = 'M0 -3.2a3.2 3.2 0 1 1 -3.2 3.2';
                 <line class="es-halo" :x1="lineSel.s.x" :y1="lineSel.s.y" :x2="lineSel.e.x" :y2="lineSel.e.y" />
                 <line class="es-box" :x1="lineSel.s.x" :y1="lineSel.s.y" :x2="lineSel.e.x" :y2="lineSel.e.y" />
                 <template v-if="handlesOn">
-                    <circle v-for="(p, k) in { s: lineSel.s, e: lineSel.e }" :key="k" class="es-hnd es-hnd-end" :class="{ 'es-on': hover.handle === 'line-' + k }" :cx="p.x" :cy="p.y" r="6" />
+                    <circle v-for="(p, k) in { s: lineSel.s, e: lineSel.e }" :key="k" class="es-hnd es-hnd-end" :class="{ 'es-on': hover.handle === 'line-' + k }" :cx="p.x" :cy="p.y" :r="coarse ? 9 : 6" />
                 </template>
             </template>
 

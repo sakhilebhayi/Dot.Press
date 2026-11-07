@@ -1,14 +1,18 @@
 /**
- * The context menu as data. Pure. The component runs `item.run` names against the editor.
+ * The stage's right click menu as data, in the shape the shell's context menu host renders:
+ *   {id, label, shortcut?, disabled?, danger?}   an item (the stage attaches `run` when it opens the menu)
+ *   {separator: true}   {heading}
+ * `ui.contextMenu = {x, y, items}` shows it. Pure.
  *
- *   contextItems({count, groupCount, hasGroup, locked, hidden, canEdit, canComment, hasPanel, hasStyle, onElement, shortcuts})
- *      -> [{id, label, shortcut?, disabled?, submenu?: [...] } | {sep: true}]
- *   shortcuts(cmd) -> string   formats the key for a command ('' when none)
+ *   contextItems({count, hasGroup, locked, hidden, canEdit, canComment, hasPanel, hasStyle, shortcuts}) -> items
+ *   shortcuts(cmd) -> string   formats the key for a keymap command ('' when none)
  */
 export function contextItems(o) {
-  const sc = (cmd) => (o.shortcuts ? o.shortcuts(cmd) : '');
-  const it = (id, label, cmd, extra = {}) => ({ id, label, shortcut: cmd ? sc(cmd) : '', ...extra });
-  const sep = { sep: true };
+  const sc = (cmd) => (o.shortcuts && cmd ? o.shortcuts(cmd) : '');
+  const it = (id, label, cmd, extra = {}) => ({
+    id, label, shortcut: sc(cmd), ...extra,
+  });
+  const sep = { separator: true };
   const has = o.count > 0;
   const edit = !!o.canEdit;
   const items = [];
@@ -22,29 +26,34 @@ export function contextItems(o) {
   }
   if (has && edit) {
     items.push(it('duplicate', 'Duplicate', 'edit.duplicate'));
-    items.push(it('delete', 'Delete', 'edit.delete'));
+    items.push(it('delete', 'Delete', 'edit.delete', { danger: true }));
     items.push(sep);
+    items.push({ heading: 'Arrange' });
+    items.push(it('front', 'Bring to front', 'arrange.front'));
+    items.push(it('forward', 'Bring forward', 'arrange.forward'));
+    items.push(it('backward', 'Send backward', 'arrange.backward'));
+    items.push(it('back', 'Send to back', 'arrange.back'));
     items.push(o.hasGroup
       ? it('ungroup', 'Ungroup', 'arrange.ungroup')
       : it('group', 'Group', 'arrange.group', { disabled: o.count < 2 }));
-    items.push({
-      id: 'arrange', label: 'Arrange', submenu: [
-        it('front', 'Bring to front', 'arrange.front'),
-        it('forward', 'Bring forward', 'arrange.forward'),
-        it('backward', 'Send backward', 'arrange.backward'),
-        it('back', 'Send to back', 'arrange.back'),
-      ],
-    });
-    items.push({
-      id: 'align', label: 'Align', submenu: [
-        it('align.left', 'Left', 'align.left'), it('align.center', 'Centre', 'align.center'), it('align.right', 'Right', 'align.right'),
-        it('align.top', 'Top', 'align.top'), it('align.middle', 'Middle', 'align.middle'), it('align.bottom', 'Bottom', 'align.bottom'),
-        ...(o.count >= 3 ? [sep, it('distribute.h', 'Distribute horizontally'), it('distribute.v', 'Distribute vertically')] : []),
-      ],
-    });
-    items.push({ id: 'flip', label: 'Flip', submenu: [it('flipH', 'Horizontal', 'arrange.flipH'), it('flipV', 'Vertical', 'arrange.flipV')] });
     items.push(it('lock', o.locked ? 'Unlock' : 'Lock', 'arrange.lock'));
     items.push(it('hide', o.hidden ? 'Show' : 'Hide', 'arrange.hide'));
+    items.push(sep);
+    items.push({ heading: o.count > 1 ? 'Align and flip' : 'Flip' });
+    if (o.count > 1) {
+      items.push(it('align.left', 'Align left', 'align.left'));
+      items.push(it('align.center', 'Align centres', 'align.center'));
+      items.push(it('align.right', 'Align right', 'align.right'));
+      items.push(it('align.top', 'Align top', 'align.top'));
+      items.push(it('align.middle', 'Align middles', 'align.middle'));
+      items.push(it('align.bottom', 'Align bottom', 'align.bottom'));
+      if (o.count >= 3) {
+        items.push(it('distribute.h', 'Distribute horizontally'));
+        items.push(it('distribute.v', 'Distribute vertically'));
+      }
+    }
+    items.push(it('flipH', 'Flip horizontally', 'arrange.flipH'));
+    items.push(it('flipV', 'Flip vertically', 'arrange.flipV'));
     items.push(sep);
     items.push(it('copyStyle', 'Copy style', null, { disabled: o.count !== 1 }));
     items.push(it('pasteStyle', 'Paste style', null, { disabled: !o.hasStyle }));
@@ -60,9 +69,9 @@ export function contextItems(o) {
   // trim leading, trailing and doubled separators
   const out = [];
   for (const i of items) {
-    if (i.sep && (!out.length || out[out.length - 1].sep)) continue;
+    if (i.separator && (!out.length || out[out.length - 1].separator)) continue;
     out.push(i);
   }
-  while (out.length && out[out.length - 1].sep) out.pop();
+  while (out.length && out[out.length - 1].separator) out.pop();
   return out;
 }

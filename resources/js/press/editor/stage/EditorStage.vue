@@ -8,6 +8,8 @@
 //
 // What it needs from the shell (all optional unless marked, see context.js for the rest)
 //   editor.hasPanel(id)               true when the inspector panel is registered; controls that open a missing panel are hidden
+//   editor.on(name, fn)               the stage listens for 'stage:focus' (focus the slide area) and 'paste:files' (File[] to add)
+//   ui.contextMenu = {x, y, items}    the stage fills the shell's context menu host with its own items (items carry `run`)
 //   editor.commentPins                ref of [{id, slide_id, x, y, count?, resolved?}] drawn as pins; click opens panel 'comments'
 //   editor.clientId                   this tab's presence client id, so the stage does not draw its own cursor
 //   editor.uploadAsset(file, {projectId, onProgress}) -> asset payload   when absent the stage POSTs multipart to /api/assets
@@ -18,7 +20,7 @@
 //   editor.stage                      {fit, zoomToSelection, zoomToRect, focus, toScreen, toSlide, beginTextEdit, beginCrop,
 //                                      replacePicture, pickFiles, addFiles, announce}; also the exposed API of the component
 //   ui.zoomValue                      the effective zoom as a number (ui.zoom may be 'fit'); ui.panX/panY follow the store
-//   ui.pointer                        {x, y} of the pointer in slide units, or null (for the presence heartbeat)
+//   editor.setCursor(x, y)            the pointer in slide units (null when it leaves), for the presence heartbeat
 //   ui.dragging                       {kind: 'elements', ids, x, y, copy, overSlide} while elements are dragged. Rows of the Spine
 //                                     carry data-spine-slide="<slide id>"; releasing over one dispatches a cancelable DOM event
 //                                     `press:drop-elements` {detail: {ids, slideId, copy, from}} on the stage; when nobody calls
@@ -40,6 +42,7 @@ import {
 } from '../../render/index.js';
 import { useEditorContext } from '../context.js';
 import { matchShortcut, shortcutsFor } from '../core/keys.js';
+import { contextItems } from './lib/menu.js';
 import { marginLines } from '../core/margins.js';
 import { classifyText } from '../core/clipboard.js';
 import { rotatedBounds, unionBounds } from '../core/geometry.js';
@@ -52,7 +55,6 @@ import TextEditor from './TextEditor.vue';
 import CropLayer from './CropLayer.vue';
 import TableLayer from './TableLayer.vue';
 import ContextBar from './ContextBar.vue';
-import ContextMenu from './ContextMenu.vue';
 import StageRulers from './StageRulers.vue';
 import { barKind } from './lib/bar.js';
 import { gridLines } from './lib/guides.js';
@@ -127,7 +129,7 @@ const hooks = {
     finishText: () => finishText(),
     commitCrop: () => cropRef.value?.commit?.(),
     cropWheel: (e) => cropRef.value?.wheel?.(e) || false,
-    openContext: (x, y) => { ui.contextMenu = { x, y }; },
+    openContext: (x, y) => openMenu(x, y),
     beginTextEdit: (id) => beginTextEdit(id),
     startDraftText: (el) => startDraftText(el),
     pickFiles: (kind, pt) => pickFiles(kind, pt),
@@ -230,7 +232,7 @@ const furniture = computed(() => {
 // ---- cursor and classes --------------------------------------------------------------------------------
 const cursorStyle = computed(() => ({ '--es-cursor': gestures.cursor.value }));
 const dragging = computed(() => ['move', 'resize', 'rotate', 'lineEnd', 'draw'].includes(live.value.mode));
-const coarse = ref(false);
+const coarse = ref(typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches);
 
 // ---- text editing ----------------------------------------------------------------------------------------
 const editTarget = computed(() => {
@@ -420,6 +422,7 @@ function onCopy(e) {
     lastCopied = c.text;
     e.clipboardData.setData('text/plain', c.text);
     e.preventDefault();
+    e.stopPropagation(); // the shell has a document level copy handler too: this one has done it
     announce('Copied');
 }
 function onCut(e) {
@@ -430,12 +433,14 @@ function onCut(e) {
     lastCopied = c.text;
     e.clipboardData.setData('text/plain', c.text);
     e.preventDefault();
+    e.stopPropagation();
     announce('Cut');
 }
 let lastCopied = '';
 function onPaste(e) {
     if (isEditable(e.target) || !canEdit.value) return;
     e.preventDefault();
+    e.stopPropagation();
     const cd = e.clipboardData;
     const files = [...(cd?.files || [])].filter((f) => classifyFile(f));
     if (files.length) { uploads.addFiles(files, { point: null }); return; }
@@ -469,7 +474,7 @@ const READ_ONLY_OK = new Set(['edit.copy', 'edit.selectAll', 'edit.deselect', 'v
 const format = createFormat({ editor, store, text: () => textRef.value, deck: () => deck.value });
 
 function runCommand(cmd, args, e) {
-    if (cmd === 'select.next' || cmd === 'select.prev') return false; // Tab and Shift+Tab move focus between the element proxies
+    if (cmd === 'select.next' || cmd === 'select.prev') { e?.stopPropagation(); return false; } // Tab and Shift+Tab move focus between the element proxies: the browser does that
     if (cmd === 'edit.copy' || cmd === 'edit.cut' || cmd === 'edit.paste') return false; // the clipboard events do these
     if (cmd === 'edit.pastePlain') return false;
     if (readOnly.value && !READ_ONLY_OK.has(cmd) && !cmd.startsWith('view.')) return false;
@@ -512,6 +517,7 @@ function onKeyDown(e) {
         if (ui.tool !== 'select') { ui.tool = 'select'; e.preventDefault(); return; }
     }
     if (e.key === 'Tab') {
+        e.stopPropagation(); // the shell maps Tab to select.next: here Tab is real focus movement
         const onProxy = !!e.target.closest?.('.es-proxy');
         if (!onProxy && selIds.value.length && !e.shiftKey) {
             const p = viewport.value.querySelector(`.es-proxy[data-id="${CSS.escape(selIds.value[0])}"]`);
@@ -577,7 +583,7 @@ function onKeyUp(e) {
 function onContextMenu(e) {
     if (e.target.closest?.('[data-es-ui]')) return;
     e.preventDefault();
-    ui.contextMenu = { x: e.clientX, y: e.clientY };
+    openMenu(e.clientX, e.clientY);
 }
 
 // ---- double click ------------------------------------------------------------------------------------------
@@ -769,7 +775,12 @@ function menuAnchor() {
     };
 }
 let menuAt = null;
-watch(() => ui.contextMenu, (m) => { if (m) menuAt = { ...m }; });
+// The shell's context menu host renders ui.contextMenu = {x, y, items}; the stage supplies the items.
+function openMenu(x, y) {
+    menuAt = { x, y };
+    const items = contextItems(menuCtx.value).map((i) => (i.id ? { ...i, run: () => menuAction(i.id) } : i));
+    ui.contextMenu = { x, y, items };
+}
 async function readClipboard(plain) {
     try {
         if (navigator.clipboard?.read) {
@@ -827,14 +838,22 @@ onMounted(() => {
     try { editor.stage = api; } catch { /* a frozen editor object: the shell can use the template ref instead */ }
     try { ui.userGuides = JSON.parse(localStorage.getItem(`press:guides:${deck.value.id}`) || '[]'); } catch { ui.userGuides = []; }
     window.addEventListener('keyup', onKeyUp);
-    window.addEventListener('blur', () => gestures.setSpace(false));
+    window.addEventListener('blur', onWindowBlur);
+    offBus = [
+        editor.on?.('stage:focus', () => viewport.value?.focus({ preventScroll: true })),
+        editor.on?.('paste:files', (files) => uploads.addFiles(files, { point: null })),
+    ].filter(Boolean);
     viewport.value?.focus({ preventScroll: true });
 });
 watch(() => ui.userGuides, (g) => {
     try { localStorage.setItem(`press:guides:${deck.value.id}`, JSON.stringify(g || [])); } catch { /* storage unavailable */ }
 }, { deep: true });
+let offBus = [];
+const onWindowBlur = () => gestures.setSpace(false);
 onBeforeUnmount(() => {
     window.removeEventListener('keyup', onKeyUp);
+    window.removeEventListener('blur', onWindowBlur);
+    offBus.forEach((off) => off());
     gestures.destroy();
     clearTimeout(selTimer);
     clearTimeout(nudgeTimer);
@@ -851,6 +870,7 @@ onBeforeUnmount(() => {
             :class="{ 'es-drop-on': dropOn }"
             :style="cursorStyle"
             role="application"
+            data-keyscope="stage"
             aria-roledescription="slide editor"
             :aria-label="stageLabel(slide, slideIndex, slides.length)"
             tabindex="0"
@@ -1028,9 +1048,5 @@ onBeforeUnmount(() => {
         </div>
 
         <input ref="picker" type="file" class="es-sr" tabindex="-1" aria-hidden="true" @change="onPicked" />
-
-        <Teleport to="body">
-            <ContextMenu v-if="ui.contextMenu" :at="ui.contextMenu" :ctx="menuCtx" @pick="menuAction" @close="ui.contextMenu = null" />
-        </Teleport>
     </div>
 </template>
