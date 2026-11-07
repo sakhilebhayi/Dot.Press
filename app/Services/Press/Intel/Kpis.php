@@ -44,6 +44,9 @@ final class Kpis
             if (preg_match('/^\s?((?:'.$unitWords.')\b)/iu', $after, $um)) {
                 $value .= ' '.$um[1];
             }
+            if (preg_match('/^(?:we|they|it|you|i|he|she|there|this|that|these|those)\b/iu', $before)) {
+                continue;
+            }
             $label = self::cleanLabel($before);
             if ($label === '' || isset($seen[$value])) {
                 continue;

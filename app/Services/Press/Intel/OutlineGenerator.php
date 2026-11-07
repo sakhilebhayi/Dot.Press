@@ -153,7 +153,13 @@ final class OutlineGenerator
                 $slides[] = $this->emptySlide($beat);
             } else {
                 foreach ($groups as $g) {
-                    $slides[] = $this->buildSlide($beat, $g, $units, $series, $used);
+                    $slide = $this->buildSlide($beat, $g, $units, $series, $used);
+                    if ($slide !== null) {
+                        $slides[] = $slide;
+                    }
+                }
+                if ($slides === []) {
+                    $slides[] = $this->emptySlide($beat);
                 }
             }
             $delivered += count($slides);
@@ -247,6 +253,10 @@ final class OutlineGenerator
         $seriesAt = [];
         $inSeries = [];
         foreach ($series as $si => $b) {
+            if ($b['title'] !== '' && $b['line_start'] > 0) {
+                // The line above a table or list that names it belongs to the chart, not to the prose.
+                $inSeries[$b['line_start'] - 1] = $si;
+            }
             $seriesAt[$b['line_start']] = $si;
             for ($i = $b['line_start']; $i <= $b['line_end']; $i++) {
                 $inSeries[$i] = $si;
@@ -283,7 +293,10 @@ final class OutlineGenerator
                     break;
                 }
             }
-            if ($this->looksLikeHeading($line, $next)) {
+            $prevBlank = $i === 0 || trim($lines[$i - 1]) === '';
+            $isFirst = $units === [] && trim(implode('', array_slice($lines, 0, $i))) === '';
+            $nextBlank = ($lines[$i + 1] ?? '') === '' || trim($lines[$i + 1] ?? '') === '';
+            if ($this->looksLikeHeading($line, $next, $prevBlank) || ($isFirst && $nextBlank && ! preg_match('/[.!?;,]$/u', $line) && count(preg_split('/\s+/u', $line) ?: []) <= 12)) {
                 $ctx = rtrim($line, ':');
                 $units[] = ['type' => 'heading', 'text' => $ctx, 'ctx' => '', 'line' => $i, 'numbered' => false];
 
@@ -305,10 +318,14 @@ final class OutlineGenerator
         return $units;
     }
 
-    private function looksLikeHeading(string $line, string $next): bool
+    private function looksLikeHeading(string $line, string $next, bool $prevBlank = false): bool
     {
         if (mb_strlen($line) > 70 || trim($next) === '' || preg_match('/[.!?;,]$/u', $line)) {
             return false;
+        }
+        // A short capitalised line standing alone above a longer line is a heading ("Objectives").
+        if ($prevBlank && preg_match('/^\p{Lu}/u', $line) && count(preg_split('/\s+/u', $line) ?: []) <= 4 && mb_strlen($next) > mb_strlen($line) * 1.5 && ! preg_match('/^\s*(?:[-*•]|\d{1,2}[.)])\s/u', $line)) {
+            return true;
         }
         $words = preg_split('/\s+/u', $line) ?: [];
         if (count($words) > 9 || count($words) < 1) {
@@ -361,25 +378,68 @@ final class OutlineGenerator
             }
         }
 
+        // Blocks: a short paragraph (up to four sentences on one line) is placed as one piece, because
+        // sentences in the same paragraph are about the same thing. Everything else is placed alone.
+        $blocks = [];
+        foreach ($content as $ui) {
+            $u = $units[$ui];
+            $last = count($blocks) - 1;
+            if ($last >= 0 && $u['type'] === 'sentence' && $blocks[$last]['type'] === 'sentence' && $blocks[$last]['line'] === $u['line']) {
+                $blocks[$last]['units'][] = $ui;
+
+                continue;
+            }
+            $blocks[] = ['type' => $u['type'], 'line' => $u['line'], 'units' => [$ui], 'numbered' => $u['numbered']];
+        }
+        foreach ($blocks as $k => $blk) {
+            if ($blk['type'] === 'sentence' && count($blk['units']) > 4) {
+                // A long paragraph is placed sentence by sentence.
+                $split = array_map(fn ($ui) => ['type' => 'sentence', 'line' => $blk['line'], 'units' => [$ui], 'numbered' => false], $blk['units']);
+                array_splice($blocks, $k, 1, $split);
+            }
+        }
+        $blocks = array_values($blocks);
+        $nb = count($blocks);
+
         $prevBeat = null;
-        foreach ($content as $k => $ui) {
-            $p = $total > 1 ? $k / ($total - 1) : 0.5;
+        $prevBlock = null;
+        foreach ($blocks as $bk => $blk) {
+            // A list stays together: consecutive numbered steps (or bullets) follow the first item's beat.
+            if ($prevBlock !== null && $blk['type'] === 'bullet' && $prevBlock['type'] === 'bullet' && $blk['numbered'] === $prevBlock['numbered']
+                && $blk['line'] - $prevBlock['line'] <= 2 && isset($assign[$prevBlock['units'][0]])) {
+                foreach ($blk['units'] as $ui) {
+                    $assign[$ui] = $assign[$prevBlock['units'][0]];
+                }
+                $prevBeat = $assign[$blk['units'][0]];
+                $prevBlock = $blk;
+
+                continue;
+            }
+            $prevBlock = $blk;
+            $p = $nb > 1 ? $bk / ($nb - 1) : 0.5;
             $best = null;
             $bestScore = -1.0;
             foreach ($beats as $b => $beat) {
-                if ($kw[$ui][$b] <= 0) {
+                // The first sentence of a paragraph states its topic and counts double.
+                $sum = 0.0;
+                foreach ($blk['units'] as $n => $ui) {
+                    $sum += $kw[$ui][$b] * ($n === 0 && count($blk['units']) > 1 ? 2 : 1);
+                }
+                if ($sum <= 0) {
                     continue;
                 }
                 $centre = ($b + 0.5) / $B;
                 $prior = 1.5 * max(0.0, 1 - abs($p - $centre) * $B);
-                $score = 2 * $kw[$ui][$b] + $prior + ($prevBeat === $b ? 1.0 : 0.0);
+                $score = 2 * $sum + $prior + ($prevBeat === $b ? 0.5 : 0.0);
                 if ($score > $bestScore) {
                     $bestScore = $score;
                     $best = $b;
                 }
             }
             if ($best !== null) {
-                $assign[$ui] = $best;
+                foreach ($blk['units'] as $ui) {
+                    $assign[$ui] = $best;
+                }
                 $prevBeat = $best;
             }
         }
@@ -495,8 +555,11 @@ final class OutlineGenerator
             $isSeries = $units[$ui]['type'] === 'series';
             $remainingUnits = count($unitIdx) - $k;
             $groupsLeft = $count - count($groups) - 1;
-            $mustClose = $cur !== [] && $isSeries && $curHasSeries;
-            $wantClose = $cur !== [] && $acc >= $target * (count($groups) + 1) - 1e-9 && $groupsLeft > 0 && $remainingUnits >= 1;
+            // A chart gets a slide of its own when the beat has slides to spare.
+            $mustClose = $cur !== [] && (($isSeries && ($curHasSeries || $groupsLeft > 0)) || ($curHasSeries && ! $isSeries && $groupsLeft > 0));
+            // A numbered list stays on one slide: never cut between two numbered steps.
+            $inNumbered = $cur !== [] && ($units[end($cur)]['numbered'] ?? false) && ($units[$ui]['numbered'] ?? false);
+            $wantClose = ! $inNumbered && $cur !== [] && $acc >= $target * (count($groups) + 1) - 1e-9 && $groupsLeft > 0 && $remainingUnits >= 1;
             if (($mustClose || $wantClose) && count($groups) < $count - 1) {
                 $groups[] = $cur;
                 $cur = [];
@@ -536,9 +599,9 @@ final class OutlineGenerator
      * @param  list<array<string, mixed>>  $units
      * @param  list<array<string, mixed>>  $series
      * @param  array<string, true>  $used
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null null when everything in the group was already said
      */
-    private function buildSlide(array $beat, array $group, array $units, array $series, array &$used): array
+    private function buildSlide(array $beat, array $group, array $units, array $series, array &$used): ?array
     {
         $sentences = [];
         $chart = null;
@@ -547,6 +610,11 @@ final class OutlineGenerator
         foreach ($group as $ui) {
             $u = $units[$ui];
             if ($u['type'] === 'series') {
+                $sig = 'c:'.md5(json_encode([$series[$u['series']]['categories'], $series[$u['series']]['series']]));
+                if (isset($used[$sig])) {
+                    continue;
+                }
+                $used[$sig] = true;
                 $chart = SeriesExtractor::chart($series[$u['series']]);
                 $chartTitle = $series[$u['series']]['title'];
 
@@ -557,6 +625,13 @@ final class OutlineGenerator
                 $numbered[] = $u['text'];
             }
         }
+
+        // Nothing the outline already said is said again.
+        $sentences = array_values(array_filter($sentences, fn ($u) => ! $this->isDuplicate($used, $u['text'])));
+        if ($sentences === [] && $chart === null) {
+            return null;
+        }
+        $numbered = array_values(array_filter($numbered, fn ($t) => in_array($t, array_column($sentences, 'text'), true)));
 
         // Claim: the sentence that best states the point of the slide.
         $lowerBeat = $beat;
@@ -582,7 +657,12 @@ final class OutlineGenerator
 
         $title = '';
         $lossless = true;
-        if ($claim !== '') {
+        if ($chart !== null && $chartTitle !== '') {
+            // The author's own label for the data names the slide; the nearest claim moves into the bullets.
+            $title = $chartTitle;
+            $lossless = false;
+            $claimIdx = -1;
+        } elseif ($claim !== '') {
             $t = Titles::fromClaim($claim);
             $title = $t['title'];
             $lossless = $t['lossless'];
@@ -603,7 +683,7 @@ final class OutlineGenerator
             }
             $pool[] = $u['text'];
         }
-        if (! $lossless && $claim !== '') {
+        if (! $lossless && $claim !== '' && $claimIdx >= 0) {
             array_unshift($pool, $claim);
         }
         foreach ($pool as $text) {
@@ -620,6 +700,10 @@ final class OutlineGenerator
                 $bullets[] = $b;
                 $this->remember($used, $b);
             }
+        }
+
+        foreach ($sentences as $u) {
+            $this->remember($used, $u['text']);
         }
 
         // Structured content found in these sentences.
@@ -839,7 +923,7 @@ final class OutlineGenerator
                             'properties' => [
                                 'title' => ['type' => 'string', 'maxLength' => 300],
                                 'claim' => ['type' => 'string'],
-                                'kind' => ['type' => 'string', 'enum' => ContentModel::KINDS],
+                                'kind' => ['type' => 'string'],
                                 'slots' => ['type' => 'object'],
                                 'notes' => ['type' => 'string'],
                             ],

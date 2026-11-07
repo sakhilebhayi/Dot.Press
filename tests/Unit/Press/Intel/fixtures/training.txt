@@ -1,0 +1,15 @@
+Lock-out and isolation: new starter training
+
+Objectives
+By the end of this session you will be able to identify hazardous energy sources, apply a personal lock and test that equipment is dead. You will also explain why the procedure exists.
+
+Learning content
+Hazardous energy includes electrical, hydraulic, pneumatic and stored mechanical energy. The standard requires every person working on equipment to apply their own lock. The procedure has five steps.
+1. Notify the control room and the shift supervisor
+2. Switch off and isolate each energy source
+3. Apply your personal lock and tag
+4. Release or block stored energy
+5. Test that the equipment is dead before starting work
+
+Practical application
+In the workshop each team isolates the demonstration conveyor, applies locks and completes the permit. The trainer observes each step with a checklist. A short assessment follows, and you must score 80% to be signed off.

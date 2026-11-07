@@ -628,7 +628,7 @@ final class Suggestions
         }
         $res = $this->ai->completeJson("You design presentation slides. {$what} {$rules} kind must be one of: ".implode(', ', ContentModel::KINDS).'.',
             "<text>\n{$source}\n</text>\nReturn {\"slide\":{\"title\":\"...\",\"claim\":\"...\",\"kind\":\"...\",\"slots\":{\"bullets\":[],\"left\":[],\"right\":[],\"steps\":[],\"kpis\":[{\"label\":\"\",\"value\":\"\"}],\"chart\":null},\"notes\":\"\"}}",
-            ['type' => 'object', 'required' => ['slide'], 'properties' => ['slide' => ['type' => 'object', 'required' => ['title', 'kind', 'slots'], 'properties' => ['title' => ['type' => 'string', 'maxLength' => 300], 'kind' => ['type' => 'string', 'enum' => ContentModel::KINDS], 'slots' => ['type' => 'object']]]]]);
+            ['type' => 'object', 'required' => ['slide'], 'properties' => ['slide' => ['type' => 'object', 'required' => ['title', 'kind', 'slots'], 'properties' => ['title' => ['type' => 'string', 'maxLength' => 300], 'kind' => ['type' => 'string'], 'slots' => ['type' => 'object']]]]]);
         if (! $res['ok']) {
             return ['ok' => false, 'result' => [], 'usage' => $res['usage'], 'error' => $res['error']];
         }
