@@ -43,7 +43,7 @@ export const ICONS = [
     I('home', 'Home', ['house'], 'M3 11l9-8 9 8', 'M5 10v10h14V10', 'M10 20v-6h4v6'),
     I('factory', 'Factory', ['plant', 'industry', 'manufacturing'], 'M3 21V10l6 4V10l6 4V6h3l3 0v15Z', 'M7 17h2', 'M12 17h2', 'M17 17h2'),
     I('hard-hat', 'Hard hat', ['safety', 'site', 'mine'], 'M4 17h16', 'M5 17a7 7 0 0 1 14 0', 'M12 6v5', 'M9 8.5l-1 3', 'M15 8.5l1 3', 'M3 17v2h18v-2'),
-    I('pickaxe', 'Pickaxe', ['mine', 'mining', 'dig'], 'M5 6c3-3 11-3 14 0', 'M12 4.5V7', 'M12 7l-8 14', 'M12 7l8 14', 'M9 14h6'),
+    I('pickaxe', 'Pickaxe', ['mine', 'mining', 'dig'], 'M3 10.5C6 5 15 4 21 10C17 7.5 8 7.5 3 10.5Z', 'M12 8.3V21'),
     I('cone', 'Safety cone', ['hazard', 'road', 'safety'], 'M12 3l6 15H6Z', 'M9.2 11h5.6', 'M3 21h18', 'M5 18l-1 3', 'M19 18l1 3'),
     I('truck', 'Truck', ['delivery', 'logistics', 'transport'], 'M2 6h11v10H2Z', 'M13 9h4l4 4v3h-8', circle(7, 17.5, 2), circle(17, 17.5, 2)),
     I('globe', 'Globe', ['world', 'international', 'web'], circle(12, 12, 9), 'M3 12h18', 'M12 3c3 3 4.5 6 4.5 9S15 18 12 21c-3-3-4.5-6-4.5-9S9 6 12 3Z'),

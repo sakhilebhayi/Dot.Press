@@ -33,17 +33,17 @@ export function transitionFor(from, to, direction) {
     return t ? { ...t, dir: oppositeDir(t.dir) } : null;
 }
 
-function offsetFor(dir, w, h) {
-    // translate that places a layer just outside the stage on the side `dir`
+function offsetFor(dir) {
+    // translate, in percent of the layer, that places a layer just outside the stage on the side `dir`
     switch (dir) {
         case 'l':
-            return [-w, 0];
+            return [-100, 0];
         case 'u':
-            return [0, -h];
+            return [0, -100];
         case 'd':
-            return [0, h];
+            return [0, 100];
         default:
-            return [w, 0];
+            return [100, 0];
     }
 }
 
@@ -64,26 +64,25 @@ function insetFor(dir, amount) {
 }
 
 /**
- * Keyframes for the two layers of a non-morph transition.
+ * Keyframes for the two layers of a non-morph transition. Layer transforms are in percent of the layer, so they
+ * do not depend on the screen size.
  * @returns {{ out: Keyframe[], in: Keyframe[], inFront: boolean }}
  *   `out` runs on the leaving layer, `in` on the entering layer. `inFront` says whether the entering layer is above.
  */
-export function layerFrames(t, deck) {
-    const w = +deck?.w || 1920;
-    const h = +deck?.h || 1080;
-    const [ox, oy] = offsetFor(t.dir, w, h);
+export function layerFrames(t) {
+    const [ox, oy] = offsetFor(t.dir);
     switch (t.type) {
         case 'push':
             return {
-                out: [{ transform: 'translate(0, 0)' }, { transform: `translate(${-ox}px, ${-oy}px)` }],
-                in: [{ transform: `translate(${ox}px, ${oy}px)` }, { transform: 'translate(0, 0)' }],
+                out: [{ transform: 'translate(0%, 0%)' }, { transform: `translate(${-ox}%, ${-oy}%)` }],
+                in: [{ transform: `translate(${ox}%, ${oy}%)` }, { transform: 'translate(0%, 0%)' }],
                 inFront: true,
             };
         case 'wipe':
             return { out: [{ opacity: 1 }, { opacity: 1 }], in: [{ clipPath: insetFor(t.dir, 100) }, { clipPath: insetFor(t.dir, 0) }], inFront: true };
         case 'reveal':
             // the leaving layer slides off the stage on top of the entering layer
-            return { out: [{ transform: 'translate(0, 0)' }, { transform: `translate(${-ox}px, ${-oy}px)` }], in: [{ opacity: 1 }, { opacity: 1 }], inFront: false };
+            return { out: [{ transform: 'translate(0%, 0%)' }, { transform: `translate(${-ox}%, ${-oy}%)` }], in: [{ opacity: 1 }, { opacity: 1 }], inFront: false };
         case 'zoom':
             return {
                 out: [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.18)', opacity: 0 }],
@@ -167,4 +166,13 @@ export function flipOutFrames(pair) {
         { transform: `translate(${+a.x.toFixed(3)}px, ${+a.y.toFixed(3)}px) rotate(${+a.rot.toFixed(3)}deg) scale(1, 1)`, opacity: a.op },
         { transform: `translate(${+(bcx - a.w / 2).toFixed(3)}px, ${+(bcy - a.h / 2).toFixed(3)}px) rotate(${+rotB.toFixed(3)}deg) scale(${+(b.w / a.w).toFixed(5)}, ${+(b.h / a.h).toFixed(5)})`, opacity: 0 },
     ];
+}
+
+/** True when two paired elements look the same apart from their geometry, so a morph can move one element. */
+export function samePairContent(a, b) {
+    const strip = (el) => {
+        const { id, x, y, w, h, rot, op, name, morph, anim, group, origin, lock, hide, ...rest } = el || {};
+        return JSON.stringify(rest);
+    };
+    return strip(a) === strip(b);
 }

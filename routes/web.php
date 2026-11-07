@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PresentSessionController;
 use App\Http\Controllers\Auth\EcosystemAuthController;
 use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\DependencyPatchController;
@@ -82,6 +83,11 @@ Route::middleware([
         ->middleware('throttle:export')
         ->name('export.decks.pptx');
 
+    // R-40 presenting (signed in): full screen player, presenter console, audience window.
+    Route::get('/decks/{deck}/present', [PresentSessionController::class, 'player'])->name('press.player');
+    Route::get('/decks/{deck}/presenter', [PresentSessionController::class, 'presenter'])->name('press.presenter');
+    Route::get('/decks/{deck}/audience', [PresentSessionController::class, 'audienceWindow'])->name('press.audience');
+
     Route::middleware('operator')->prefix('operator')->name('operator.')->group(function () {
         Route::get('/dependency-patches', [DependencyPatchController::class, 'index'])->name('dependency-patches.index');
         Route::post('/dependency-patches/{proposal}/approve', [DependencyPatchController::class, 'approve'])->name('dependency-patches.approve');
@@ -105,3 +111,16 @@ Route::get('/guardian/health', GuardianHealthController::class)
 if (! Features::enabled(Features::registration())) {
     Route::redirect('/register', '/login')->name('register');
 }
+
+// R-40 live presenting (public). The 40 character session token is the permission; every route is rate limited.
+// The pages keep the web group (Inertia). The polling, command and asset routes drop it: they carry no cookie, and a
+// session record for every poll of every follower would be wasted writes. They send no CSRF token for the same reason.
+Route::middleware('throttle:present-public')->group(function () {
+    Route::get('/live/{token}', [PresentSessionController::class, 'follow'])->where('token', '[A-Za-z0-9]{40}')->name('press.live');
+    Route::get('/remote/{token}', [PresentSessionController::class, 'remote'])->where('token', '[A-Za-z0-9]{40}')->name('press.remote');
+});
+Route::withoutMiddleware('web')->group(function () {
+    Route::get('/live/{token}/state', [PresentSessionController::class, 'state'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-state')->name('press.live.state');
+    Route::post('/live/{token}/command', [PresentSessionController::class, 'command'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:present-command')->name('press.live.command');
+    Route::get('/present-asset/{asset}', [PresentSessionController::class, 'asset'])->whereNumber('asset')->middleware(['signed:relative', 'throttle:present-asset'])->name('press.asset');
+});

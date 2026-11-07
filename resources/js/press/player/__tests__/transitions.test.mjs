@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeTransition, transitionFor, layerFrames, morphPairs, flipFrames, flipOutFrames, shortestAngle, oppositeDir, TRANSITION_TYPES } from '../transitions.js';
+import { samePairContent, normalizeTransition, transitionFor, layerFrames, morphPairs, flipFrames, flipOutFrames, shortestAngle, oppositeDir, TRANSITION_TYPES } from '../transitions.js';
 
 const deck = { w: 1920, h: 1080 };
 
@@ -33,10 +33,10 @@ test('every non-morph type has frames for both layers', () => {
 
 test('push moves both layers by one full slide, in opposite signs', () => {
     const f = layerFrames({ type: 'push', dir: 'r' }, deck);
-    assert.equal(f.in[0].transform, 'translate(1920px, 0px)');
-    assert.equal(f.out[1].transform, 'translate(-1920px, 0px)');
+    assert.equal(f.in[0].transform, 'translate(100%, 0%)');
+    assert.equal(f.out[1].transform, 'translate(-100%, 0%)');
     const up = layerFrames({ type: 'push', dir: 'd' }, deck);
-    assert.equal(up.in[0].transform, 'translate(0px, 1080px)');
+    assert.equal(up.in[0].transform, 'translate(0%, 100%)');
 });
 
 test('wipe reveals from the entering side', () => {
@@ -88,4 +88,11 @@ test('rotation takes the short way round', () => {
     const [from, to] = flipFrames(pair);
     assert.match(from.transform, /rotate\(-10deg\)/);
     assert.match(to.transform, /rotate\(10deg\)/);
+});
+
+test('samePairContent ignores geometry and animation but not content', () => {
+    const a = { id: 'a', type: 'text', x: 1, y: 2, w: 3, h: 4, rot: 0, anim: [{ fx: 'fade' }], doc: { t: 1 }, size: 40 };
+    assert.equal(samePairContent(a, { ...a, id: 'b', x: 99, w: 5, rot: 10, anim: [] }), true);
+    assert.equal(samePairContent(a, { ...a, doc: { t: 2 } }), false);
+    assert.equal(samePairContent(a, { ...a, size: 41 }), false);
 });

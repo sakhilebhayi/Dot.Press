@@ -13,9 +13,11 @@ export function safeUrl(u) {
 
 /** A same origin or signed asset URL handed to us in the assets map is trusted only if it is http(s), relative or a data: image/media URI. */
 export function safeAssetUrl(u) {
-    if (typeof u !== 'string' || u.length > 8 * 1024 * 1024) return null;
-    if (/^data:(image|video|audio)\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(u)) return u;
-    if (/^data:/i.test(u)) return null;
+    if (typeof u !== 'string') return null;
+    // Only the prefix of a data URI is checked: the offline package inlines files of many megabytes and a
+    // browser never executes image, video or audio data.
+    if (/^data:(image|video|audio)\/[a-z0-9.+-]+;base64,/i.test(u.slice(0, 120))) return u;
+    if (/^data:/i.test(u.slice(0, 20)) || u.length > 4096) return null;
     if (/[\u0000-\u001f\u007f\s<>"'`\\]/.test(u)) return null;
     if (u.startsWith('/') && !u.startsWith('//')) return u;
     return safeUrl(u);
