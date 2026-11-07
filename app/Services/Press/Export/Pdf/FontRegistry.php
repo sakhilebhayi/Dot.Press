@@ -105,12 +105,26 @@ final class FontRegistry
         return null;
     }
 
-    public static function options(): Options
+    /** The writable directory the fonts are installed into: the configured one, or a temporary one when that cannot be written. */
+    public static function fontDir(): string
     {
         $dir = (string) config('press_export.font_dir');
         if (! is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
+        if (! is_dir($dir) || ! is_writable($dir)) {
+            $dir = sys_get_temp_dir().'/press-fonts-'.substr(md5(__DIR__), 0, 8);
+            if (! is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+        }
+
+        return $dir;
+    }
+
+    public static function options(): Options
+    {
+        $dir = self::fontDir();
         $options = new Options;
         $options->set('fontDir', $dir);
         $options->set('fontCache', $dir);
@@ -187,8 +201,7 @@ final class FontRegistry
     /** @return resource|null */
     private static function lock()
     {
-        $dir = (string) config('press_export.font_dir');
-        $h = @fopen($dir.'/.install.lock', 'c');
+        $h = @fopen(self::fontDir().'/.install.lock', 'c');
         if ($h !== false) {
             @flock($h, LOCK_EX);
         }

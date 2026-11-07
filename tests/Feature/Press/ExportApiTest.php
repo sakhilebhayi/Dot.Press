@@ -183,6 +183,19 @@ class ExportApiTest extends TestCase
         $this->assertSame([$b, $a], array_column($res->json('data'), 'id'));
     }
 
+    public function test_a_selection_of_slides_by_database_id_exports_only_those(): void
+    {
+        $user = $this->pressUser();
+        $deck = $this->pressDeck($user, $this->plainDoc(5), false);
+        $ids = $deck->slides()->orderBy('sort_order')->pluck('id')->all();
+
+        $res = $this->actingAs($user)->postJson("/api/decks/{$deck->id}/exports", ['format' => 'pdf', 'options' => ['slides' => [$ids[1], $ids[3]]]])->assertCreated();
+
+        $bytes = Storage::disk('local')->get(DeckExport::find($res->json('id'))->path);
+        preg_match_all('#/Type\s*/Page\b(?!s)#', $bytes, $m);
+        $this->assertCount(2, $m[0]);
+    }
+
     public function test_input_is_validated(): void
     {
         $user = $this->pressUser();

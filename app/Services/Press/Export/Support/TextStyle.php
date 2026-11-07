@@ -56,7 +56,7 @@ final class TextStyle
         }
 
         return match ($level % 3) {
-            1 => "\u{2013}",
+            1 => '-',
             2 => "\u{25AA}",
             default => "\u{2022}",
         };

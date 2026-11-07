@@ -50,7 +50,7 @@ class DeckExportController extends Controller
             'options.include_hidden' => ['nullable', 'boolean'],
             'options.notes' => ['nullable', 'boolean'],
             'options.slides' => ['nullable', 'array', 'max:600'],
-            'options.slides.*' => ['string', 'regex:/^[A-Za-z0-9_-]{1,40}$/'],
+            'options.slides.*' => ['regex:/^[A-Za-z0-9_-]{1,40}$/'],
         ]);
         $user = $request->user();
 
