@@ -3,9 +3,7 @@
 namespace App\Services\Press;
 
 use App\Models\Asset;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
-use Throwable;
+use App\Services\Press\Assets\AssetUrls;
 
 /**
  * The `assets` map of the document answer (spec section 9): every asset the document points at, with a short-lived
@@ -45,35 +43,9 @@ class DocumentAssets
 
         $out = [];
         foreach (Asset::query()->whereIn('id', $ids)->get() as $asset) {
-            $url = $this->deliveryUrl($asset);
-            $isImage = str_starts_with((string) $asset->mime_type, 'image/');
-            $out[$asset->id] = [
-                'id' => $asset->id,
-                'name' => $asset->original_name,
-                'mime' => $asset->mime_type,
-                'w' => $asset->width,
-                'h' => $asset->height,
-                'url' => $url,
-                'delivery_url' => $url,
-                'thumb' => $isImage ? $url : null,
-            ];
+            $out[$asset->id] = ['id' => $asset->id] + AssetUrls::documentEntry($asset);
         }
 
         return $out;
-    }
-
-    private function deliveryUrl(Asset $asset): string
-    {
-        $ttl = now()->addMinutes((int) config('filesystems.asset_signed_url_ttl', 10));
-
-        if (config("filesystems.disks.{$asset->disk}.driver") !== 's3') {
-            return URL::temporarySignedRoute('assets.download', $ttl, ['asset' => $asset->id]);
-        }
-
-        try {
-            return Storage::disk($asset->disk)->temporaryUrl($asset->path, $ttl);
-        } catch (Throwable) {
-            return URL::temporarySignedRoute('assets.download', $ttl, ['asset' => $asset->id]);
-        }
     }
 }

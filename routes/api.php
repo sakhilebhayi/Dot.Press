@@ -56,10 +56,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('assets/{asset}/usage', [AssetController::class, 'usage'])->name('assets.usage');
     Route::post('assets/{asset}/poster', [AssetController::class, 'poster'])->name('assets.poster');
     Route::get('assets/{asset}/file', [AssetController::class, 'file'])
-        ->middleware('signed')
+        ->middleware('signed:relative')
         ->name('assets.file');
     Route::get('assets/{asset}/download', [AssetController::class, 'download'])
-        ->middleware('signed')
+        ->middleware('signed:relative')
         ->name('assets.download');
 
     // R-40 access and collaboration: sharing, people, comments, reviews, activity. Each action authorises through

@@ -25,12 +25,13 @@ final class AssetUrls
             'assets.file',
             $expires ?? now()->addMinutes(self::ttlMinutes()),
             ['asset' => $asset->id, 'v' => in_array($variant, self::VARIANTS, true) ? $variant : 'orig'],
+            absolute: false,
         );
     }
 
     public static function download(Asset $asset, ?DateTimeInterface $expires = null): string
     {
-        return URL::temporarySignedRoute('assets.download', $expires ?? now()->addMinutes(self::ttlMinutes()), ['asset' => $asset->id]);
+        return URL::temporarySignedRoute('assets.download', $expires ?? now()->addMinutes(self::ttlMinutes()), ['asset' => $asset->id], absolute: false);
     }
 
     /** The poster asset linked to a video, or null. */
@@ -104,6 +105,9 @@ final class AssetUrls
             'h' => $asset->height,
             'mime' => $asset->mime_type,
             'name' => $asset->original_name,
+            'kind' => $asset->kind,
+            'poster' => $payload['poster'],
+            'alt' => $asset->alt,
         ];
     }
 }
