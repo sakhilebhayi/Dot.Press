@@ -1,168 +1,182 @@
 {
- "name": "slide-set-several-fields",
- "description": "slide.set applies the allowed keys and ignores the rest",
- "doc": {
-  "deck": {
-   "id": "d1",
-   "title": "Deck",
-   "w": 1920,
-   "h": 1080,
-   "theme": {
-    "id": "slate"
-   },
-   "status": "draft",
-   "visibility": "private",
-   "sections": [],
-   "slide_order": [
-    "s1",
-    "s2",
-    "s3"
-   ]
-  },
-  "slides": [
-   {
-    "id": "s1",
-    "title": "",
-    "notes": "",
-    "section_id": null,
-    "hidden": false,
-    "layout": "blank",
-    "bg": null,
-    "transition": null,
-    "rev": 0,
-    "els": [
-     {
-      "id": "a",
-      "type": "text",
-      "x": 0,
-      "y": 0,
-      "w": 10,
-      "h": 10,
-      "rot": 0,
-      "op": 1,
-      "lock": false,
-      "hide": false
-     }
-    ]
-   },
-   {
-    "id": "s2",
-    "title": "",
-    "notes": "",
-    "section_id": null,
-    "hidden": false,
-    "layout": "blank",
-    "bg": null,
-    "transition": null,
-    "rev": 0,
-    "els": []
-   },
-   {
-    "id": "s3",
-    "title": "",
-    "notes": "",
-    "section_id": null,
-    "hidden": false,
-    "layout": "blank",
-    "bg": null,
-    "transition": null,
-    "rev": 0,
-    "els": []
-   }
-  ]
- },
- "ops": [
-  {
-   "op": "slide.set",
-   "id": "s2",
-   "title": "Two",
-   "notes": "n",
-   "hidden": true,
-   "layout": "bullets",
-   "bg": "@surface",
-   "transition": {
-    "type": "fade",
-    "dur": 300
-   },
-   "section_id": "x1",
-   "foo": 1,
-   "rev": 99
-  }
- ],
- "expected": {
+  "name": "slide-set-several-fields",
+  "description": "slide.set applies the allowed keys and ignores the rest",
   "doc": {
-   "deck": {
-    "id": "d1",
-    "title": "Deck",
-    "w": 1920,
-    "h": 1080,
-    "theme": {
-     "id": "slate"
+    "deck": {
+      "id": "d1",
+      "title": "Deck",
+      "w": 1920,
+      "h": 1080,
+      "theme": {
+        "id": "slate"
+      },
+      "status": "draft",
+      "visibility": "private",
+      "sections": [
+        {
+          "id": "x1",
+          "title": "Section"
+        }
+      ],
+      "slide_order": [
+        "s1",
+        "s2",
+        "s3"
+      ]
     },
-    "status": "draft",
-    "visibility": "private",
-    "sections": [],
-    "slide_order": [
-     "s1",
-     "s2",
-     "s3"
-    ]
-   },
-   "slides": [
-    {
-     "id": "s1",
-     "title": "",
-     "notes": "",
-     "section_id": null,
-     "hidden": false,
-     "layout": "blank",
-     "bg": null,
-     "transition": null,
-     "rev": 0,
-     "els": [
+    "slides": [
       {
-       "id": "a",
-       "type": "text",
-       "x": 0,
-       "y": 0,
-       "w": 10,
-       "h": 10,
-       "rot": 0,
-       "op": 1,
-       "lock": false,
-       "hide": false
+        "id": "s1",
+        "title": "",
+        "notes": "",
+        "section_id": null,
+        "hidden": false,
+        "layout": "blank",
+        "bg": null,
+        "transition": null,
+        "rev": 0,
+        "els": [
+          {
+            "id": "a",
+            "type": "text",
+            "x": 0,
+            "y": 0,
+            "w": 10,
+            "h": 10,
+            "rot": 0,
+            "op": 1,
+            "lock": false,
+            "hide": false
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "",
+        "notes": "",
+        "section_id": null,
+        "hidden": false,
+        "layout": "blank",
+        "bg": null,
+        "transition": null,
+        "rev": 0,
+        "els": []
+      },
+      {
+        "id": "s3",
+        "title": "",
+        "notes": "",
+        "section_id": null,
+        "hidden": false,
+        "layout": "blank",
+        "bg": null,
+        "transition": null,
+        "rev": 0,
+        "els": []
       }
-     ]
-    },
-    {
-     "id": "s2",
-     "title": "Two",
-     "notes": "n",
-     "section_id": "x1",
-     "hidden": true,
-     "layout": "bullets",
-     "bg": "@surface",
-     "transition": {
-      "type": "fade",
-      "dur": 300
-     },
-     "rev": 0,
-     "els": []
-    },
-    {
-     "id": "s3",
-     "title": "",
-     "notes": "",
-     "section_id": null,
-     "hidden": false,
-     "layout": "blank",
-     "bg": null,
-     "transition": null,
-     "rev": 0,
-     "els": []
-    }
-   ]
+    ]
   },
-  "skipped": []
- }
+  "ops": [
+    {
+      "op": "slide.set",
+      "id": "s2",
+      "title": "Two",
+      "notes": "n",
+      "hidden": true,
+      "layout": "bullets",
+      "bg": "@surface",
+      "transition": {
+        "type": "fade",
+        "dur": 300,
+        "dir": "l",
+        "ease": "out"
+      },
+      "section_id": "x1",
+      "foo": 1,
+      "rev": 99
+    }
+  ],
+  "expected": {
+    "doc": {
+      "deck": {
+        "id": "d1",
+        "title": "Deck",
+        "w": 1920,
+        "h": 1080,
+        "theme": {
+          "id": "slate"
+        },
+        "status": "draft",
+        "visibility": "private",
+        "sections": [
+          {
+            "id": "x1",
+            "title": "Section"
+          }
+        ],
+        "slide_order": [
+          "s1",
+          "s2",
+          "s3"
+        ]
+      },
+      "slides": [
+        {
+          "id": "s1",
+          "title": "",
+          "notes": "",
+          "section_id": null,
+          "hidden": false,
+          "layout": "blank",
+          "bg": null,
+          "transition": null,
+          "rev": 0,
+          "els": [
+            {
+              "id": "a",
+              "type": "text",
+              "x": 0,
+              "y": 0,
+              "w": 10,
+              "h": 10,
+              "rot": 0,
+              "op": 1,
+              "lock": false,
+              "hide": false
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "title": "Two",
+          "notes": "n",
+          "section_id": "x1",
+          "hidden": true,
+          "layout": "bullets",
+          "bg": "@surface",
+          "transition": {
+            "type": "fade",
+            "dur": 300,
+            "dir": "l",
+            "ease": "out"
+          },
+          "rev": 0,
+          "els": []
+        },
+        {
+          "id": "s3",
+          "title": "",
+          "notes": "",
+          "section_id": null,
+          "hidden": false,
+          "layout": "blank",
+          "bg": null,
+          "transition": null,
+          "rev": 0,
+          "els": []
+        }
+      ]
+    },
+    "skipped": []
+  }
 }

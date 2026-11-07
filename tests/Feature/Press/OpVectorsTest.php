@@ -37,10 +37,7 @@ class OpVectorsTest extends TestCase
      * Vectors the server disagrees with on purpose; each is wrong by the spec and is reported to the JS agent.
      * The test skips them (it never edits the vector files) so a fixed vector starts running by deleting its line.
      */
-    private const DISPUTED = [
-        'el-set-replaces-nested-whole' => 'uses the colour "#fff"; the spec allows #rrggbb or #rrggbbaa (the server writes #ffffff)',
-        'slide-set-several-fields' => 'sets section_id "x1" on a deck whose sections list is empty; the section must exist',
-    ];
+    private const DISPUTED = [];
 
     /**
      * @return array<string, array{0: array<string, mixed>}>
