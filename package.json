@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+        "build": "vite build && vite build --config vite.standalone.config.js",
+        "dev": "vite",
+        "test:press": "node --test 'resources/js/press/**/__tests__/*.test.mjs'"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0",
@@ -26,11 +27,7 @@
         "@tiptap/extension-underline": "^3.21.0",
         "@tiptap/html": "^3.21.0",
         "@tiptap/starter-kit": "^3.21.0",
-        "@tiptap/vue-3": "^3.21.0",
-        "konva": "^10.2.3",
-        "laravel-echo": "^2.4.0",
-        "pusher-js": "^8.6.0",
-        "vue-konva": "^3.4.0"
+        "@tiptap/vue-3": "^3.21.0"
     },
     "overrides": {
         "@tailwindcss/typography": {

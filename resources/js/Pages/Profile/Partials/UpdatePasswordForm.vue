@@ -40,59 +40,62 @@ const updatePassword = () => {
 <template>
     <FormSection @submitted="updatePassword">
         <template #title>
-            Update Password
+            Password
         </template>
 
         <template #description>
-            Ensure your account is using a long, random password to stay secure.
+            Use a long password that you use nowhere else.
         </template>
 
         <template #form>
-            <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="current_password" value="Current Password" />
+            <div>
+                <InputLabel for="current_password" value="Current password" />
                 <TextInput
                     id="current_password"
                     ref="currentPasswordInput"
                     v-model="form.current_password"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="current_password"
                     autocomplete="current-password"
+                    :aria-invalid="form.errors.current_password ? 'true' : undefined"
                 />
-                <InputError :message="form.errors.current_password" class="mt-2" />
+                <InputError :message="form.errors.current_password" />
             </div>
 
-            <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="password" value="New Password" />
+            <div>
+                <InputLabel for="password" value="New password" />
                 <TextInput
                     id="password"
                     ref="passwordInput"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="password"
                     autocomplete="new-password"
+                    :aria-invalid="form.errors.password ? 'true' : undefined"
                 />
-                <InputError :message="form.errors.password" class="mt-2" />
+                <InputError :message="form.errors.password" />
             </div>
 
-            <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+            <div>
+                <InputLabel for="password_confirmation" value="Confirm new password" />
                 <TextInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="password_confirmation"
                     autocomplete="new-password"
+                    :aria-invalid="form.errors.password_confirmation ? 'true' : undefined"
                 />
-                <InputError :message="form.errors.password_confirmation" class="mt-2" />
+                <InputError :message="form.errors.password_confirmation" />
             </div>
         </template>
 
         <template #actions>
-            <ActionMessage :on="form.recentlySuccessful" class="me-3">
+            <ActionMessage :on="form.recentlySuccessful">
                 Saved.
             </ActionMessage>
 
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+            <PrimaryButton :disabled="form.processing">
                 Save
             </PrimaryButton>
         </template>

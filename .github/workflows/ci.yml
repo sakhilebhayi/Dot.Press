@@ -104,6 +104,10 @@ jobs:
                   # entry sits inside $page['component']; keep only path-like
                   # single-quoted tokens, so that fragment cannot leak in.
                   wanted.update(t for t in re.findall(r"'([^']+)'", block) if '/' in t)
+              # app.blade.php builds its list in a @php block (`$entries = ['resources/js/app.js', ...]`) before
+              # calling @vite($entries): read the literal entries out of that array too.
+              for block in re.findall(r"\$entries\s*=\s*\[([^\]]*)\]", view.read_text()):
+                  wanted.update(t for t in re.findall(r"'([^']+)'", block) if t.startswith('resources/') and '{' not in t)
           # Inertia resolves each page by name at request time, so every page
           # file must be in the manifest or that page answers 500.
           pages = sorted(str(p).replace('\\', '/') for p in pathlib.Path('resources/js/Pages').rglob('*.vue'))

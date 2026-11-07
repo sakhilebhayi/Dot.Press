@@ -1,0 +1,196 @@
+{
+ "name": "el-set-later-wins",
+ "description": "the same key set twice: the later operation wins",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1",
+    "s2"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 100,
+      "y": 100,
+      "w": 400,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "size": 40
+     },
+     {
+      "id": "b",
+      "type": "shape",
+      "kind": "rect",
+      "x": 600,
+      "y": 200,
+      "w": 300,
+      "h": 300,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "fill": "@accent"
+     }
+    ]
+   },
+   {
+    "id": "s2",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "c",
+      "type": "text",
+      "x": 50,
+      "y": 50,
+      "w": 200,
+      "h": 60,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "el.set",
+   "slide": "s1",
+   "id": "a",
+   "p": {
+    "x": 1
+   }
+  },
+  {
+   "op": "el.set",
+   "slide": "s1",
+   "id": "a",
+   "p": {
+    "x": 2,
+    "y": 3
+   }
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1",
+     "s2"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 2,
+       "y": 3,
+       "w": 400,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "size": 40
+      },
+      {
+       "id": "b",
+       "type": "shape",
+       "kind": "rect",
+       "x": 600,
+       "y": 200,
+       "w": 300,
+       "h": 300,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "fill": "@accent"
+      }
+     ]
+    },
+    {
+     "id": "s2",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "c",
+       "type": "text",
+       "x": 50,
+       "y": 50,
+       "w": 200,
+       "h": 60,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

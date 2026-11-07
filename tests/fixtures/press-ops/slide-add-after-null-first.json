@@ -1,0 +1,171 @@
+{
+ "name": "slide-add-after-null-first",
+ "description": "`after: null` makes it the first slide",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1",
+    "s2",
+    "s3"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "w": 10,
+      "h": 10,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     }
+    ]
+   },
+   {
+    "id": "s2",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   },
+   {
+    "id": "s3",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "slide.add",
+   "tid": "n1",
+   "after": null,
+   "slide": {
+    "title": "Cover",
+    "layout": "title"
+   }
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "n1",
+     "s1",
+     "s2",
+     "s3"
+    ]
+   },
+   "slides": [
+    {
+     "id": "n1",
+     "title": "Cover",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "title",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 0,
+       "y": 0,
+       "w": 10,
+       "h": 10,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      }
+     ]
+    },
+    {
+     "id": "s2",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s3",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

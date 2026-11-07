@@ -46,15 +46,15 @@ class TeamScopedDeckSharingTest extends TestCase
         ]);
 
         $this->actingAs($teammate)
-            ->putJson('/api/slides/'.$slide->id, [
-                'canvas_state' => [
-                    'elements' => [
-                        ['id' => 'el-1', 'type' => 'rect', 'x' => 10, 'y' => 10],
-                    ],
-                ],
+            ->postJson('/api/decks/'.$deck->id.'/ops', [
+                'client' => 'tab-1',
+                'key' => 'team-1',
+                'ops' => [['op' => 'el.add', 'slide' => $slide->id, 'el' => ['id' => 'el-1', 'type' => 'shape', 'x' => 10, 'y' => 10, 'w' => 50, 'h' => 50]]],
             ])
             ->assertOk()
-            ->assertJsonPath('canvas_state.elements.0.id', 'el-1');
+            ->assertJsonPath('skipped', []);
+
+        $this->assertSame('el-1', $slide->fresh()->els[0]['id']);
     }
 
     public function test_someone_outside_the_team_still_cannot_see_the_deck(): void
@@ -83,9 +83,8 @@ class TeamScopedDeckSharingTest extends TestCase
         ]);
 
         $this->actingAs($outsider)
-            ->putJson('/api/slides/'.$slide->id, [
-                'canvas_state' => ['elements' => []],
-            ])
+            ->postJson('/api/decks/'.$deck->id.'/ops', ['client' => 'tab-1', 'key' => 'out-1', 'ops' => [['op' => 'slide.remove', 'id' => $slide->id]]])
             ->assertNotFound();
+        $this->actingAs($outsider)->getJson('/api/slides/'.$slide->id)->assertNotFound();
     }
 }

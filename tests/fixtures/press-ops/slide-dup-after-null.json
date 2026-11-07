@@ -1,0 +1,145 @@
+{
+ "name": "slide-dup-after-null",
+ "description": "dup with after:null puts the copy first",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1",
+    "s2"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 1,
+      "y": 1,
+      "w": 1,
+      "h": 1,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     }
+    ]
+   },
+   {
+    "id": "s2",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "slide.dup",
+   "id": "s2",
+   "tid": "n1",
+   "after": null
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "n1",
+     "s1",
+     "s2"
+    ]
+   },
+   "slides": [
+    {
+     "id": "n1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 1,
+       "y": 1,
+       "w": 1,
+       "h": 1,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      }
+     ]
+    },
+    {
+     "id": "s2",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    }
+   ]
+  },
+  "skipped": []
+ },
+ "normalize": [
+  "n1"
+ ]
+}

@@ -1,0 +1,155 @@
+{
+ "name": "resize-anchor-group-is-one-block",
+ "description": "anchor 1000x600 to 2000x1200: the group a+b (union x 0..1000, y 0..100, centre 500,50) shifts as one block by (500, 50); c alone (centre 50,250) shifts (50, 250)",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1000,
+   "h": 600,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "w": 100,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "group": "g"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "x": 900,
+      "y": 0,
+      "w": 100,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "group": "g"
+     },
+     {
+      "id": "c",
+      "type": "text",
+      "x": 0,
+      "y": 200,
+      "w": 100,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "deck.resize",
+   "w": 2000,
+   "h": 1200,
+   "mode": "anchor"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 2000,
+    "h": 1200,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 500,
+       "y": 50,
+       "w": 100,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "group": "g"
+      },
+      {
+       "id": "b",
+       "type": "text",
+       "x": 1400,
+       "y": 50,
+       "w": 100,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "group": "g"
+      },
+      {
+       "id": "c",
+       "type": "text",
+       "x": 50,
+       "y": 450,
+       "w": 100,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

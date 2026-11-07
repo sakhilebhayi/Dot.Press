@@ -26,19 +26,17 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Secure Area" />
+    <Head title="Confirm your password" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <h1 class="font-display font-semibold text-2xl mb-1">Confirm your password</h1>
-        <div class="mb-4 text-sm text-gray-600">
-            This is a secure area of the application. Please confirm your password before continuing.
-        </div>
+        <h1 class="gs-title">Confirm your password</h1>
+        <p class="gs-lead">This part of Dot.Press changes your account security. Enter your password to continue.</p>
 
-        <form @submit.prevent="submit">
+        <form class="gs-form" @submit.prevent="submit">
             <div>
                 <InputLabel for="password" value="Password" />
                 <TextInput
@@ -46,16 +44,17 @@ const submit = () => {
                     ref="passwordInput"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    name="password"
                     required
                     autocomplete="current-password"
                     autofocus
+                    :aria-invalid="form.errors.password ? 'true' : undefined"
                 />
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError :message="form.errors.password" />
             </div>
 
-            <div class="flex justify-end mt-4">
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+            <div class="gs-foot" style="margin-top: 0;">
+                <PrimaryButton :disabled="form.processing">
                     Confirm
                 </PrimaryButton>
             </div>

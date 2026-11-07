@@ -1,3 +1,19 @@
+# R-40 performance: build files carry a hash in their name and never change, so a browser may keep them for a year;
+# fonts keep their names, so a month. Compression for the text files the web server serves itself (the application
+# compresses its own JSON and HTML, see App\Http\Middleware\CompressResponse).
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/css application/javascript text/javascript image/svg+xml application/manifest+json font/ttf
+</IfModule>
+<IfModule mod_headers.c>
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteRule ^build/assets/ - [E=PRESS_IMMUTABLE:1]
+        RewriteRule ^fonts/ - [E=PRESS_FONT:1]
+    </IfModule>
+    Header set Cache-Control "public, max-age=31536000, immutable" env=PRESS_IMMUTABLE
+    Header set Cache-Control "public, max-age=2592000" env=PRESS_FONT
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

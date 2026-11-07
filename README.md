@@ -4,79 +4,64 @@
 
 <br /><br />
 
-**Create stunning presentations with AI generation and real-time collaboration.**
+**Dot.Press: ideas deserve better presentations.**
 
 <br />
 
-![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php&logoColor=white) ![Inertia](https://img.shields.io/badge/Inertia.js%20%2B%20Vue%203-6E4AFF?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php&logoColor=white) ![Inertia](https://img.shields.io/badge/Inertia.js%20%2B%20Vue%203-6E4AFF?style=flat-square) ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 
-<br /><br />
-
-**Part of the [InfoDot Ecosystem](https://github.com/sakhileb/InfoDot)** &nbsp;·&nbsp; `press.infodot.app`
+**Part of the [InfoDot Ecosystem](https://github.com/sakhileb/InfoDot)** &nbsp;·&nbsp; `pres.infodot.co.za`
 
 </div>
 
 ---
 
-## What is Dot.Press?
+## What it is
 
-Dot.Press is a presentation / slide-deck design tool in the InfoDot ecosystem — think Canva's or Google Slides' deck editor, not a newsroom or CMS (despite the ecosystem registry's `newspaper` icon — see `wiki.md` §1 for that naming note). A canvas-first editor (Konva.js) lets a user build slide decks with drag/resize/rotate elements and Tiptap-powered rich text; an AI layer (Anthropic Claude, with an honest mock fallback when no API key is configured) can generate a slide from a prompt or rewrite selected text; lightweight cache-based presence shows who else has a slide open; and decks export to PDF or PPTX.
+A presentation platform built around one idea: a deck is an argument. The left rail of the editor, the Spine, is a line of beads, one per slide. A bead is hollow until its slide carries evidence for its claim, solid once it does, amber where you are. The same line is the progress indicator while presenting.
 
-For a full, code-verified account of what's actually implemented versus aspirational — including a functional bug found and fixed in the dashboard route, and a naming/scope correction on "real-time collaboration" — see [`wiki.md`](wiki.md).
+- **Editor.** Drag, resize, rotate, snap and align on a DOM canvas. Rich text in place. Shapes, icons, pictures with crop, masks and adjustments, video and audio, tables, and 14 chart types (bar, column, line, area, pie, doughnut, scatter, bubble, waterfall, funnel, radar, combo, KPI tiles, world map). Groups, layers, rulers, grid, guides. Undo and redo. Autosave that survives a closed tab, a dead network and a failed request.
+- **Structure.** Sections, hidden slides, layouts that never delete your content, 12 themes, brand kits, 20 templates, slide sizes (16:9, 4:3, portrait, custom) with three ways to resize a finished deck.
+- **Presenting.** Full screen player, presenter view with notes, timer and next slide, an audience window, a phone as a remote clicker, audience following by short polling, an offline single file present package. Transitions (fade, push, wipe, reveal, zoom, morph) and element animations in a click sequence.
+- **Review.** A consistency inspector (fonts, colours, alignment, density, terminology, repeated content, unsupported claims) with fixes you apply one at a time, a story assistant for narrative structure, comments with mentions, review requests and approvals bound to the exact content, version history with restore.
+- **Sharing.** Private, shared with named people, team, or an unlisted link with an optional password and expiry.
+- **Import and export.** PowerPoint import and export written directly as OOXML (with native charts and tables), PDF (server side, and a browser print view for the highest fidelity), PNG images, the offline present package. Every export shows a preflight of what is native, approximated or not carried over.
+- **AI, honestly.** With no model connected, every assistant runs deterministic local rules and says so. With `ANTHROPIC_API_KEY` configured the same services ask a model. Everything generated arrives as a proposal with a diff; nothing changes your deck until you accept it.
 
-## Core Features
+## How it works
 
-- Canvas editor (Konva.js) — drag, resize, rotate text/shape/image elements with an optimistic-concurrency revision check on save
-- AI slide generation and text rewrite (shorten/expand/rephrase/tone), rate-limited and safety-checked, with a working mock provider when no live API key is set
-- Lightweight collaboration presence — see who else is viewing a slide and their cursor/selection (cache-backed heartbeat, not a websocket/live-cursor broadcast)
-- One-click export to PDF (dompdf) and PPTX (PhpPresentation)
-- Ecosystem SSO from the InfoDot hub via `EcosystemAuthController`
+- The deck is a document. Slides hold their elements as JSON and every change is an operation in an append-only log (`deck_changes`). Operations merge per element, so two people editing different elements never conflict. Changes arrive within seconds by short polling because the host has no websocket server. Two people editing the very same text box: the last edit wins. There is no live co-typing.
+- Contract: `docs/programme/R40_DOCUMENT_SPEC.md`. Plan and decisions: `docs/programme/R40_PLAN.md`. Audit: `docs/programme/R40_AUDIT.md`. Design system: `DESIGN.md`. Readiness: `docs/programme/R40_READINESS.md`.
+- Backend: Laravel 13, Sanctum, Jetstream teams, InfoDot sign-in. Frontend: Vue 3 and Inertia; slides are rendered as DOM and SVG by one renderer shared by the editor, thumbnails, the player and the print view. Charts come from one JavaScript engine with a PHP port for exports. Tiptap edits text.
+- Integrations: InfoDot sign-in is the only live one. The other platforms were checked and have no data API Dot.Press could use; charts import from CSV, TSV and XLSX files (including Dot.Sheets exports) instead of linking live.
 
-## Domain Models
-
-Source of truth: `app/Models/` and `database/migrations/`.
-
-- **Project** — top-level container, owned by a single user
-- **Deck** — a presentation within a project (title, theme, template flag)
-- **Slide** — one canvas within a deck; canvas content (elements + viewport) is stored as JSON on the slide, with a `revision` counter for conflict detection
-- **Element** — a normalized per-shape table exists and is wired to `Slide`, but the canvas API currently stores all slide content as JSON on `Slide.canvas_state` rather than reading/writing through `Element` rows — see `wiki.md` §3
-- **Asset** — an uploaded file (image/video/audio/PDF), scoped to a project, delivered via signed URL
-- **AiUsageLog** — every AI call, with prompt/response (truncated), tokens, latency, and safety-block status
-
-There is no team-based sharing on the presentation domain yet — `Project`/`Deck`/`Slide`/`Asset` are all scoped by a single `user_id`, not by Jetstream `Team`. Jetstream Teams exist for auth but nothing in the presentation domain is team-shared today.
-
-## Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Framework | Laravel 13 |
-| Language | PHP 8.4 |
-| Frontend | **Inertia.js + Vue 3** (not Livewire — `config/jetstream.php` sets the Inertia stack, and `livewire/livewire` is not a dependency of this app) |
-| Styling | Tailwind CSS 4 via `@tailwindcss/vite` (see [Tailwind CSS 4](#tailwind-css-4)) |
-| Canvas | Konva.js / vue-konva |
+| Framework | Laravel 13, PHP 8.4 |
+| Frontend | Inertia.js with Vue 3, Tailwind CSS 4 for the account pages, hand-written CSS with tokens for the product (`resources/css/press`) |
 | Rich text | Tiptap 3 |
-| Database | SQLite, one file (`database/database.sqlite`), in production as well. Queue, cache and sessions use the database driver. The connection runs in WAL mode with a 5 s busy timeout (`config/database.php`) so web requests, `queue:work` and `schedule:run` can share the file. PostgreSQL and MySQL are not used in production and are not tested. |
-| Collaboration presence | Laravel's cache driver (heartbeat + TTL), not a websocket/broadcast service |
-| Auth | Laravel Sanctum + Jetstream (InfoDot SSO via `/auth/ecosystem`) |
-| AI | Anthropic Claude, direct integration with an `AI_PROVIDER=mock` fallback (`.env.example` default) |
-| Export | `barryvdh/laravel-dompdf` (PDF), `phpoffice/phppresentation` (PPTX) |
-| Storage | Local disk by default (`ASSET_UPLOAD_DISK`), S3-compatible config present but unused in this repo |
+| Database | SQLite, one file, in production too. Queue, cache and sessions use the database driver, in WAL mode with a busy timeout |
+| Exports | DomPDF for PDF, direct OOXML for PPTX, client side PNG |
+| Storage | Local disk, signed relative URLs, Range requests for media |
+| Auth | Sanctum and Jetstream, InfoDot sign-in |
+| Realtime | Short polling; no websockets |
 
-## Quick Start
+## Run it
 
 ```bash
-git clone https://github.com/sakhileb/Dot.Press.git
-cd Dot.Press
 cp .env.example .env
 composer install
 npm install && npm run build
 php artisan key:generate
 touch database/database.sqlite
 php artisan migrate
+php artisan db:seed --class=PressDemoSeeder   # local only: owner@demo.test / password
 php artisan serve
 ```
 
-> **Ecosystem SSO:** Set `APP_URL` to the public address (production: `https://pres.infodot.co.za`). Users authenticated through InfoDot gain access automatically via Sanctum handoff tokens. The database is this app's own SQLite file; it is not shared with other platforms.
+Tests: `php artisan test` (PHP) and `npm run test:press` (JavaScript, `node --test`).
 
 ## Tailwind CSS 4
 

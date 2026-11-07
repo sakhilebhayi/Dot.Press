@@ -8,15 +8,18 @@ use App\Models\Deck;
 use App\Models\Slide;
 use App\Services\Ai\ContentGenerator;
 use App\Services\Ai\SafetyGuard;
-use App\Services\CanvasElementSyncService;
+use App\Services\Press\DeckDocument;
+use App\Services\Press\DocumentSanitizer;
+use App\Services\Press\OpApplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 class AiController extends Controller
 {
-    public function __construct(private readonly CanvasElementSyncService $canvasElementSync) {}
+    public function __construct(private readonly OpApplier $applier) {}
 
     public function generateSlide(Request $request, Deck $deck, ContentGenerator $generator, SafetyGuard $safetyGuard)
     {
@@ -53,34 +56,13 @@ class AiController extends Controller
         $startedAt = microtime(true);
 
         try {
-            $result = $generator->generateSlide($prompt);
+            $result = $generator->generateSlide($prompt, (int) $deck->w, (int) $deck->h);
+            $elements = $result['els'];
 
-            $elements = Arr::get($result, 'elements', []);
-            if (! is_array($elements)) {
-                $elements = [];
-            }
-
-            $slide = $deck->slides()->create([
-                'title' => Str::limit((string) Arr::get($result, 'title', 'AI Slide'), 255, ''),
-                'layout' => 'blank',
-                'sort_order' => ((int) $deck->slides()->max('sort_order')) + 1,
-                'canvas_state' => [
-                    'viewport' => [
-                        'width' => 1280,
-                        'height' => 720,
-                    ],
-                    'meta' => [
-                        'version' => 1,
-                        'generated_by_ai' => true,
-                    ],
-                ],
-            ]);
-
-            if (! empty($elements)) {
-                $this->canvasElementSync->sync($slide, $elements);
-            }
-
-            $slide->canvas_state = $slide->canvasStatePayload();
+            $created = $this->addSlides($request, $deck, [[
+                'title' => $result['title'], 'layout' => $result['layout'], 'notes' => $result['notes'], 'els' => $elements,
+            ]]);
+            $slide = $created['slides'][0];
 
             $usage = Arr::get($result, 'usage', []);
 
@@ -101,7 +83,9 @@ class AiController extends Controller
             ]);
 
             return response()->json([
-                'slide' => $slide,
+                'slide' => DeckDocument::slideToArray($slide) + ['deck_id' => $deck->id],
+                'seq' => $created['seq'],
+                'deck_rev' => $created['deck_rev'],
                 'usage' => [
                     'remaining_today' => $this->remainingQuota($request),
                 ],
@@ -170,36 +154,16 @@ class AiController extends Controller
         $startedAt = microtime(true);
 
         try {
-            $result = $generator->generateDeck($prompt, $slideCount);
+            $result = $generator->generateDeck($prompt, $slideCount, (int) $deck->w, (int) $deck->h);
             $slideSpecs = $result['slides'];
             $usage = Arr::get($result, 'usage', []);
 
-            $nextSortOrder = (int) $deck->slides()->max('sort_order') + 1;
-            $createdSlides = [];
+            $created = $this->addSlides($request, $deck, array_map(fn ($spec) => [
+                'title' => $spec['title'], 'layout' => $spec['layout'], 'notes' => $spec['notes'], 'els' => $spec['els'],
+            ], $slideSpecs));
+            $createdSlides = $created['slides'];
 
-            foreach ($slideSpecs as $offset => $spec) {
-                $elements = Arr::get($spec, 'elements', []);
-                if (! is_array($elements)) {
-                    $elements = [];
-                }
-
-                $slide = $deck->slides()->create([
-                    'title' => Str::limit((string) Arr::get($spec, 'title', 'AI Slide'), 255, ''),
-                    'layout' => 'blank',
-                    'sort_order' => $nextSortOrder + $offset,
-                    'canvas_state' => [
-                        'viewport' => ['width' => 1280, 'height' => 720],
-                        'meta' => ['version' => 1, 'generated_by_ai' => true],
-                    ],
-                ]);
-
-                if (! empty($elements)) {
-                    $this->canvasElementSync->sync($slide, $elements);
-                }
-
-                $slide->canvas_state = $slide->canvasStatePayload();
-                $createdSlides[] = $slide;
-
+            foreach ($createdSlides as $offset => $slide) {
                 $this->logUsage($request, [
                     'deck_id' => $deck->id,
                     'slide_id' => $slide->id,
@@ -209,7 +173,7 @@ class AiController extends Controller
                     'prompt' => $this->truncatePrompt($prompt),
                     'response' => $this->truncateResponse(json_encode([
                         'title' => $slide->title,
-                        'elements_count' => count($elements),
+                        'elements_count' => count($slide->els ?? []),
                         'slide_index' => $offset,
                         'deck_slide_count' => count($slideSpecs),
                     ])),
@@ -221,7 +185,9 @@ class AiController extends Controller
 
             return response()->json([
                 'deck_id' => $deck->id,
-                'slides' => $createdSlides,
+                'slides' => array_map(fn (Slide $slide) => DeckDocument::slideToArray($slide) + ['deck_id' => $deck->id], $createdSlides),
+                'seq' => $created['seq'],
+                'deck_rev' => $created['deck_rev'],
                 'usage' => [
                     'remaining_today' => $this->remainingQuota($request),
                 ],
@@ -243,6 +209,11 @@ class AiController extends Controller
         }
     }
 
+    /**
+     * Proposes a rewrite and applies nothing. Name a text element (`element`, a text or shape element of this slide) to
+     * rewrite all of its text, or send `text` alone for a selection. For a whole element the answer carries the
+     * ready-made `el.set` operation; the client sends it through POST /api/decks/{deck}/ops if the person accepts.
+     */
     public function rewriteText(Request $request, Slide $slide, ContentGenerator $generator, SafetyGuard $safetyGuard)
     {
         $slide->loadMissing('deck.project');
@@ -254,12 +225,27 @@ class AiController extends Controller
         }
 
         $validated = $request->validate([
-            'text' => ['required', 'string', 'max:8000'],
+            'text' => ['nullable', 'string', 'max:8000', 'required_without:element'],
+            'element' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/D', 'required_without:text'],
             'mode' => ['required', 'string', 'in:shorten,expand,rephrase,tone'],
             'tone' => ['nullable', 'string', 'max:80'],
         ]);
 
-        $text = trim($validated['text']);
+        $sanitizer = new DocumentSanitizer;
+        $elementId = $validated['element'] ?? null;
+        $wholeElement = $elementId !== null && ! filled($validated['text'] ?? null);
+
+        if ($elementId !== null) {
+            $element = collect($slide->els ?? [])->firstWhere('id', $elementId);
+            if (! is_array($element) || ! in_array($element['type'] ?? null, ['text', 'shape'], true) || ! is_array($element['doc'] ?? null)) {
+                return response()->json(['message' => 'That element has no text to rewrite.'], 422);
+            }
+        }
+
+        $text = trim($wholeElement ? $sanitizer->plainText($element['doc']) : (string) $validated['text']);
+        if ($text === '') {
+            return response()->json(['message' => 'There is no text to rewrite.'], 422);
+        }
         $mode = $validated['mode'];
         $tone = $validated['tone'] ?? null;
 
@@ -299,8 +285,20 @@ class AiController extends Controller
                 'meta' => ['mode' => $mode, 'tone' => $tone],
             ]);
 
+            $proposal = null;
+            if ($elementId !== null) {
+                $proposal = ['slide' => $slide->id, 'element' => $elementId, 'text' => $rewritten];
+                if ($wholeElement) {
+                    // The proposal is plain paragraphs; the original's inline formatting is not carried over.
+                    $doc = $sanitizer->docFromText($rewritten);
+                    $proposal['doc'] = $doc;
+                    $proposal['op'] = ['op' => 'el.set', 'slide' => $slide->id, 'id' => $elementId, 'p' => ['doc' => $doc]];
+                }
+            }
+
             return response()->json([
                 'text' => $rewritten,
+                'proposal' => $proposal,
                 'usage' => [
                     'remaining_today' => $this->remainingQuota($request),
                 ],
@@ -331,6 +329,40 @@ class AiController extends Controller
             'daily_quota' => $this->dailyQuota(),
             'remaining_today' => $this->remainingQuota($request),
         ]);
+    }
+
+    /**
+     * Writes generated slides to the end of the deck as slide.add operations (so they are logged, versioned and seen
+     * by other editors like any other change) and returns the stored slides in order.
+     *
+     * @param  list<array<string, mixed>>  $slides  title, layout, notes, els
+     * @return array{slides: list<Slide>, seq: int, deck_rev: int}
+     */
+    private function addSlides(Request $request, Deck $deck, array $slides): array
+    {
+        $last = Slide::withoutGlobalScopes()->where('deck_id', $deck->id)->orderByDesc('sort_order')->orderByDesc('id')->value('id');
+
+        $ops = [];
+        $previous = $last;
+        foreach ($slides as $i => $slide) {
+            $tid = 'ai'.($i + 1);
+            $ops[] = ['op' => 'slide.add', 'tid' => $tid, 'after' => $previous, 'slide' => $slide];
+            $previous = $tid;
+        }
+
+        $result = $this->applier->apply($deck, $request->user(), 'ai', 'ai-'.Str::uuid(), $ops);
+
+        $created = [];
+        foreach (array_keys($slides) as $i) {
+            $id = $result['ids']['ai'.($i + 1)] ?? null;
+            if ($id === null) {
+                $reason = $result['skipped'][0]['reason'] ?? 'unknown';
+                throw new RuntimeException("The generated slide could not be stored: {$reason}");
+            }
+            $created[] = Slide::withoutGlobalScopes()->findOrFail($id);
+        }
+
+        return ['slides' => $created, 'seq' => $result['seq'], 'deck_rev' => $result['deck_rev']];
     }
 
     private function logUsage(Request $request, array $payload): void

@@ -21,45 +21,45 @@ const createTeam = () => {
 <template>
     <FormSection @submitted="createTeam">
         <template #title>
-            Team Details
+            Team details
         </template>
 
         <template #description>
-            Create a new team to collaborate with others on projects.
+            A team shares decks and one set of roles between the people in it.
         </template>
 
         <template #form>
-            <div class="col-span-6">
-                <InputLabel value="Team Owner" />
+            <div>
+                <InputLabel value="Team owner" />
 
-                <div class="flex items-center mt-2">
-                    <img class="object-cover size-12 rounded-full" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                <div class="ac-row-main" style="margin-top: 8px;">
+                    <span class="ac-avatar" aria-hidden="true">{{ ($page.props.auth.user.name || '?').charAt(0).toUpperCase() }}</span>
 
-                    <div class="ms-4 leading-tight">
-                        <div class="text-gray-900">{{ $page.props.auth.user.name }}</div>
-                        <div class="text-sm text-gray-700">
-                            {{ $page.props.auth.user.email }}
-                        </div>
+                    <div>
+                        <div class="ac-row-t">{{ $page.props.auth.user.name }}</div>
+                        <div class="ac-row-s">{{ $page.props.auth.user.email }}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="name" value="Team Name" />
+            <div>
+                <InputLabel for="name" value="Team name" />
                 <TextInput
                     id="name"
                     v-model="form.name"
                     type="text"
-                    class="block w-full mt-1"
+                    name="name"
                     autofocus
+                    autocomplete="off"
+                    :aria-invalid="form.errors.name ? 'true' : undefined"
                 />
-                <InputError :message="form.errors.name" class="mt-2" />
+                <InputError :message="form.errors.name" />
             </div>
         </template>
 
         <template #actions>
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Create
+            <PrimaryButton :disabled="form.processing">
+                Create team
             </PrimaryButton>
         </template>
     </FormSection>

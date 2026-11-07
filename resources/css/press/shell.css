@@ -1,0 +1,185 @@
+/*
+ * Editor chrome: top bar, the three column grid, dock, inspector, banners. See DESIGN.md "Layout".
+ * Spine 288 | stage | inspector 320. Below 1024 the Spine is a drawer; below 768 the inspector is a bottom sheet.
+ */
+.ed { --toast-bottom: 76px; position: fixed; inset: 0; display: grid; grid-template-columns: var(--spine-w) minmax(0, 1fr) auto; grid-template-rows: var(--bar-h) auto minmax(0, 1fr); background: var(--paper); overflow: hidden; overflow: clip; }
+.ed[data-spine='closed'] { grid-template-columns: 0 minmax(0, 1fr) auto; }
+.ed-spine { grid-column: 1; grid-row: 3; min-width: 0; min-height: 0; border-right: 1px solid var(--line); overflow: hidden; overflow: clip; } /* clip, not hidden: a hidden box can still be scrolled by focus */
+.ed[data-spine='closed'] .ed-spine { visibility: hidden; border: 0; }
+.ed-main { grid-column: 2; grid-row: 3; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.ed-stage { position: relative; flex: 1; min-height: 0; background: var(--stage); overflow: hidden; }
+.ed-insp { grid-column: 3; grid-row: 3; width: 320px; min-height: 0; border-left: 1px solid var(--line); background: var(--paper); animation: ed-in var(--d-3) var(--ease-settle); }
+.ed-scrim { position: fixed; inset: var(--bar-h) 0 0 0; z-index: 55; background: color-mix(in srgb, var(--ink) 34%, transparent); animation: hp-fade var(--d-2) var(--ease-settle); }
+
+/* top bar ---------------------------------------------------------------------------------------------- */
+.tb { grid-column: 1 / -1; grid-row: 1; display: grid; grid-template-columns: var(--spine-w) minmax(0, 1fr) auto; align-items: center; height: var(--bar-h); border-bottom: 1px solid var(--line); background: var(--paper); position: relative; z-index: 30; }
+.ed[data-spine='closed'] .tb { grid-template-columns: auto minmax(0, 1fr) auto; }
+.tb-left { display: flex; align-items: center; gap: 4px; height: 100%; padding: 0 8px 0 12px; }
+.ed:not([data-spine='closed']) .tb-left { border-right: 1px solid var(--line); }
+.tb .tb-menu { display: none; }
+.ed[data-spine='closed'] .tb .tb-menu { display: inline-flex; }
+.tb-mark { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px; border-radius: var(--r-2); }
+.tb-mark:hover { background: var(--raised); }
+.tb-dot { width: 32px; height: 12px; color: var(--ink); overflow: visible; }
+.tb-word { font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.02em; font-variation-settings: 'opsz' 24; }
+.tb-title { display: flex; align-items: center; gap: 16px; min-width: 0; padding: 0 16px; }
+.tb-name { flex: 0 1 auto; max-width: min(46ch, 100%); min-width: min(12ch, 100%); height: 34px; padding: 0 10px; margin-left: -10px; border: 1px solid transparent; border-radius: var(--r-2); background: transparent; font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.02em; font-variation-settings: 'opsz' 24; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.tb-name:not(:disabled):hover { background: var(--raised); border-color: var(--line); }
+.tb-name:disabled { cursor: default; }
+.tb-input { height: 34px; width: min(40ch, 60vw); margin-left: -10px; padding: 0 10px; border-radius: var(--r-2); border: 1px solid var(--ink); background: var(--sheet); font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.02em; color: var(--ink); box-shadow: none; }
+.tb-save { display: inline-flex; align-items: center; gap: 8px; flex: none; min-width: 0; color: var(--muted); }
+.tb-save.is-offline, .tb-save.is-error { flex: 0 1 auto; } /* a long status may be cut; Saved never is */
+.tb-save.is-offline, .tb-save.is-error { color: var(--ink); }
+.tb-save-w { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tb-save .pr-bead { transition: background-color var(--d-3) var(--spring), border-color var(--d-2), transform var(--d-3) var(--spring); }
+.tb-retry { height: 26px; padding: 0 10px; border-radius: var(--r-1); border: 1px solid var(--ink); background: var(--sheet); font-size: 0.75rem; font-weight: 600; }
+.tb-retry:hover { background: var(--ink); color: var(--sheet); }
+.tb-right { display: flex; align-items: center; gap: 8px; padding: 0 12px 0 0; }
+.tb-people { display: flex; padding: 0 6px 0 0; }
+.tb-people .pr-avatar { margin-left: -8px; --s: 28px; }
+.tb-people .pr-avatar:first-child { margin-left: 0; }
+.tb-people .tb-more { background: var(--line); color: var(--ink-2); }
+.tb .tb-act--review { background: var(--amber-wash); border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); color: var(--amber-ink); } /* the one accent-marked action: the check that a claim is backed up */
+.tb .tb-act--review:hover { background: color-mix(in srgb, var(--amber) 22%, var(--amber-wash)); border-color: var(--amber); }
+.tb-present { display: inline-flex; }
+.tb-present .tb-go { border-top-right-radius: 0; border-bottom-right-radius: 0; padding: 0 14px 0 12px; }
+.tb-present .tb-more-btn { border-top-left-radius: 0; border-bottom-left-radius: 0; width: 30px; padding: 0; border-left-color: color-mix(in srgb, var(--sheet) 30%, transparent); }
+.tb .tb-overflow { display: none; }
+.tb .tb-insp { display: inline-flex; }
+.dk .dk-insp { display: none; }
+
+/* save bead: a claim waiting is hollow, once safe it is solid */
+.tb-save.is-saving .pr-bead { animation: tb-wait 1.4s var(--ease-settle) infinite; }
+@keyframes tb-wait { 50% { transform: scale(0.8); } }
+
+/* banner ---------------------------------------------------------------------------------------------- */
+.ed-banner { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; background: var(--raised); border-bottom: 1px solid var(--line-strong); font-size: var(--t-md); z-index: 25; }
+.ed-banner p { flex: 1; min-width: 220px; }
+.ed-banner .pr-bead { --b: 10px; margin-right: 8px; }
+
+/* dock ------------------------------------------------------------------------------------------------ */
+.dk { flex: none; height: var(--dock-h); display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 0 12px; border-top: 1px solid var(--line); background: var(--paper); container: dock / inline-size; position: relative; z-index: 20; }
+.dk-group { display: flex; align-items: center; gap: 2px; flex: none; }
+.dk-group--end { margin-left: auto; gap: 6px; }
+.dk-sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; flex: none; }
+.dk-b { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; min-width: 40px; height: 40px; padding: 0 8px; border: 1px solid transparent; border-radius: var(--r-2); background: transparent; color: var(--ink-2); transition: background-color var(--d-1) var(--ease-snap), color var(--d-1), transform var(--d-1) var(--ease-snap); }
+.dk-b:hover { background: var(--raised); color: var(--ink); border-color: var(--line); }
+.dk-b:active { transform: translateY(1px); }
+.dk-b[aria-pressed='true'], .dk-b[aria-expanded='true'] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.dk-b:disabled { opacity: 0.35; pointer-events: none; }
+.dk-b--menu { padding: 0 4px 0 8px; min-width: 52px; }
+.dk-caret { width: 12px; height: 12px; opacity: 0.7; }
+.dk-zoom { display: inline-flex; align-items: baseline; gap: 5px; min-width: 64px; height: 40px; justify-content: center; align-items: center; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--sheet); color: var(--ink); }
+.dk-zoom:hover { border-color: var(--line-strong); }
+.dk-fit { color: var(--muted); }
+.dk-viewmenu { display: none; }
+.dk-insmenu { display: none; }
+@container dock (max-width: 1060px) {
+    .dk-aids { display: none; }
+    .dk-viewmenu { display: inline-flex; }
+}
+@container dock (max-width: 900px) {
+    .dk-ins { display: none; }
+    .dk-insmenu { display: inline-flex; }
+}
+@container dock (max-width: 800px) {
+    .dk-hand { display: none; }
+}
+@container dock (max-width: 480px) {
+    /* a phone: what a thumb needs on the slide (select, insert, undo, zoom) and nothing that has to scroll away.
+       Redo, the zoom steps, view aids and help stay reachable from the keyboard, the Inspector and the pinch. */
+    .dk .dk-b { min-width: 40px; padding: 0 6px; }
+    .dk .dk-b--menu { min-width: 48px; padding: 0 3px 0 7px; }
+    .dk .dk-hand, .dk .dk-redo, .dk .dk-zstep, .dk .dk-viewmenu, .dk .dk-help, .dk .dk-aids { display: none; }
+    .dk .dk-group--end { gap: 2px; }
+    .dk .dk-sep { margin: 0 2px; }
+    .dk .dk-group--end > .dk-sep ~ .dk-sep { display: none; }
+    .dk .dk-zoom { min-width: 48px; padding: 0 6px; }
+    .dk .dk-fit { display: none; } /* the percentage says enough; the word is in the control's name */
+}
+@container dock (max-width: 380px) {
+    .dk .dk-insp { display: none; } /* a very narrow phone: the Inspector stays in the top bar's More menu */
+}
+@container dock (max-width: 640px) {
+    .dk { overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+    .dk::-webkit-scrollbar { display: none; }
+    .dk [data-tip]::after { display: none; }
+}
+
+/* inspector -------------------------------------------------------------------------------------------- */
+.in { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.in-head { display: flex; align-items: stretch; flex: none; height: 48px; border-bottom: 1px solid var(--line); padding-right: 6px; }
+.in-pick { display: inline-flex; align-items: center; gap: 6px; flex: none; max-width: 100%; margin: 7px 0 7px 8px; padding: 0 8px 0 10px; height: 34px; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--sheet); color: var(--ink); font-size: 0.8125rem; font-weight: 600; }
+.in-head .dm { flex: none; max-width: 52%; }
+.in-pick:hover { border-color: var(--line-strong); }
+.in-pick[aria-expanded='true'] { border-color: var(--ink); }
+.in-pick-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.in-tabs { display: flex; align-items: stretch; flex: 1; min-width: 0; overflow-x: auto; overflow-y: hidden; padding: 0 4px 0 8px; gap: 2px; }
+.in-tab { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; min-width: 34px; padding: 0 8px; border: 0; background: transparent; color: var(--muted); font-size: 0.8125rem; font-weight: 500; white-space: nowrap; }
+.in-tab:hover { color: var(--ink); }
+.in-tab.is-on { color: var(--ink); }
+.in-tab::after { content: ''; position: absolute; left: 6px; right: 6px; bottom: -1px; height: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform var(--d-3) var(--ease-settle); }
+.in-tab.is-on::after { transform: scaleX(1); }
+.in-sep { width: 1px; margin: 12px 6px; background: var(--line); flex: none; }
+.in-close { align-self: center; flex: none; }
+.in-empty { padding: 40px 24px; display: grid; gap: 8px; }
+.in-empty-t { font-size: var(--t-lg); }
+
+/* narrower layouts --------------------------------------------------------------------------------------- */
+@media (max-width: 1179px) {
+    .ed-insp { position: absolute; right: 0; top: 0; bottom: 0; z-index: 40; box-shadow: var(--lift); background: var(--paper); }
+    /* the stage makes room for the drawer, so the slide being edited is never hidden behind it */
+    .ed[data-inspector='open'] .ed-main { padding-right: 320px; }
+    .tb-lbl { display: none; }
+    .tb .tb-act { padding: 0; width: 36px; }
+    .dk .dk-insp { display: inline-flex; }
+}
+@media (max-width: 1023px) {
+    .ed, .ed[data-spine='closed'] { grid-template-columns: 0 minmax(0, 1fr) auto; }
+    .tb, .ed[data-spine='closed'] .tb { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .ed-spine, .ed[data-spine='closed'] .ed-spine { position: fixed; left: 0; top: var(--bar-h); bottom: 0; z-index: 60; width: min(320px, 88vw); background: var(--paper); border-right: 1px solid var(--line); box-shadow: var(--lift); visibility: visible; transition: transform var(--d-3) var(--ease-settle), visibility 0s linear var(--d-3); }
+    .ed[data-spine='closed'] .ed-spine { transform: translateX(-102%); visibility: hidden; }
+    .ed[data-spine='open'] .ed-spine { transform: none; transition: transform var(--d-3) var(--ease-settle); }
+    .ed .tb .tb-menu { display: inline-flex; }
+    .ed .tb-left { border-right: 0; }
+    /* the title needs the room: wordmark, people and the word Saved give way first (the bead says the same) */
+    .tb .tb-word, .tb .tb-people { display: none; }
+    .tb-name { min-width: 0; } /* the title gives way before the word Saved does */
+}
+@media (max-width: 767px) {
+    .tb-title { padding: 0 6px; gap: 8px; }
+    .tb .tb-save:not(.is-offline):not(.is-error) .tb-save-w { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } /* the bead says the same; still read out by the status role */
+    .tb-name { min-width: 0; }
+    /* Present keeps its place as an icon: the word comes back at tablet width, where there is room for it */
+    .tb .tb-go { padding: 0 10px; }
+    .tb .tb-go-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .tb-left { padding: 0 2px 0 6px; gap: 0; }
+    .tb-mark { padding: 0 6px; }
+    .tb .tb-word, .tb .tb-people, .tb .tb-theme, .tb .tb-act, .tb .tb-insp { display: none; }
+    .tb .tb-overflow { display: inline-flex; }
+    .tb .tb-save.is-offline .tb-save-w, .tb .tb-save.is-error .tb-save-w { display: inline; max-width: 8ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tb-name { font-size: var(--t-md); }
+    .tb-right { gap: 4px; padding-right: 6px; }
+    /* the inspector is a sheet under the stage, in the flow: the slide and the dock shrink to fit above it */
+    .ed { grid-template-rows: var(--bar-h) auto minmax(0, 1fr) auto; }
+    .ed[data-inspector='open'] .ed-main { padding-right: 0; }
+    .ed-insp { position: relative; grid-column: 1 / -1; grid-row: 4; right: auto; top: auto; bottom: auto; width: auto; height: min(46dvh, 420px); z-index: 70; border-left: 0; border-top: 1px solid var(--line-strong); border-radius: var(--r-3) var(--r-3) 0 0; box-shadow: var(--lift); animation: ed-up var(--d-3) var(--ease-settle); padding-bottom: env(safe-area-inset-bottom); }
+    .dk { padding: 0 8px; height: 60px; }
+    .dk-b { min-width: 44px; height: 44px; }
+}
+@media (max-width: 480px) {
+    .dk { gap: 2px; padding: 0 6px; }
+}
+
+@media (pointer: coarse) {
+    .tb-mark, .tb-name, .tb-input { height: 44px; }
+    .tb-present .tb-more-btn { width: 44px; }
+    .tb-retry { height: 36px; }
+    .tb .tb-act, .tb .tb-menu { width: 44px; }
+    .tb .tb-present .tb-go { width: auto; }
+    .dk-b { min-width: 44px; height: 44px; }
+    .dk-zoom { height: 44px; }
+    .in-tab { min-height: 44px; }
+    .in-head { height: 52px; }
+    .lc-item { min-height: 56px; }
+}

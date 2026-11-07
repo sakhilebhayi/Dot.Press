@@ -1,0 +1,150 @@
+{
+ "name": "section-add-after-id",
+ "description": "`after` a section id inserts right after it; the title defaults",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [
+    {
+     "id": "x1",
+     "title": "Intro"
+    },
+    {
+     "id": "x2",
+     "title": "Body"
+    }
+   ],
+   "slide_order": [
+    "s1",
+    "s2",
+    "s3"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": "x1",
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   },
+   {
+    "id": "s2",
+    "title": "",
+    "notes": "",
+    "section_id": "x1",
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   },
+   {
+    "id": "s3",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "section.add",
+   "id": "xm",
+   "after": "x1"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [
+     {
+      "id": "x1",
+      "title": "Intro"
+     },
+     {
+      "id": "xm",
+      "title": "Untitled section"
+     },
+     {
+      "id": "x2",
+      "title": "Body"
+     }
+    ],
+    "slide_order": [
+     "s1",
+     "s2",
+     "s3"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": "x1",
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s2",
+     "title": "",
+     "notes": "",
+     "section_id": "x1",
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s3",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

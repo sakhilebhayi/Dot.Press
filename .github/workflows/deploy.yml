@@ -329,6 +329,9 @@ jobs:
           esac
           if [ "$(envval SESSION_DRIVER)" = "redis" ]; then echo "::warning::SESSION_DRIVER=redis in the production .env; there is no Redis. Use database."; fi
           if [ "$(envval CACHE_STORE)" = "redis" ]; then echo "::warning::CACHE_STORE=redis in the production .env; there is no Redis. Use database."; fi
+          # R-40 security pass: the settings docs/programme/R40_SECURITY.md lists for production.
+          if [ "$(envval SESSION_SECURE_COOKIE)" != "true" ]; then echo "::warning::SESSION_SECURE_COOKIE is not true in the production .env; the session cookie would also travel over plain http. Set it to true."; fi
+          if [ "$(envval SECURITY_CSP_REPORT_ONLY)" = "true" ]; then echo "::warning::SECURITY_CSP_REPORT_ONLY=true: the Content-Security-Policy is only reporting, not enforcing. Remove it once the page it was set for is fixed."; fi
 
           # ---- frontend: swap the staged build in, keep the docroot copy in step
           # public/build is gitignored, so git never refreshes it. The docroot
@@ -353,6 +356,19 @@ jobs:
           else
             ln -s "$APPDIR/public/build" "$LINK"
             echo "== docroot build/ did not exist; linked to $APPDIR/public/build"
+          fi
+
+          # ---- static files that live in public/ but are served from the docroot
+          # Fonts (slide fonts and interface fonts), logos, icons and the social image are not part of public/build.
+          # While the docroot is the folder above the app (not <app>/public) Apache serves ITS copies, which git never
+          # refreshes: a new font or icon would 404 for days. Mirror them. Skipped once the document root is <app>/public.
+          if [ -n "${APP_REAL:-}" ] && [ "${CURRENT_DOCROOT:-}" != "$APP_REAL/public" ] && [ ! -f "$DEPLOY_PATH/.docroot-is-public" ]; then
+            for D in fonts images; do
+              if [ -d "public/$D" ] && [ ! -L "$DOCROOT/$D" ]; then mkdir -p "$DOCROOT/$D" && rsync -a public/$D/ "$DOCROOT/$D/" && echo "== docroot $D/ mirrored"; fi
+            done
+            for F in favicon.ico favicon.svg favicon-16x16.png favicon-32x32.png apple-touch-icon.png robots.txt dot_pres.png og.png site.webmanifest sitemap.xml; do
+              if [ -f "public/$F" ] && [ ! -L "$DOCROOT/$F" ]; then cp -f "public/$F" "$DOCROOT/$F"; fi
+            done
           fi
 
           # ---- database
@@ -499,7 +515,7 @@ jobs:
           set -uo pipefail
           WORK="$(mktemp -d)"
           FAILED=0
-          for PAGE in "/" "/login" "/up"; do
+          for PAGE in "/" "/login" "/up" "/fonts/ui/bricolage-300_800-normal.woff2" "/fonts/fonts.css" "/favicon.ico" "/robots.txt"; do
             CODE=$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' "$SITE_URL$PAGE" || true)
             if [ "$CODE" = "200" ]; then echo "200 $SITE_URL$PAGE"; else echo "::error::$SITE_URL$PAGE answered ${CODE:-no response} (expected 200)"; FAILED=1; fi
           done
@@ -516,6 +532,14 @@ jobs:
             CODE=$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' "$SITE_URL/build/$ASSET" || true)
             if [ "$CODE" = "200" ]; then echo "200 $SITE_URL/build/$ASSET"; else echo "::error::$SITE_URL/build/$ASSET answered ${CODE:-no response} (expected 200): the docroot is not serving the new build"; FAILED=1; fi
           done
+          # Every URL the app writes comes from APP_URL (host header injection defence). A wrong APP_URL would send
+          # every link and form to the wrong host, so compare the route table's base URL with the site just reached.
+          ZIGGY_URL="$(curl -s --max-time 30 "$SITE_URL/login" | python3 -c "import re,sys; m=re.search(r'\"url\":\"([^\"]+)\"', sys.stdin.read()); print(m.group(1).replace('\\\\/','/') if m else '')")"
+          if [ -n "$ZIGGY_URL" ] && [ "${ZIGGY_URL%/}" != "${SITE_URL%/}" ]; then
+            echo "::error::The app builds its URLs from $ZIGGY_URL but the site answers at $SITE_URL: fix APP_URL in the production .env."; FAILED=1
+          else
+            echo "APP_URL matches the site ($SITE_URL)"
+          fi
           # A GET-only route answering POST is a harmless 405: ~1 KB in
           # production, an ~840 KB stack-trace page when APP_DEBUG is on.
           curl -s --max-time 30 -o "$WORK/probe.html" -X POST "$SITE_URL/up" || true

@@ -25,48 +25,45 @@ const deleteTeam = () => {
 </script>
 
 <template>
-    <ActionSection>
+    <ActionSection danger>
         <template #title>
-            Delete Team
+            Delete team
         </template>
 
         <template #description>
-            Permanently delete this team.
+            This cannot be undone.
         </template>
 
         <template #content>
-            <div class="max-w-xl text-sm text-gray-600">
-                Once a team is deleted, all of its resources and data will be permanently deleted. Before deleting this team, please download any data or information regarding this team that you wish to retain.
-            </div>
+            <p class="ac-text">
+                Deleting a team deletes the projects and decks that belong to it. Download any deck you want to keep first, as PowerPoint or PDF.
+            </p>
 
-            <div class="mt-5">
+            <div class="ac-actions">
                 <DangerButton @click="confirmTeamDeletion">
-                    Delete Team
+                    Delete this team
                 </DangerButton>
             </div>
 
-            <!-- Delete Team Confirmation Modal -->
             <ConfirmationModal :show="confirmingTeamDeletion" @close="confirmingTeamDeletion = false">
                 <template #title>
-                    Delete Team
+                    Delete this team
                 </template>
 
                 <template #content>
-                    Are you sure you want to delete this team? Once a team is deleted, all of its resources and data will be permanently deleted.
+                    Everyone loses access and the team's projects and decks are deleted, for good.
                 </template>
 
                 <template #footer>
                     <SecondaryButton @click="confirmingTeamDeletion = false">
-                        Cancel
+                        Keep the team
                     </SecondaryButton>
 
                     <DangerButton
-                        class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         @click="deleteTeam"
                     >
-                        Delete Team
+                        Delete team
                     </DangerButton>
                 </template>
             </ConfirmationModal>

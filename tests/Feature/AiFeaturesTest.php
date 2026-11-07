@@ -35,7 +35,11 @@ class AiFeaturesTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('slide.deck_id', $deck->id)
-            ->assertJsonPath('slide.canvas_state.meta.generated_by_ai', true);
+            ->assertJsonPath('slide.els.0.origin', 'ai');
+
+        // The slide is stored through the operations pipeline, so it is in the change log too.
+        $this->assertSame(1, $deck->slides()->count());
+        $this->assertDatabaseHas('deck_changes', ['deck_id' => $deck->id, 'client' => 'ai']);
 
         $this->assertDatabaseCount('ai_usage_logs', 1);
         $this->assertDatabaseHas('ai_usage_logs', [
@@ -109,8 +113,10 @@ class AiFeaturesTest extends TestCase
         $this->assertSame('Budget', $slides[3]['title']);
 
         foreach ($slides as $slide) {
-            $this->assertTrue($slide['canvas_state']['meta']['generated_by_ai']);
-            $this->assertNotEmpty($slide['canvas_state']['elements']);
+            $this->assertNotEmpty($slide['els']);
+            foreach ($slide['els'] as $el) {
+                $this->assertSame('ai', $el['origin']);
+            }
         }
 
         $this->assertSame(4, $deck->slides()->count());

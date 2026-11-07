@@ -1,2 +1,19 @@
 User-agent: *
-Disallow:
+Allow: /$
+Allow: /terms-of-service
+Allow: /privacy-policy
+Allow: /cookies
+Disallow: /s/
+Disallow: /live/
+Disallow: /remote/
+Disallow: /present-asset/
+Disallow: /decks/
+Disallow: /dashboard
+Disallow: /operator/
+Disallow: /login
+Disallow: /auth/
+Disallow: /csp-report
+Disallow: /up/
+Disallow: /guardian/
+
+Sitemap: https://pres.infodot.co.za/sitemap.xml

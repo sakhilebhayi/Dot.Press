@@ -19,6 +19,13 @@ class Asset extends Model
         'mime_type',
         'size',
         'metadata',
+        'kind',
+        'width',
+        'height',
+        'thumb_path',
+        'web_path',
+        'sha256',
+        'alt',
     ];
 
     protected function casts(): array

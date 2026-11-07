@@ -1,7 +1,4 @@
 <template>
-    <div class="hidden sm:block">
-        <div class="py-8">
-            <div class="border-t border-gray-200" />
-        </div>
-    </div>
+    <!-- The sections draw their own hairlines; this stays so the pages that place it keep their structure. -->
+    <div aria-hidden="true" class="hidden" />
 </template>

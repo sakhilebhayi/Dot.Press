@@ -32,46 +32,49 @@ function confirmReject(proposal) {
 </script>
 
 <template>
-    <AppLayout title="Dependency Patches — Dot.Press">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <h1 class="text-2xl font-bold text-white mb-8">Dependency Patch Proposals</h1>
+    <AppLayout title="Dependency patches">
+        <h2 class="ac-h2">Waiting for a decision <span class="pr-state">{{ pending.length }}</span></h2>
 
-            <h2 class="text-lg font-semibold text-white mb-4">Pending ({{ pending.length }})</h2>
-            <div v-for="proposal in pending" :key="proposal.id" class="rounded-2xl border border-white/10 bg-white/[0.02] p-5 mb-4">
-                <p class="text-white font-semibold">{{ proposal.manager }} &mdash; {{ proposal.risk_summary }}</p>
-                <p class="text-white/50 text-sm mt-1">Proposed: <code>{{ proposal.proposed_command }}</code></p>
-                <ul class="text-white/40 text-xs mt-2 space-y-1">
+        <div v-if="pending.length" class="ac-op">
+            <div v-for="proposal in pending" :key="proposal.id" class="ac-op-item">
+                <p class="ac-op-t">{{ proposal.manager }}: {{ proposal.risk_summary }}</p>
+                <p class="ac-op-s">Proposed command <code>{{ proposal.proposed_command }}</code></p>
+                <ul class="ac-op-adv">
                     <li v-for="(advisory, i) in proposal.advisories" :key="i">
-                        {{ advisory.package }} ({{ advisory.severity }}) &mdash; {{ advisory.title }}
+                        {{ advisory.package }} ({{ advisory.severity }}): {{ advisory.title }}
                     </li>
                 </ul>
 
-                <div v-if="rejectingId === proposal.id" class="flex items-center gap-2 mt-4">
-                    <input v-model="rejectForm.reason" type="text" placeholder="Reason for rejecting"
-                        class="flex-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-sm text-white" />
-                    <button @click="confirmReject(proposal)" class="rounded-lg bg-red-600 px-3 py-1.5 text-sm text-white">Confirm Reject</button>
-                    <button @click="cancelReject" class="rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white">Cancel</button>
+                <div v-if="rejectingId === proposal.id" class="ac-op-do">
+                    <label class="pr-sr" :for="`reject-${proposal.id}`">Reason for rejecting</label>
+                    <input :id="`reject-${proposal.id}`" v-model="rejectForm.reason" type="text" placeholder="Reason for rejecting" class="pr-field">
+                    <button type="button" class="pr-btn pr-btn--danger-solid" @click="confirmReject(proposal)">Reject it</button>
+                    <button type="button" class="pr-btn" @click="cancelReject">Cancel</button>
                 </div>
-                <div v-else class="flex items-center gap-2 mt-4">
-                    <button @click="approve(proposal)" class="rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white">Approve</button>
-                    <button @click="promptReject(proposal)" class="rounded-lg bg-red-600 px-3 py-1.5 text-sm text-white">Reject</button>
+                <div v-else class="ac-op-do">
+                    <button type="button" class="pr-btn pr-btn--primary" @click="approve(proposal)">Approve</button>
+                    <button type="button" class="pr-btn pr-btn--danger-quiet" @click="promptReject(proposal)">Reject</button>
                 </div>
             </div>
-            <p v-if="pending.length === 0" class="text-white/40 text-sm">No pending proposals.</p>
+        </div>
+        <p v-else class="ac-empty">Nothing waiting for a decision.</p>
 
-            <h2 class="text-lg font-semibold text-white mt-10 mb-4">Recently Reviewed</h2>
-            <div v-for="proposal in reviewed" :key="proposal.id" class="rounded-2xl border border-white/10 bg-white/[0.02] p-4 mb-3 flex items-center justify-between">
-                <span class="text-white text-sm">{{ proposal.manager }} &mdash; {{ proposal.risk_summary }}</span>
-                <span class="text-xs font-semibold px-3 py-1 rounded-full"
-                    :class="{
-                        'bg-green-500/10 text-green-400': proposal.status === 'applied',
-                        'bg-red-500/10 text-red-400': proposal.status === 'rejected' || proposal.status === 'failed',
-                        'bg-amber-500/10 text-amber-400': proposal.status === 'approved',
-                    }">
+        <h2 class="ac-h2">Recently decided</h2>
+
+        <div v-if="reviewed.length" class="ac-op">
+            <div v-for="proposal in reviewed" :key="proposal.id" class="ac-op-item" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: center;">
+                <span>{{ proposal.manager }}: {{ proposal.risk_summary }}</span>
+                <span class="ac-state">
+                    <span
+                        class="pr-bead pr-bead--sm"
+                        :class="{ 'pr-bead--warn': proposal.status === 'rejected' || proposal.status === 'failed' }"
+                        :data-state="proposal.status === 'applied' ? 'solid' : proposal.status === 'approved' ? 'current' : undefined"
+                        aria-hidden="true"
+                    />
                     {{ proposal.status }}
                 </span>
             </div>
-            <p v-if="reviewed.length === 0" class="text-white/40 text-sm">No reviewed proposals yet.</p>
         </div>
+        <p v-else class="ac-empty">Nothing decided yet.</p>
     </AppLayout>
 </template>

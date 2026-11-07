@@ -38,62 +38,62 @@ const closeModal = () => {
 </script>
 
 <template>
-    <ActionSection>
+    <ActionSection danger>
         <template #title>
-            Delete Account
+            Delete account
         </template>
 
         <template #description>
-            Permanently delete your account.
+            This cannot be undone.
         </template>
 
         <template #content>
-            <div class="max-w-xl text-sm text-gray-600">
-                Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.
-            </div>
+            <p class="ac-text">
+                Deleting your account deletes the teams you own, with every deck and picture in them. Decks you made in someone else's team stay with that team. Download any deck you want to keep first, as PowerPoint or PDF.
+            </p>
 
-            <div class="mt-5">
+            <div class="ac-actions">
                 <DangerButton @click="confirmUserDeletion">
-                    Delete Account
+                    Delete my account
                 </DangerButton>
             </div>
 
-            <!-- Delete Account Confirmation Modal -->
             <DialogModal :show="confirmingUserDeletion" @close="closeModal">
                 <template #title>
-                    Delete Account
+                    <span class="pr-bead pr-bead--bad" aria-hidden="true" />
+                    Delete account
                 </template>
 
                 <template #content>
-                    Are you sure you want to delete your account? Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.
+                    This deletes your account and the decks in your projects, for good. Enter your password to confirm.
 
                     <div class="mt-4">
                         <TextInput
                             ref="passwordInput"
                             v-model="form.password"
                             type="password"
-                            class="mt-1 block w-3/4"
+                            name="password"
+                            aria-label="Password"
                             placeholder="Password"
                             autocomplete="current-password"
+                            :aria-invalid="form.errors.password ? 'true' : undefined"
                             @keyup.enter="deleteUser"
                         />
 
-                        <InputError :message="form.errors.password" class="mt-2" />
+                        <InputError :message="form.errors.password" />
                     </div>
                 </template>
 
                 <template #footer>
                     <SecondaryButton @click="closeModal">
-                        Cancel
+                        Keep my account
                     </SecondaryButton>
 
                     <DangerButton
-                        class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         @click="deleteUser"
                     >
-                        Delete Account
+                        Delete my account
                     </DangerButton>
                 </template>
             </DialogModal>

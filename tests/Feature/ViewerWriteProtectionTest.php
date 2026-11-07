@@ -113,7 +113,10 @@ class ViewerWriteProtectionTest extends TestCase
             $this->actingAs($writer)->putJson('/api/projects/'.$this->project->id, ['name' => 'Renamed'])->assertOk();
         }
 
-        $this->actingAs($this->editor)->deleteJson('/api/projects/'.$this->project->id)->assertNoContent();
+        // R-40 security pass: deleting a project erases every deck in it, so editors may not, and nobody may while it holds decks.
+        $this->actingAs($this->editor)->deleteJson('/api/projects/'.$this->project->id)->assertForbidden();
+        $empty = Project::create(['user_id' => $this->owner->id, 'team_id' => $this->team->id, 'name' => 'Empty', 'slug' => 'empty-'.uniqid()]);
+        $this->actingAs($this->admin)->deleteJson('/api/projects/'.$empty->id)->assertNoContent();
     }
 
     // ---- decks ----------------------------------------------------------
@@ -132,28 +135,36 @@ class ViewerWriteProtectionTest extends TestCase
             $this->actingAs($writer)->patchJson('/api/decks/'.$this->deck->id, ['title' => 'Renamed'])->assertOk();
         }
 
-        $this->actingAs($this->editor)->deleteJson('/api/decks/'.$this->newDeck()->id)->assertNoContent();
+        // R-40 rule change: deleting a deck is the `manage` ability. An editor may delete a deck they created
+        // (the creator is its owner) but no longer one somebody else made; an admin may delete any team deck.
+        $this->actingAs($this->editor)->deleteJson('/api/decks/'.$this->newDeck()->id)->assertForbidden();
+        $own = $this->newDeck();
+        $own->forceFill(['user_id' => $this->editor->id])->save();
+        $this->actingAs($this->editor)->deleteJson('/api/decks/'.$own->id)->assertNoContent();
+        $this->actingAs($this->admin)->deleteJson('/api/decks/'.$this->newDeck()->id)->assertNoContent();
     }
 
     // ---- slides ---------------------------------------------------------
 
     public function test_slide_writes(): void
     {
-        $canvas = ['canvas_state' => ['elements' => [['id' => 'el-1', 'type' => 'rect', 'x' => 1, 'y' => 1]]]];
+        $op = fn (string $key) => ['client' => 'tab-1', 'key' => $key, 'ops' => [
+            ['op' => 'el.add', 'slide' => $this->slide->id, 'el' => ['id' => 'el-1', 'type' => 'shape', 'x' => 1, 'y' => 1, 'w' => 10, 'h' => 10]],
+            ['op' => 'slide.add', 'tid' => 'n1', 'slide' => ['title' => 'Nope']],
+        ]];
 
-        $this->actingAs($this->viewer)->postJson('/api/slides', ['deck_id' => $this->deck->id, 'title' => 'Nope'])->assertForbidden();
-        $this->actingAs($this->viewer)->putJson('/api/slides/'.$this->slide->id, $canvas)->assertForbidden();
-        $this->actingAs($this->viewer)->patchJson('/api/slides/'.$this->slide->id, ['title' => 'Nope'])->assertForbidden();
-        $this->actingAs($this->viewer)->deleteJson('/api/slides/'.$this->slide->id)->assertForbidden();
+        $this->actingAs($this->viewer)->postJson('/api/decks/'.$this->deck->id.'/ops', $op('viewer-1'))->assertForbidden();
+        // Slides are read-only resources now: every write verb is gone.
+        $this->actingAs($this->viewer)->postJson('/api/slides', ['deck_id' => $this->deck->id, 'title' => 'Nope'])->assertNotFound();
+        $this->actingAs($this->viewer)->putJson('/api/slides/'.$this->slide->id, ['title' => 'Nope'])->assertStatus(405);
+        $this->actingAs($this->viewer)->deleteJson('/api/slides/'.$this->slide->id)->assertStatus(405);
         $this->assertDatabaseMissing('slides', ['title' => 'Nope']);
-        $this->assertSame(0, $this->slide->fresh()->elements()->count());
+        $this->assertSame([], $this->slide->fresh()->els ?? []);
 
         foreach ([$this->editor, $this->admin] as $writer) {
-            $this->actingAs($writer)->postJson('/api/slides', ['deck_id' => $this->deck->id, 'title' => 'Ok'])->assertCreated();
-            $this->actingAs($writer)->putJson('/api/slides/'.$this->slide->id, $canvas)->assertOk();
+            $this->actingAs($writer)->postJson('/api/decks/'.$this->deck->id.'/ops', $op('writer-'.$writer->id))->assertOk();
         }
-
-        $this->actingAs($this->editor)->deleteJson('/api/slides/'.$this->newSlide()->id)->assertNoContent();
+        $this->assertDatabaseHas('slides', ['title' => 'Nope']);
     }
 
     // ---- assets ---------------------------------------------------------
@@ -161,7 +172,11 @@ class ViewerWriteProtectionTest extends TestCase
     public function test_asset_writes_and_reads(): void
     {
         $asset = $this->newAsset();
-        $upload = fn () => ['project_id' => $this->project->id, 'file' => UploadedFile::fake()->create('slide.png', 20, 'image/png')];
+        $size = 20;
+        // Each upload is a different picture: identical bytes in one project are stored once and answer 200.
+        $upload = function () use (&$size): array {
+            return ['project_id' => $this->project->id, 'file' => UploadedFile::fake()->image('slide.png', ++$size, 20)];
+        };
 
         $this->actingAs($this->viewer)->postJson('/api/assets', $upload())->assertForbidden();
         $this->actingAs($this->viewer)->deleteJson('/api/assets/'.$asset->id)->assertForbidden();
@@ -208,23 +223,14 @@ class ViewerWriteProtectionTest extends TestCase
         $decks = Deck::withoutGlobalScopes()->count();
         $slides = Slide::withoutGlobalScopes()->count();
 
-        $this->actingAs($viewer)->get(route('editor.start'))->assertForbidden();
+        // R-40: the old entry point no longer creates anything for anyone. It only sends people to the library.
+        foreach ([$viewer, $this->member('editor', $fresh)] as $person) {
+            $this->actingAs($person)->get(route('editor.start'))->assertRedirect(route('dashboard'));
+        }
 
         $this->assertSame($projects, Project::withoutGlobalScopes()->count());
         $this->assertSame($decks, Deck::withoutGlobalScopes()->count());
         $this->assertSame($slides, Slide::withoutGlobalScopes()->count());
-
-        // An editor in the same team still gets the workspace made for them.
-        $editor = $this->member('editor', $fresh);
-        $this->actingAs($editor)->get(route('editor.start'))->assertRedirect();
-        $this->assertSame($projects + 1, Project::withoutGlobalScopes()->count());
-
-        // Now it exists, the viewer is sent to the existing first slide.
-        $workspaceDeck = Deck::withoutGlobalScopes()->where('title', 'Main Deck')->firstOrFail();
-        $workspaceSlide = $workspaceDeck->slides()->firstOrFail();
-        $this->actingAs($viewer)->get(route('editor.start'))
-            ->assertRedirect(route('editor.slides.show', [$workspaceDeck, $workspaceSlide]));
-        $this->assertSame($projects + 1, Project::withoutGlobalScopes()->count());
     }
 
     // ---- team management ------------------------------------------------
@@ -272,37 +278,34 @@ class ViewerWriteProtectionTest extends TestCase
         $this->getJson('/api/projects/'.$this->project->id)->assertOk();
         $this->getJson('/api/decks')->assertOk();
         $this->getJson('/api/decks/'.$this->deck->id)->assertOk();
-        $this->getJson('/api/slides?deck_id='.$this->deck->id)->assertOk();
         $this->getJson('/api/slides/'.$this->slide->id)->assertOk();
-        $this->getJson('/api/collab/slides/'.$this->slide->id.'/participants')->assertOk();
-        $this->postJson('/api/collab/slides/'.$this->slide->id.'/heartbeat', ['cursor' => ['x' => 1, 'y' => 1]])->assertOk();
+        $this->getJson('/api/decks/'.$this->deck->id.'/document')->assertOk();
+        $this->getJson('/api/decks/'.$this->deck->id.'/changes')->assertOk();
+        $this->getJson('/api/decks/'.$this->deck->id.'/versions')->assertOk();
+        $this->postJson('/api/decks/'.$this->deck->id.'/presence', ['client' => 'tab-v', 'cursor' => ['x' => 1, 'y' => 1]])->assertOk();
         $this->get(route('dashboard'))->assertOk();
-        $this->get(route('presentation.slides.show', [$this->deck, $this->slide]))->assertOk();
-        $this->get(route('export.decks.pdf', [$this->deck]))->assertSuccessful();
-        $this->get(route('export.decks.pptx', [$this->deck]))->assertSuccessful();
-        $this->get(route('editor.slides.show', [$this->deck, $this->slide]))
+        $this->get(route('press.player', $this->deck))->assertOk();
+        $this->postJson('/api/decks/'.$this->deck->id.'/exports/preflight', ['format' => 'pdf'])->assertOk();
+        $this->get(route('press.editor', $this->deck))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('Canvas/Editor')->where('canEdit', false));
+            ->assertInertia(fn ($page) => $page->component('Press/Editor')->where('can.update', false)->where('can.comment', true));
     }
 
     public function test_editors_and_admins_get_the_editable_canvas(): void
     {
         foreach ([$this->editor, $this->admin, $this->owner] as $writer) {
             $this->actingAs($writer)
-                ->get(route('editor.slides.show', [$this->deck, $this->slide]))
-                ->assertInertia(fn ($page) => $page->where('canEdit', true));
+                ->get(route('press.editor', $this->deck))
+                ->assertInertia(fn ($page) => $page->where('can.update', true));
         }
     }
 
-    public function test_the_dashboard_tells_the_page_which_projects_a_person_may_change(): void
+    public function test_the_library_tells_the_page_whether_a_person_may_create(): void
     {
-        $own = Project::create(['user_id' => $this->viewer->id, 'team_id' => $this->team->id, 'name' => 'Mine', 'slug' => 'mine']);
-
         $this->actingAs($this->viewer)->get(route('dashboard'))
-            ->assertInertia(fn ($page) => $page->where('projects.0.can_edit', false));
-        $this->actingAs($this->editor)->get(route('dashboard'))->assertOk();
-
-        $this->assertNotNull($own);
+            ->assertInertia(fn ($page) => $page->component('Press/Library')->where('canCreate', false));
+        $this->actingAs($this->editor)->get(route('dashboard'))
+            ->assertInertia(fn ($page) => $page->where('canCreate', true));
     }
 
     // ---- roles are per team ---------------------------------------------
@@ -329,6 +332,7 @@ class ViewerWriteProtectionTest extends TestCase
     {
         $outsider = User::factory()->withPersonalTeam()->create();
 
-        $this->actingAs($outsider)->putJson('/api/slides/'.$this->slide->id, ['title' => 'Nope'])->assertNotFound();
+        $this->actingAs($outsider)->getJson('/api/slides/'.$this->slide->id)->assertNotFound();
+        $this->actingAs($outsider)->postJson('/api/decks/'.$this->deck->id.'/ops', ['client' => 'c', 'key' => 'k', 'ops' => [['op' => 'deck.set', 'title' => 'Nope']]])->assertNotFound();
     }
 }
