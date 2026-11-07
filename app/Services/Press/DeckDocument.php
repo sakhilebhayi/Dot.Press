@@ -59,8 +59,8 @@ class DeckDocument
     {
         return [
             'id' => $slide->id,
-            'title' => $slide->title,
-            'notes' => $slide->notes,
+            'title' => $slide->title ?? '',
+            'notes' => $slide->notes ?? '',
             'section_id' => $slide->section_id,
             'hidden' => (bool) $slide->hidden,
             'layout' => $slide->layout ?: 'blank',
