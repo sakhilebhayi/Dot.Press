@@ -142,19 +142,22 @@ export async function elBox(page, id) {
 }
 export const MOD = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-export async function center(page, id) {
+export async function center(page, id, at = [0.5, 0.5]) {
     const b = await elBox(page, id);
-    return { x: b.x + b.width / 2, y: b.y + b.height / 2, b };
+    return { x: b.x + b.width * at[0], y: b.y + b.height * at[1], b };
 }
 /** A real click on an element of the stage (the stage owns pointer events, so the pointer goes to its screen position). */
 export async function clickEl(page, id, opts = {}) {
-    const c = await center(page, id);
-    await page.mouse.click(c.x, c.y, opts);
+    const c = await center(page, id, opts.at);
+    const mods = opts.modifiers || [];
+    for (const m of mods) await page.keyboard.down(m);
+    await page.mouse.click(c.x, c.y, { button: opts.button, clickCount: opts.clickCount });
+    for (const m of mods.slice().reverse()) await page.keyboard.up(m);
     return c;
 }
 /** Drag an element by (dx, dy) screen pixels with real pointer events. */
-export async function dragEl(page, id, dx, dy, { steps = 10, from = null } = {}) {
-    const c = from || await center(page, id);
+export async function dragEl(page, id, dx, dy, { steps = 10, from = null, at } = {}) {
+    const c = from || await center(page, id, at);
     await page.mouse.move(c.x, c.y);
     await page.mouse.down();
     await page.mouse.move(c.x + dx / 2, c.y + dy / 2, { steps });

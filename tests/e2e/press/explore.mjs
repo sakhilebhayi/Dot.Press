@@ -1,11 +1,12 @@
 import { launch, newContext, shot, BASE, sleep, openDeck, createDeck } from './lib.mjs';
 const b = await launch();
 const { page, ctx } = await newContext(b, 'owner@demo.test', { viewport: { width: 1440, height: 900 } });
-const id = await createDeck(page, 'explore chart ' + Date.now());
+const id = await createDeck(page, 'explore tabs ' + Date.now());
 await openDeck(page, id);
-await page.locator('.dk-ins[aria-label="Chart"]').click();
-await sleep(700);
-await shot(page, 'x-charts');
-console.log(await page.locator('.ed-insp').innerText());
-console.log(await page.locator('.ed-insp button').evaluateAll(els => els.map(e => (e.getAttribute('aria-label') || e.innerText).trim().slice(0, 40)).filter(Boolean)));
+await page.locator('.tb-insp').click();
+await sleep(600);
+await page.locator('.in-pick').click();
+await page.getByRole('menuitem', { name: 'Theme', exact: true }).click();
+await sleep(500);
+console.log(await page.evaluate(() => ['.in-head', '.in-head .dm', '.in-pick', '.in-tabs', '.in-tab', '.in-close'].map((s) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return `${s} x=${Math.round(b.x)} w=${Math.round(b.width)}`; }).join('\n')));
 await b.close();
