@@ -125,4 +125,21 @@ class OpsIsolationTest extends AccessTestCase
             }
         }
     }
+
+    public function test_prototype_pollution_keys_never_reach_the_stored_document(): void
+    {
+        $slideId = $this->slide->id;
+        $payload = '{"op":"el.add","slide":'.$slideId.',"el":{"id":"pp","type":"chart","x":1,"y":1,"w":100,"h":100,"__proto__":{"polluted":true},"constructor":{"prototype":{"polluted":true}},'
+            .'"chart":{"type":"column","__proto__":{"polluted":true},"data":{"categories":["a"],"series":[{"name":"s","values":[1],"__proto__":{"polluted":true}}],"__proto__":{"polluted":true}},"opt":{"__proto__":{"polluted":true},"ax":{"__proto__":{"polluted":true},"x":{"__proto__":{"polluted":true},"title":"t"}}}}}}';
+        $set = '{"op":"el.set","slide":'.$slideId.',"id":"title1","p":{"__proto__":{"polluted":true},"constructor":{"prototype":{"polluted":true}},"adj":{"__proto__":{"polluted":true}},"x":5}}';
+
+        $this->actingAs($this->editor)->call('POST', "/api/decks/{$this->deck->id}/ops", [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
+            '{"client":"t","key":"k-pp","ops":['.$payload.','.$set.']}')->assertOk();
+
+        $stored = json_encode(Slide::find($slideId)->els);
+        $this->assertStringNotContainsString('__proto__', $stored);
+        $this->assertStringNotContainsString('polluted', $stored);
+        $this->assertStringNotContainsString('constructor', $stored);
+        $this->assertStringNotContainsString('polluted', json_encode(DeckChange::first()->ops));
+    }
 }
