@@ -1,0 +1,126 @@
+{
+ "name": "el-set-replaces-nested-whole",
+ "description": "nested objects are replaced, not merged",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "shape",
+      "kind": "rect",
+      "x": 0,
+      "y": 0,
+      "w": 10,
+      "h": 10,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "fill": "@accent",
+      "shadow": {
+       "x": 1,
+       "y": 2,
+       "blur": 3,
+       "c": "#000"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "el.set",
+   "slide": "s1",
+   "id": "a",
+   "p": {
+    "shadow": {
+     "x": 9,
+     "y": 9,
+     "blur": 0,
+     "c": "#fff"
+    }
+   }
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "shape",
+       "kind": "rect",
+       "x": 0,
+       "y": 0,
+       "w": 10,
+       "h": 10,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "fill": "@accent",
+       "shadow": {
+        "x": 9,
+        "y": 9,
+        "blur": 0,
+        "c": "#fff"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

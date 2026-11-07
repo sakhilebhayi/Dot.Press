@@ -1,0 +1,247 @@
+{
+ "name": "slide-add-with-els-drops-bad-ones",
+ "description": "initial els: entries with a bad id, unknown type or repeated id are dropped; unknown slide keys are ignored; invalid typed fields ignored",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1",
+    "s2",
+    "s3"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "w": 10,
+      "h": 10,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     }
+    ]
+   },
+   {
+    "id": "s2",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   },
+   {
+    "id": "s3",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": []
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "slide.add",
+   "tid": "n1",
+   "after": "s3",
+   "slide": {
+    "notes": "N",
+    "hidden": "yes",
+    "extra": 1,
+    "els": [
+     {
+      "id": "p",
+      "type": "text",
+      "x": 1,
+      "y": 2,
+      "w": 3,
+      "h": 4,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     },
+     {
+      "id": "p",
+      "type": "text",
+      "x": 9,
+      "y": 9,
+      "w": 9,
+      "h": 9,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     },
+     {
+      "id": "bad id",
+      "type": "text"
+     },
+     {
+      "id": "q",
+      "type": "blob"
+     },
+     {
+      "id": "r",
+      "type": "shape",
+      "kind": "rect",
+      "x": 5,
+      "y": 6,
+      "w": 7,
+      "h": 8,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "fill": "@accent"
+     }
+    ]
+   }
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1",
+     "s2",
+     "s3",
+     "n1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 0,
+       "y": 0,
+       "w": 10,
+       "h": 10,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      }
+     ]
+    },
+    {
+     "id": "s2",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s3",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "n1",
+     "title": "",
+     "notes": "N",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "p",
+       "type": "text",
+       "x": 1,
+       "y": 2,
+       "w": 3,
+       "h": 4,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      },
+      {
+       "id": "r",
+       "type": "shape",
+       "kind": "rect",
+       "x": 5,
+       "y": 6,
+       "w": 7,
+       "h": 8,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "fill": "@accent"
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

@@ -1,0 +1,175 @@
+{
+ "name": "resize-scale-text-doc-font-sizes",
+ "description": "halving scales fontSize marks in the text document: a number stays a number, \"18px\" stays a px string",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1600,
+   "h": 800,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "t",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "w": 100,
+      "h": 40,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "size": 20,
+      "doc": {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "Hi",
+           "marks": [
+            {
+             "type": "textStyle",
+             "attrs": {
+              "fontSize": 20
+             }
+            }
+           ]
+          },
+          {
+           "type": "text",
+           "text": "there",
+           "marks": [
+            {
+             "type": "textStyle",
+             "attrs": {
+              "fontSize": "18px",
+              "color": "@accent"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "deck.resize",
+   "w": 800,
+   "h": 400,
+   "mode": "scale"
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 800,
+    "h": 400,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "t",
+       "type": "text",
+       "x": 0,
+       "y": 0,
+       "w": 50,
+       "h": 20,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "size": 10,
+       "doc": {
+        "type": "doc",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Hi",
+            "marks": [
+             {
+              "type": "textStyle",
+              "attrs": {
+               "fontSize": 10
+              }
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "there",
+            "marks": [
+             {
+              "type": "textStyle",
+              "attrs": {
+               "fontSize": "9px",
+               "color": "@accent"
+              }
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": []
+ }
+}

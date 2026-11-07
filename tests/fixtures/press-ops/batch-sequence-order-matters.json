@@ -1,0 +1,239 @@
+{
+ "name": "batch-sequence-order-matters",
+ "description": "ops apply in order: a slide added in the batch can be used by the next ops; an element removed earlier is missing later",
+ "doc": {
+  "deck": {
+   "id": "d1",
+   "title": "Deck",
+   "w": 1920,
+   "h": 1080,
+   "theme": {
+    "id": "slate"
+   },
+   "status": "draft",
+   "visibility": "private",
+   "sections": [],
+   "slide_order": [
+    "s1",
+    "s2"
+   ]
+  },
+  "slides": [
+   {
+    "id": "s1",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "a",
+      "type": "text",
+      "x": 100,
+      "y": 100,
+      "w": 400,
+      "h": 100,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "size": 40
+     },
+     {
+      "id": "b",
+      "type": "shape",
+      "kind": "rect",
+      "x": 600,
+      "y": 200,
+      "w": 300,
+      "h": 300,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false,
+      "fill": "@accent"
+     }
+    ]
+   },
+   {
+    "id": "s2",
+    "title": "",
+    "notes": "",
+    "section_id": null,
+    "hidden": false,
+    "layout": "blank",
+    "bg": null,
+    "transition": null,
+    "rev": 0,
+    "els": [
+     {
+      "id": "c",
+      "type": "text",
+      "x": 50,
+      "y": 50,
+      "w": 200,
+      "h": 60,
+      "rot": 0,
+      "op": 1,
+      "lock": false,
+      "hide": false
+     }
+    ]
+   }
+  ]
+ },
+ "ops": [
+  {
+   "op": "slide.add",
+   "tid": "n1",
+   "after": "s1"
+  },
+  {
+   "op": "el.add",
+   "slide": "n1",
+   "el": {
+    "id": "k",
+    "type": "text",
+    "x": 1,
+    "y": 1,
+    "w": 1,
+    "h": 1,
+    "rot": 0,
+    "op": 1,
+    "lock": false,
+    "hide": false
+   }
+  },
+  {
+   "op": "el.set",
+   "slide": "n1",
+   "id": "k",
+   "p": {
+    "x": 5
+   }
+  },
+  {
+   "op": "el.remove",
+   "slide": "n1",
+   "id": "k"
+  },
+  {
+   "op": "el.set",
+   "slide": "n1",
+   "id": "k",
+   "p": {
+    "x": 6
+   }
+  }
+ ],
+ "expected": {
+  "doc": {
+   "deck": {
+    "id": "d1",
+    "title": "Deck",
+    "w": 1920,
+    "h": 1080,
+    "theme": {
+     "id": "slate"
+    },
+    "status": "draft",
+    "visibility": "private",
+    "sections": [],
+    "slide_order": [
+     "s1",
+     "n1",
+     "s2"
+    ]
+   },
+   "slides": [
+    {
+     "id": "s1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "a",
+       "type": "text",
+       "x": 100,
+       "y": 100,
+       "w": 400,
+       "h": 100,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "size": 40
+      },
+      {
+       "id": "b",
+       "type": "shape",
+       "kind": "rect",
+       "x": 600,
+       "y": 200,
+       "w": 300,
+       "h": 300,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false,
+       "fill": "@accent"
+      }
+     ]
+    },
+    {
+     "id": "n1",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": []
+    },
+    {
+     "id": "s2",
+     "title": "",
+     "notes": "",
+     "section_id": null,
+     "hidden": false,
+     "layout": "blank",
+     "bg": null,
+     "transition": null,
+     "rev": 0,
+     "els": [
+      {
+       "id": "c",
+       "type": "text",
+       "x": 50,
+       "y": 50,
+       "w": 200,
+       "h": 60,
+       "rot": 0,
+       "op": 1,
+       "lock": false,
+       "hide": false
+      }
+     ]
+    }
+   ]
+  },
+  "skipped": [
+   {
+    "index": 4,
+    "reason": "missing_element"
+   }
+  ]
+ }
+}
