@@ -119,6 +119,31 @@ class DocumentSanitizerTest extends TestCase
         $this->san->element(['id' => 'a', 'type' => 'shape', 'anim' => [['fx' => 'explode']]]);
     }
 
+    public function test_animation_step_order_is_an_optional_integer_between_0_and_9999(): void
+    {
+        $el = $this->san->element(['id' => 'a', 'type' => 'shape', 'anim' => [
+            ['fx' => 'fade'],
+            ['fx' => 'fade', 'ord' => 3],
+            ['fx' => 'fade', 'ord' => '7'],
+            ['fx' => 'fade', 'ord' => 123456],
+            ['fx' => 'fade', 'ord' => -4],
+            ['fx' => 'fade', 'ord' => 2.6],
+        ]]);
+
+        $this->assertArrayNotHasKey('ord', $el['anim'][0]);
+        $this->assertSame(3, $el['anim'][1]['ord']);
+        $this->assertSame(7, $el['anim'][2]['ord']);
+        $this->assertSame(9999, $el['anim'][3]['ord']);
+        $this->assertSame(0, $el['anim'][4]['ord']);
+        $this->assertSame(3, $el['anim'][5]['ord']);
+    }
+
+    public function test_animation_step_order_must_be_numeric(): void
+    {
+        $this->expectException(InvalidDocument::class);
+        $this->san->element(['id' => 'a', 'type' => 'shape', 'anim' => [['fx' => 'fade', 'ord' => 'first']]]);
+    }
+
     public function test_an_icon_keeps_its_icon_id_in_name(): void
     {
         $this->assertSame('chevron-right', $this->san->element(['id' => 'i', 'type' => 'icon', 'name' => 'chevron-right', 'x' => 1, 'y' => 1, 'w' => 4, 'h' => 4])['name']);

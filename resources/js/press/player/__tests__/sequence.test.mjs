@@ -101,3 +101,41 @@ test('determinism: replaying groups one by one equals stateAt for every k', () =
         assert.equal(clone(live), clone(s.stateAt(k)), `step ${k}`);
     }
 });
+
+test('ord absent: order is exactly z-order then step index (unchanged behaviour)', () => {
+    const s = buildSequence(slide(
+        el('a', step({ fx: 'fade' }), step({ fx: 'rise', on: 'with' })),
+        el('b', step({ fx: 'zoom' })),
+        el('c', step({ fx: 'pop' })),
+    ));
+    assert.deepEqual(s.groups.flatMap((g) => g.items).map((i) => `${i.elId}:${i.fx}`), ['a:fade', 'a:rise', 'b:zoom', 'c:pop']);
+    assert.ok(s.groups.flatMap((g) => g.items).every((i) => !('ord' in i)));
+});
+
+test('ord orders steps across elements regardless of layering', () => {
+    const s = buildSequence(slide(
+        el('bottom', step({ ord: 2 })),
+        el('mid', step({ ord: 0 })),
+        el('top', step({ ord: 1 })),
+    ));
+    assert.deepEqual(s.groups.slice(1).map((g) => g.items[0].elId), ['mid', 'top', 'bottom']);
+    // layering is untouched: stateAt still uses element ids, not positions
+    assert.equal(s.stateAt(1).get('mid').visible, true);
+    assert.equal(s.stateAt(1).get('bottom').visible, false);
+});
+
+test('ord ties fall back to z index, then step index; steps without ord use their z index as key', () => {
+    const s = buildSequence(slide(
+        el('a', step({ ord: 1 })),
+        el('b', step({ ord: 1 }), step({ ord: 1, fx: 'rise', on: 'with' })),
+        el('c', step({})),
+    ));
+    // c has no ord so its key is its z index (2); a and b share key 1
+    assert.deepEqual(s.groups.flatMap((g) => g.items).map((i) => `${i.elId}:${i.fx}`), ['a:fade', 'b:fade', 'b:rise', 'c:fade']);
+});
+
+test('ord is clamped to an integer 0..9999 and bad values are ignored', () => {
+    const s = buildSequence(slide(el('a', step({ ord: 5.6 }), step({ ord: -3, fx: 'rise' }), step({ ord: 'x', fx: 'zoom' }), step({ ord: 99999, fx: 'pop' }))));
+    const items = s.groups.flatMap((g) => g.items);
+    assert.deepEqual(items.map((i) => [i.fx, i.ord]), [['rise', 0], ['zoom', undefined], ['fade', 6], ['pop', 9999]]);
+});

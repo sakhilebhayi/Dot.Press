@@ -1,7 +1,9 @@
 // Playback sequence builder (spec section 7). Pure, no DOM.
 //
 // The slide's sequence is the `anim` steps of its elements merged in z-order (array order, bottom first; within one
-// element in the order written) and grouped into clicks:
+// element in the order written) and grouped into clicks. A step may carry an optional integer `ord` (0..9999): the
+// merge then sorts by `ord` when present (else the element's z index), then by z index, then by step index, so users
+// can reorder the sequence without changing layering. Without any `ord` the order is exactly the z-order above.
 //   click  starts a new group (one press of Next plays one group)
 //   with   starts together with the previous step
 //   after  starts when the previous step ends
@@ -32,7 +34,7 @@ export function normalizeStep(raw, elId, index) {
     if (!raw || typeof raw !== 'object') return null;
     const ph = PHASES.includes(raw.ph) ? raw.ph : 'in';
     if (!EFFECTS.includes(raw.fx)) return null;
-    return {
+    const out = {
         id: typeof raw.id === 'string' && raw.id ? raw.id : `${elId}:${index}`,
         elId,
         ph,
@@ -42,6 +44,16 @@ export function normalizeStep(raw, elId, index) {
         dur: clampInt(raw.dur, 0, 20000, 500),
         ease: EASES.includes(raw.ease) ? raw.ease : 'out',
     };
+    if (raw.ord !== undefined && raw.ord !== null && Number.isFinite(+raw.ord)) out.ord = clampInt(raw.ord, 0, 9999, 0);
+    return out;
+}
+
+/** Sort key of a step: `ord` when present, else the element's z index. */
+export const orderKey = (step, z) => (step.ord !== undefined ? step.ord : z);
+
+/** Play order of normalised steps carrying their z index (`z`) and step index (`i`). Stable, pure. */
+export function sortSteps(entries) {
+    return entries.slice().sort((a, b) => orderKey(a.step, a.z) - orderKey(b.step, b.z) || a.z - b.z || a.i - b.i);
 }
 
 /**
@@ -56,20 +68,21 @@ export function normalizeStep(raw, elId, index) {
  */
 export function buildSequence(slide) {
     const els = Array.isArray(slide?.els) ? slide.els : [];
-    const flat = [];
+    const entries = [];
     const startsHidden = new Set();
     const elementIds = [];
-    for (const el of els) {
-        if (!el || typeof el !== 'object' || typeof el.id !== 'string' || el.hide) continue;
+    els.forEach((el, z) => {
+        if (!el || typeof el !== 'object' || typeof el.id !== 'string' || el.hide) return;
         elementIds.push(el.id);
-        if (!Array.isArray(el.anim)) continue;
+        if (!Array.isArray(el.anim)) return;
         el.anim.slice(0, 40).forEach((raw, i) => {
             const step = normalizeStep(raw, el.id, i);
             if (!step) return;
-            flat.push(step);
+            entries.push({ step, z, i });
             if (step.ph === 'in') startsHidden.add(el.id);
         });
-    }
+    });
+    const flat = sortSteps(entries).map((e) => e.step);
 
     const groups = [{ index: 0, items: [], duration: 0 }];
     let prev = null;
