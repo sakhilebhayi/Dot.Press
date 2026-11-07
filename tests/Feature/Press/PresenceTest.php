@@ -116,4 +116,23 @@ class PresenceTest extends TestCase
         $this->beat($stranger, $deck, 'tab-x')->assertNotFound();
         $this->assertSame(0, DeckPresence::count());
     }
+
+    public function test_a_reloaded_tab_replaces_its_own_earlier_row_and_never_someone_elses(): void
+    {
+        $user = $this->owner();
+        $other = $this->teammate($user);
+        $deck = $this->deckFor($user);
+
+        $this->beat($user, $deck, 'before-reload')->assertOk();
+        $this->beat($other, $deck, 'their-tab')->assertOk();
+        $this->assertSame(2, DeckPresence::count());
+
+        $this->beat($user, $deck, 'after-reload', ['replaces' => 'before-reload'])->assertOk()->assertJsonCount(1, 'others');
+        $this->assertSame(['after-reload', 'their-tab'], DeckPresence::orderBy('id')->pluck('client')->sort()->values()->all());
+
+        // naming someone else's client id removes nothing
+        $this->beat($user, $deck, 'after-reload', ['replaces' => 'their-tab'])->assertOk();
+        $this->assertSame(2, DeckPresence::count());
+        $this->assertTrue(DeckPresence::where('client', 'their-tab')->exists());
+    }
 }

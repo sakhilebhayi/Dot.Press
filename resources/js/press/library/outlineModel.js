@@ -1,8 +1,9 @@
 /**
  * The outline flow (node tested): reading the answer of POST /api/ai/outline, editing it, and turning it into slides.
  *
- * The route answers {mode: 'local'|'ai', outline: [{beat, label, slides: [...]}]}. A slide in `slides` is a string (the
- * claim) or an object with title (or claim, heading), points (or bullets) and notes. Anything else is skipped.
+ * The route answers {mode: 'local'|'ai', beats: [{id, label, slides: [...]}]} (an older shape with `outline` and `beat` is
+ * read too). A slide in `slides` is a string (the claim) or an object with title (or claim, heading), points or
+ * slots.bullets, notes and needs (a placeholder that asks for your evidence). Anything else is skipped.
  *
  *   normalizeOutline(res)            -> {mode, modeLabel, beats: [{id, beat, label, slides: [{id, title, points, notes}]}]} | null
  *   modeLabel(mode)                  'Local rules' | 'AI model'
@@ -21,12 +22,14 @@ function normSlide(s, nextId) {
   if (!s || typeof s !== 'object') return null;
   const title = text(s.title) || text(s.claim) || text(s.heading) || text(s.text);
   if (!title) return null;
-  const rawPoints = Array.isArray(s.points) ? s.points : Array.isArray(s.bullets) ? s.bullets : [];
-  return { id: nextId(), title, points: rawPoints.map(text).filter(Boolean), notes: text(s.notes) };
+  const slots = s.slots && typeof s.slots === 'object' ? s.slots : {};
+  const rawPoints = Array.isArray(s.points) ? s.points : Array.isArray(s.bullets) ? s.bullets : Array.isArray(slots.bullets) ? slots.bullets : [];
+  const need = Array.isArray(s.needs) && s.needs.length ? text(s.needs[0]?.question) || text(s.needs[0]?.label) : '';
+  return { id: nextId(), title, points: rawPoints.map(text).filter(Boolean), notes: text(s.notes), need };
 }
 
 export function normalizeOutline(res) {
-  const list = res && Array.isArray(res.outline) ? res.outline : null;
+  const list = res && Array.isArray(res.beats) ? res.beats : res && Array.isArray(res.outline) ? res.outline : null;
   if (!list) return null;
   let n = 0;
   const nextId = () => `o${++n}`;
@@ -36,7 +39,7 @@ export function normalizeOutline(res) {
     const slides = (Array.isArray(b.slides) ? b.slides : []).map((s) => normSlide(s, nextId)).filter(Boolean);
     const label = text(b.label) || text(b.beat);
     if (!label && !slides.length) continue;
-    beats.push({ id: nextId(), beat: text(b.beat) || label, label: label || text(b.beat), slides });
+    beats.push({ id: nextId(), beat: text(b.beat) || text(b.id) || label, label: label || text(b.beat), slides });
   }
   if (!beats.length) return null;
   return { mode: res.mode === 'ai' ? 'ai' : 'local', modeLabel: modeLabel(res.mode), beats };

@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 /**
  * Who else is in the deck. A browser tab posts its slide, selection and pointer every couple of seconds and gets back
  * the other tabs seen in the last 20 seconds plus the current seq, which doubles as a cheap "has anything changed"
- * check. Rows nobody refreshed for 2 minutes are deleted on the way.
+ * check. Rows nobody refreshed for 2 minutes are deleted on the way. `replaces` drops the caller's own row of an earlier
+ * page load (a reload keeps the tab but not the client id).
  */
 class PresenceController extends Controller
 {
@@ -29,6 +30,7 @@ class PresenceController extends Controller
 
         $v = $request->validate([
             'client' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_.:-]+$/D'],
+            'replaces' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9_.:-]+$/D'],
             'slide' => ['nullable', 'integer', 'min:1'],
             'selection' => ['nullable', 'array', 'max:50'],
             'selection.*' => ['string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/D'],
@@ -44,6 +46,12 @@ class PresenceController extends Controller
         $stale = DeckPresence::query()->where('deck_id', $deck->id)->where('seen_at', '<', now()->subSeconds(self::KEEP_SECONDS));
         if ($stale->exists()) {
             $stale->delete();
+        }
+
+        // A reloaded tab says which client id it had before, so the person does not meet their own ghost for 20 seconds.
+        // Only the person's own row is removed, never someone else's.
+        if (isset($v['replaces']) && $v['replaces'] !== $v['client']) {
+            DeckPresence::query()->where('deck_id', $deck->id)->where('client', $v['replaces'])->where('user_id', $user->id)->delete();
         }
 
         $row = DeckPresence::query()->where('deck_id', $deck->id)->where('client', $v['client'])->first();

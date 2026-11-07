@@ -140,8 +140,10 @@
 .ns-beat-tools { display: flex; flex: none; }
 .ns-claims { position: relative; display: grid; gap: 6px; margin: 10px 0 0 calc(2ch + 8px); padding: 0 0 0 26px; list-style: none; }
 .ns-claims::before { content: ''; position: absolute; left: 6px; top: 12px; bottom: 12px; width: 1.5px; background: var(--line-strong); }
-.ns-claim { position: relative; display: flex; align-items: center; gap: 4px; }
-.ns-claim .pr-bead { position: absolute; left: -26px; top: 50%; margin-top: -4px; box-shadow: 0 0 0 3px var(--paper); background-color: var(--paper); }
+.ns-claim { position: relative; display: flex; align-items: flex-start; gap: 4px; }
+.ns-claim-f { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.ns-need { padding-left: 2px; }
+.ns-claim .pr-bead { position: absolute; left: -26px; top: 18px; margin-top: -4px; box-shadow: 0 0 0 3px var(--paper); background-color: var(--paper); }
 .ns-claim .pr-field { height: 36px; flex: 1; min-width: 0; }
 .ns-add { margin: 6px 0 0 calc(2ch + 8px + 20px); }
 .ns-foot { display: flex; flex-wrap: wrap; gap: 8px; position: sticky; bottom: -24px; margin: 0 -24px -24px; padding: 14px 24px; background: var(--paper); border-top: 1px solid var(--line); }
@@ -171,7 +173,7 @@
     .lh-word { display: none; }
     .lh-search { padding: 0 4px; }
     .ls-key { display: none; }
-    .lh-new span { display: none; }
+    .lh-new span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* the label stays for screen readers */
     .lh-new { padding: 0; width: 44px; }
     .lw-grid { grid-template-columns: 1fr; gap: 36px; }
     .ns { width: 100%; border-left: 0; }
@@ -189,3 +191,11 @@
     .ns-tab { height: 48px; }
     .ns-size, .ns-theme { min-height: 44px; }
 }
+
+/* template gallery */
+.ns-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ns-chip { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; font-size: var(--t-sm); color: var(--ink-2, inherit); }
+.ns-chip.is-on { border-color: var(--amber); background: var(--paper); font-weight: 600; }
+.ns-tpl-thumb { display: block; position: relative; width: 100%; overflow: hidden; background: var(--sheet); box-shadow: var(--sheet-shadow); }
+.ns-tpl-b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ns-tpl:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }

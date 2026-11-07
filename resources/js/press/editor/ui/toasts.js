@@ -11,6 +11,8 @@
  *
  * Rules: kinds are info, ok, warn, error. An error stays until dismissed (ms 0 = sticky). A message identical to the
  * one on screen replaces it instead of queueing. A toast with an action lives longer (8 s). At most 6 wait.
+ * A warning or an error takes the screen at once from a toast that is only information (an Undo offer, a Saved), so a refused
+ * action is never explained eight seconds late. An error on screen is never pre-empted.
  */
 const KINDS = new Set(['info', 'ok', 'warn', 'error']);
 const MAX_WAITING = 6;
@@ -40,6 +42,12 @@ export function createToasts({ setTimeout: st = globalThis.setTimeout, clearTime
         return head.id;
       }
       const toast = { id: ++seq, message: String(message), kind: k, action, ms: life };
+      if ((k === 'warn' || k === 'error') && head && head.kind !== 'error') {
+        queue[0] = toast;
+        arm();
+        emit();
+        return toast.id;
+      }
       if (queue.length > MAX_WAITING) queue.splice(1, 1);
       queue.push(toast);
       if (queue.length === 1) arm();

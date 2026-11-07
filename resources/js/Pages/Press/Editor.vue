@@ -64,7 +64,7 @@ const title = computed(() => editor.deck.value.title || 'Presentation');
             <Dock />
         </main>
 
-        <div v-if="ui.inspector.open" class="ed-insp"><Inspector /></div>
+        <div v-if="ui.inspector.open" id="ed-insp" class="ed-insp"><Inspector /></div>
 
         <ToastHost />
         <ContextMenuHost />

@@ -4,7 +4,7 @@ import { resizeDoc } from '../../../core/resize.js';
 import { applyOps } from '../../../core/ops.js';
 import { mkDoc, S, T, R } from '../../../core/__tests__/helpers.mjs';
 import {
-  MODES, PRESETS, crossing, modeFact, presetFor, previewPair, ratioLabel, validSize,
+  DEFAULT_MODE, MODES, PRESETS, crossing, modeFact, presetFor, previewPair, ratioLabel, validSize,
 } from '../sizeModel.js';
 
 const doc = () => mkDoc([
@@ -97,4 +97,13 @@ test('the deck.resize op the panel sends is the one the core applies, and its in
   assert.deepEqual(back.slides, d.slides);
   assert.equal(back.deck.w, 1920);
   assert.equal(applyOps(d, [{ op: 'deck.resize', w: 100, h: 1080, mode: 'scale' }]).applied.length, 0);
+});
+
+test('the panel starts on the mode that cuts nothing off, whatever the new shape', () => {
+  const d = doc();
+  assert.equal(DEFAULT_MODE, 'fit');
+  assert.ok(MODES.some((m) => m.id === DEFAULT_MODE));
+  for (const [w, h] of [[1440, 1080], [1080, 1920], [1080, 1080], [3840, 2160]]) {
+    assert.deepEqual(crossing(d, w, h, DEFAULT_MODE), { elements: 0, slides: 0 }, `${w} x ${h}`);
+  }
 });

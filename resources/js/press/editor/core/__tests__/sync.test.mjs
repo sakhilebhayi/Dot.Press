@@ -556,3 +556,50 @@ test('discardRecovery removes a stored record without sending anything', async (
   assert.equal(await b.sync.recover(), null);
   assert.equal(b.server.calls.length, 0);
 });
+
+test('a live tab never offers its own queue back as unsent changes from an earlier session', async () => {
+  const storage = fakeStorage();
+  const server = fakeServer(initial());
+  const dead = boot({ server, storage, clientId: 'tab0' });
+  dead.server.holdResponses();
+  dead.sync.dispatch([set('a', { x: 5 })]);
+  await dead.clock.advance(700);
+  await dead.sync.persisted();
+  dead.sync.destroy();
+  const live = boot({ server: fakeServer(initial()), storage, clientId: 'tab1' });
+  live.server.holdResponses();
+  live.sync.dispatch([set('b', { x: 6 })]);
+  await live.clock.advance(20_000);
+  await live.sync.persisted();
+  const rec = await live.sync.recover();
+  assert.ok(rec, 'the dead tab record is still found');
+  assert.equal(rec.clientId, 'tab0', 'and it is not shadowed by this tab, whose record is newer');
+  const none = boot({ storage: fakeStorage(), clientId: 'tab2' });
+  none.server.holdResponses();
+  none.sync.dispatch([set('b', { x: 7 })]);
+  await none.clock.advance(20_000);
+  await none.sync.persisted();
+  assert.equal(await none.sync.recover(), null, 'own pending ops are not a recovery');
+});
+
+test('slides another client added in a chain of temporary ids arrive under their stored ids, in order, and later ops find them', async () => {
+  const server = fakeServer(initial());
+  const author = boot({ server, clientId: 'author' });
+  const reader = boot({ server, clientId: 'reader' });
+  author.sync.dispatch([
+    { op: 'slide.add', tid: 'tmpA', after: '1', slide: { title: 'A', els: [] } },
+    { op: 'slide.add', tid: 'tmpB', after: 'tmpA', slide: { title: 'B', els: [] } },
+    { op: 'slide.add', tid: 'tmpC', after: 'tmpB', slide: { title: 'C', els: [] } },
+  ]);
+  await author.clock.advance(700);
+  const stored = server.snapshot().slides.map((s) => s.id);
+  assert.equal(stored.length, 5);
+  assert.ok(stored.slice(1, 4).every((id) => /^\d+$/.test(id)));
+  await reader.sync.pollNow();
+  assert.deepEqual(reader.sync.getView().slides.map((s) => s.id), stored, 'the reader holds the stored ids in the same order');
+  // an edit the author makes later names the stored id and the reader can apply it
+  author.sync.dispatch([{ op: 'slide.set', id: stored[2], title: 'B renamed' }]);
+  await author.clock.advance(700);
+  await reader.sync.pollNow();
+  assert.equal(reader.sync.getView().slides.find((s) => s.id === stored[2]).title, 'B renamed');
+});

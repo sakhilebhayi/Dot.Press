@@ -41,7 +41,7 @@
  *   - state: {status: 'saved'|'saving'|'offline'|'error', pending, inflight, queued, lastError, lastSavedAt,
  *     retryAt, fatal, needsAuth, seq}
  */
-import { applyOps, remapOps, dupToAdd } from './ops.js';
+import { applyOps, remapOps, dupToAdd, fromChangeLog } from './ops.js';
 import { createDoc } from './doc.js';
 import { uniqueId } from './util.js';
 import { createPersistence } from './sync-storage.js';
@@ -289,7 +289,7 @@ export function createSync(opts) {
       const ops = Array.isArray(ch.ops) ? ch.ops : [];
       if (ops.some((o) => o?.op === 'deck.reload' || o?.op === 'slide.dup')) { needReload = true; break; }
       const own = ch.client === clientId;
-      let use = ops;
+      let use = fromChangeLog(ops);
       if (own) {
         const i = settling.findIndex((s) => s.seq === ch.seq);
         if (i >= 0) { use = settling[i].ops; settling.splice(i, 1); } else if (inflight && !inflight.covered) inflight.covered = true;

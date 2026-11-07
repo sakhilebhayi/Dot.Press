@@ -10,7 +10,7 @@ import {
 import { SlideView } from '../../../render/index.js';
 import { columnsOf, gridTarget } from '../theme/gridNav.js';
 import {
-    MAX_DIM, MIN_DIM, MODES, PRESETS, modeFact, presetFor, previewPair, ratioLabel, validSize,
+    DEFAULT_MODE, MAX_DIM, MIN_DIM, MODES, PRESETS, modeFact, presetFor, previewPair, ratioLabel, validSize,
 } from './sizeModel.js';
 import '../theme/design.css';
 
@@ -24,7 +24,7 @@ const slideCount = computed(() => doc.value.slides.length);
 
 const target = ref({ w: deck.value.w, h: deck.value.h });
 const presetId = ref(presetFor(deck.value.w, deck.value.h));
-const mode = ref('scale');
+const mode = ref(DEFAULT_MODE);
 const confirm = ref(false);
 const busy = ref(false);
 const done = ref('');

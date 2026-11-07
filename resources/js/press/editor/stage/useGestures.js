@@ -10,7 +10,7 @@
 //     sends one op batch per gesture. The store does not need 60 ms batches; collaborators see the result on release.
 //   - will-change is set on the dragged wrappers for the duration of the gesture only.
 import { shallowRef } from 'vue';
-import { pickTop, pickBelow, lockedAt } from './lib/hit.js';
+import { pickTop, pickBelow, lockedAt, contextPick } from './lib/hit.js';
 import {
   selectionFrame, screenBox, handleLayout, hitHandle, cursorFor, lineEnds, hitLineEnd,
 } from './lib/handles.js';
@@ -242,10 +242,10 @@ export function useGestures(env) {
   }
 
   function selectUnderContextMenu(pt) {
-    const sp = slidePt(pt);
-    const id = pickTop(slide(), sp, { pad: 6 / zoom() });
-    if (id && !selIds().includes(id)) store.clickElement(id, {});
-    else if (!id) store.clearSelection();
+    const hit = contextPick(slide(), slidePt(pt), 6 / zoom());
+    // a locked element cannot be picked with the pointer, but right clicking it selects it so the menu can offer Unlock
+    if (!hit) store.clearSelection();
+    else if (!selIds().includes(hit.id)) { if (hit.locked) store.select([hit.id]); else store.clickElement(hit.id, {}); }
   }
 
   function selectDown(e, pt) {
@@ -288,7 +288,7 @@ export function useGestures(env) {
         type: 'marquee', start: pt, startSlide: sp, additive, moved: false, pointerType: e.pointerType, base: selIds(),
       };
     }
-    if (hover.value.lockedId && !id) hooks.announce?.('That element is locked. Unlock it from the context menu to edit it.');
+    if (hover.value.lockedId && !id) hooks.announce?.('That element is locked. Right click it and choose Unlock to edit it.');
   }
 
   function guideAt(pt) {

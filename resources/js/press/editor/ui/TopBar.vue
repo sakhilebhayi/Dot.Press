@@ -76,6 +76,7 @@ const exportItems = computed(() => [
     { label: 'Import PowerPoint', icon: 'upload', run: () => openExport('pdf', 'import') },
 ]);
 const overflowItems = computed(() => [
+    { label: ui.inspector.open ? 'Close the inspector' : 'Inspector', icon: 'inspector', run: () => editor.toggleInspector() },
     ...(editor.hasPanel('share') ? [{ label: 'Share', icon: 'share', run: () => editor.openPanel('share') }] : []),
     ...(editor.hasPanel('review') ? [{ label: 'Review', icon: 'review', run: () => editor.openPanel('review') }] : []),
     ...(canExport.value ? [{ label: 'Export', icon: 'export', run: () => openExport('pdf') }] : []),
@@ -113,6 +114,7 @@ const canPresent = computed(() => editor.can.present !== false);
                 <li v-if="more" class="pr-avatar tb-more" :title="`${more} more`">+{{ more }}</li>
             </ul>
             <ApprovalChip />
+            <button type="button" class="pr-btn tb-act tb-insp" :aria-pressed="ui.inspector.open" aria-controls="ed-insp" aria-label="Inspector" data-tip="Inspector" @click="editor.toggleInspector()"><Ico name="inspector" size="sm" /><span class="tb-lbl">Inspector</span></button>
             <button v-if="editor.hasPanel('share')" type="button" class="pr-btn tb-act" @click="editor.openPanel('share')"><Ico name="share" size="sm" /><span class="tb-lbl">Share</span></button>
             <button v-if="editor.hasPanel('review')" type="button" class="pr-btn tb-act" @click="editor.openPanel('review')"><Ico name="review" size="sm" /><span class="tb-lbl">Review</span></button>
             <DropMenu v-if="canExport" :items="exportItems" align="end" label="Export">
