@@ -25,6 +25,10 @@
 .pt-in p { margin: 0 0 var(--p-ps, 0.4em); min-height: 1lh; }
 .pt-in > :last-child, .pt-in li > :last-child { margin-bottom: 0; }
 .pt-in ul, .pt-in ol { margin: 0 0 var(--p-ps, 0.4em); padding-left: 1.3em; }
+.pt-in ul { list-style: disc outside; }
+.pt-in ol { list-style: decimal outside; }
+.pt-in ul ul { list-style: circle outside; }
+.pt-in li::marker { color: currentColor; }
 .pt-in li > p { margin-bottom: 0.2em; }
 .pt-in ul ul, .pt-in ol ol, .pt-in ul ol, .pt-in ol ul { margin-bottom: 0; }
 .pt-in .p-link { text-decoration: underline; text-underline-offset: 0.14em; text-decoration-thickness: 0.06em; color: inherit; }

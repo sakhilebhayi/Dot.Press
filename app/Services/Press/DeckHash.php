@@ -14,8 +14,8 @@ class DeckHash
     public static function compute(Deck $deck): string
     {
         $slides = $deck->slides()->orderBy('sort_order')->orderBy('id')->get()->map(fn ($slide) => [
-            'title' => $slide->title,
-            'notes' => $slide->notes,
+            'title' => (string) $slide->title,
+            'notes' => (string) $slide->notes,
             'hidden' => (bool) $slide->hidden,
             'section' => $slide->section_id,
             'layout' => $slide->layout,
