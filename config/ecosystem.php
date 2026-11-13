@@ -79,6 +79,13 @@ return [
         'secret' => env('INFODOT_SERVICE_SECRET'),
         'timeout' => (int) env('INFODOT_REDEEM_TIMEOUT', 5),
         'provision' => (bool) env('INFODOT_PROVISION_USERS', true),
+
+        // R-50: while a person is signed in, ask InfoDot (at most once per company every ten minutes) whether their
+        // current company still holds this platform, and show a plain "not switched on" page when it does not. An
+        // unreachable or misconfigured InfoDot never locks anyone out. False switches the question off entirely.
+        'entitlement_check' => (bool) env('PRESS_ENTITLEMENT_CHECK', true),
+        // Where to ask; `{uuid}` is the company. Empty: next to the redeem endpoint (.../companies/{uuid}/platforms).
+        'platforms_url' => env('INFODOT_PLATFORMS_URL'),
     ],
 
 ];

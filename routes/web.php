@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\EcosystemAuthController;
 use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\DeckPageController;
 use App\Http\Controllers\DependencyPatchController;
+use App\Http\Controllers\EntitlementController;
 use App\Http\Controllers\GuardianHealthController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\SchedulerProbeController;
@@ -82,6 +83,11 @@ Route::middleware(PrivateShareResponse::class)
         Route::get('print', [SharedDeckController::class, 'print'])->name('shared.print');
         Route::get('asset/{asset}', [SharedDeckController::class, 'asset'])->middleware('throttle:6000,1,press-share-asset')->name('shared.asset');
     });
+
+// R-50: the plain page for a company that does not hold Dot.Press, for visits made inside the app (Inertia).
+Route::get('/not-switched-on', EntitlementController::class)
+    ->middleware(['auth:sanctum', config('jetstream.auth_session')])
+    ->name('entitlement.show');
 
 Route::middleware([
     'auth:sanctum',

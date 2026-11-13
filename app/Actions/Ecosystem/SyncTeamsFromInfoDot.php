@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Log;
  *   someone in InfoDot removes their access here at their next sign-in.
  * - The company InfoDot says is active becomes the person's current team.
  * - Personal teams are never linked or removed.
+ * - R-50: a company InfoDot marks `entitled: false` for this platform is left exactly as it is here: not created,
+ *   not renamed, no membership or role change, and it cannot be or stay the person's current team. A company with
+ *   no `entitled` key (an InfoDot from before R-50) is treated as it always was.
  */
 class SyncTeamsFromInfoDot
 {
@@ -33,8 +36,10 @@ class SyncTeamsFromInfoDot
             ->filter(fn ($t) => is_array($t) && filled($t['uuid'] ?? null) && ! ($t['personal'] ?? false))
             ->keyBy('uuid');
 
-        DB::transaction(function () use ($user, $listed, $identity) {
-            foreach ($listed as $uuid => $info) {
+        $admitted = $listed->filter(fn ($t) => self::admits($t));
+
+        DB::transaction(function () use ($user, $listed, $admitted, $identity) {
+            foreach ($admitted as $uuid => $info) {
                 $this->apply($user, (string) $uuid, $info);
                 $this->forgetCachedTeams($user);
             }
@@ -43,12 +48,86 @@ class SyncTeamsFromInfoDot
             $this->forgetCachedTeams($user);
 
             $active = $identity['current_team_uuid'] ?? null;
-            $team = $active ? Team::where('infodot_team_uuid', $active)->first() : null;
+            $team = $active && $admitted->has($active) ? Team::where('infodot_team_uuid', $active)->first() : null;
 
             if ($team && $user->belongsToTeam($team)) {
                 $user->switchTeam($team);
             }
+
+            $refused = $listed->keys()->diff($admitted->keys())->all();
+            $this->leaveRefusedCompany($user->fresh() ?? $user, $refused, $admitted->keys()->all(), in_array($active, $refused, true));
         });
+    }
+
+    /** Whether InfoDot lets this company use the platform: `entitled` exactly true, or the key absent (older InfoDot). */
+    public static function admits(mixed $team): bool
+    {
+        return is_array($team) && (! array_key_exists('entitled', $team) || $team['entitled'] === true);
+    }
+
+    /**
+     * True when InfoDot marked the person's companies and admitted none of them: there is nowhere to sign them in to.
+     *
+     * @param  array<string, mixed>  $identity
+     */
+    public static function admitsNone(array $identity): bool
+    {
+        $teams = collect($identity['teams'] ?? [])->filter(fn ($t) => is_array($t));
+
+        return $teams->contains(fn ($t) => array_key_exists('entitled', $t)) && ! $teams->contains(fn ($t) => self::admits($t));
+    }
+
+    /**
+     * The reason and the company to name on the "not switched on" page: the company InfoDot says is active, else the first.
+     *
+     * @param  array<string, mixed>  $identity
+     * @return array{reason: string|null, company: string|null}
+     */
+    public static function refusal(array $identity): array
+    {
+        $teams = collect($identity['teams'] ?? [])->filter(fn ($t) => is_array($t));
+        $team = $teams->firstWhere('uuid', $identity['current_team_uuid'] ?? null) ?? $teams->first(fn ($t) => ! ($t['personal'] ?? false)) ?? $teams->first();
+
+        return [
+            'reason' => is_string($team['access'] ?? null) ? $team['access'] : null,
+            'company' => is_array($team) && ! ($team['personal'] ?? false) && is_string($team['name'] ?? null) ? $team['name'] : null,
+        ];
+    }
+
+    /**
+     * A person whose current team is a company InfoDot has just refused, or whose active company in InfoDot is one,
+     * is moved to a company it admits; with none, a person standing in a refused company goes to their personal
+     * team. The refused company and its membership stay untouched.
+     *
+     * @param  list<string>  $refused
+     * @param  list<string>  $admitted
+     */
+    private function leaveRefusedCompany(User $user, array $refused, array $admitted, bool $activeRefused): void
+    {
+        $current = $user->currentTeam;
+        $standingInRefused = $current && in_array($current->infodot_team_uuid, $refused, true);
+
+        if (! $standingInRefused && ! $activeRefused) {
+            return;
+        }
+
+        $next = $user->allTeams()->first(fn ($team) => in_array($team->infodot_team_uuid, $admitted, true));
+
+        if (! $standingInRefused) {
+            if ($next) {
+                $user->switchTeam($next);
+            }
+
+            return;
+        }
+
+        $next ??= $user->allTeams()->first(fn ($team) => (bool) $team->personal_team);
+
+        if ($next) {
+            $user->switchTeam($next);
+        } else {
+            $user->forceFill(['current_team_id' => null])->save();
+        }
     }
 
     /** Membership checks read relations cached on the model; reload after changing them. */
