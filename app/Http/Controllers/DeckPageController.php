@@ -7,6 +7,7 @@ use App\Services\Press\DeckAccess;
 use App\Services\Press\DeckDocument;
 use App\Services\Press\DeferredPage;
 use App\Services\Press\DocumentAssets;
+use App\Services\Press\LibraryLanding;
 use App\Services\Press\ThemeLibrary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,8 +26,11 @@ class DeckPageController extends Controller
         $user = $request->user();
         $team = $user->currentTeam;
 
+        $canCreate = $team !== null && $user->hasTeamPermission($team, 'create');
+
         return Inertia::render('Press/Library', [
-            'canCreate' => $team !== null && $user->hasTeamPermission($team, 'create'),
+            'canCreate' => $canCreate,
+            'landing' => LibraryLanding::for($user, $canCreate),
             'team' => $team ? ['id' => $team->id, 'name' => $team->name] : null,
             'ai' => ['mode' => config('ai.provider', 'mock') === 'anthropic' ? 'ai' : 'local'],
             'themes' => collect(ThemeLibrary::all())->values(),

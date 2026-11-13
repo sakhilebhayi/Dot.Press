@@ -76,7 +76,7 @@ writeFileSync(join(pub, 'favicon.ico'), Buffer.concat([head, ...dir, ...imgs]));
 rmSync(join(pub, 'favicon-48.tmp.png'));
 
 writeFileSync(join(pub, 'site.webmanifest'), JSON.stringify({
-    name: 'Dot.Press', short_name: 'Press',
+    name: 'Dot.Press', short_name: 'Dot.Press',
     description: 'Presentations built as a line of claims: each slide is a bead, hollow until it shows evidence.',
     start_url: '/dashboard', scope: '/', display: 'standalone',
     background_color: PAPER, theme_color: INK,

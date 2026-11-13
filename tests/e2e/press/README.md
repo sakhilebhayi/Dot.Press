@@ -24,6 +24,7 @@ node tests/e2e/press/04-autosave.e2e.mjs      # check 25: autosave, offline, clo
 node tests/e2e/press/05-collab-sync.e2e.mjs   # two browsers on one deck: order and ids stay in step
 node tests/e2e/press/06-roles.e2e.mjs         # viewer (read only everywhere) and editor
 node tests/e2e/press/07-responsive.e2e.mjs    # 390, 768, 1024, 1180, 1440 in light and dark; Inspector button, panel list
+node tests/e2e/press/08-landing.e2e.mjs       # the library's landing block per role, 1440 and 375, light and dark: logo, welcome, one primary action
 ```
 
 Each prints `PASS` or `FAIL` per step and exits non zero on a failure. Screenshots go to `E2E_SHOTS`

@@ -1,6 +1,6 @@
 {
   "name": "Dot.Press",
-  "short_name": "Press",
+  "short_name": "Dot.Press",
   "description": "Presentations built as a line of claims: each slide is a bead, hollow until it shows evidence.",
   "start_url": "/dashboard",
   "scope": "/",
