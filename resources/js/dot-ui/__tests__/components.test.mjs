@@ -281,3 +281,76 @@ test('switcher: choosing a tile shows "Opening...", announces it, ignores a seco
     assert.equal(mines.classList.contains('is-busy'), false);
     m.unmount();
 });
+
+// ------------------------------------------------------------------- deterministic ids and form attributes
+
+test('search: the input id is derived from the name (the same on every mount), an explicit id wins', async () => {
+    const a = await mountComponent(DotSearch, { name: 'q' });
+    const first = a.host.querySelector('.dsr').outerHTML;
+    a.unmount();
+    const b = await mountComponent(DotSearch, { name: 'q' });
+    assert.equal(b.host.querySelector('.dsr').outerHTML, first, 'two mounts are byte-identical');
+    assert.equal(b.host.querySelector('input').id, 'dsr-q');
+    assert.equal(b.host.querySelector('label').getAttribute('for'), 'dsr-q');
+    b.unmount();
+    const c = await mountComponent(DotSearch, { name: 'filter[a b]', id: 'mine' });
+    assert.equal(c.host.querySelector('input').id, 'mine');
+    c.unmount();
+    const d = await mountComponent(DotSearch, { name: 'filter[a b]' });
+    assert.equal(d.host.querySelector('input').id, 'dsr-filter-a-b');
+    d.unmount();
+});
+
+test('search: formAttributes land on the form, the host wins over the defaults, the input is untouched', async () => {
+    const m = await mountComponent(DotSearch, { name: 'q', action: '/s', formAttributes: { 'data-form': 'top', class: 'host-form', method: 'post' } });
+    const form = m.host.querySelector('form');
+    assert.equal(form.getAttribute('data-form'), 'top');
+    assert.ok(form.classList.contains('host-form'));
+    assert.equal(form.getAttribute('role'), 'search');
+    assert.equal(form.getAttribute('action'), '/s');
+    assert.equal(form.getAttribute('method'), 'post');
+    assert.equal(m.host.querySelector('input').hasAttribute('data-form'), false);
+    m.unmount();
+});
+
+test('filter: the id is derived from the name unless given', async () => {
+    const a = await mountComponent(DotFilterSearch, { name: 'q' });
+    assert.equal(a.host.querySelector('input').id, 'dsr-filter-q');
+    a.unmount();
+    const b = await mountComponent(DotFilterSearch, { name: 'q', id: 'assets' });
+    assert.equal(b.host.querySelector('input').id, 'assets');
+    b.unmount();
+});
+
+test('search: no hint sets dsr--nohint on the root, a hint does not', async () => {
+    const a = await mountComponent(DotSearch, { name: 'q' });
+    assert.ok(a.host.querySelector('.dsr').classList.contains('dsr--nohint'));
+    a.unmount();
+    const b = await mountComponent(DotSearch, { name: 'q', hint: 'Ctrl K' });
+    assert.equal(b.host.querySelector('.dsr').classList.contains('dsr--nohint'), false);
+    assert.equal(b.host.querySelector('.dsr').className.trim(), 'dsr');
+    b.unmount();
+});
+
+test('switcher: notice and noticeDetail override the degraded line; the default text is unchanged', async () => {
+    const plain = await mountComponent(DotSwitcher, { model: degradedModel });
+    assert.equal(plain.host.querySelector('.dsw-notice').textContent.replace(/\s+/g, ' ').trim(), 'Could not check your platforms just now. These open through InfoDot, which checks what your company has.');
+    plain.unmount();
+    const m = await mountComponent(DotSwitcher, { model: degradedModel, notice: 'Could not check your platforms from here', noticeDetail: 'Dot.Charts has its own sign-in.' });
+    assert.equal(m.host.querySelector('.dsw-notice').textContent.replace(/\s+/g, ' ').trim(), 'Could not check your platforms from here. Dot.Charts has its own sign-in.');
+    assert.equal(m.host.querySelector('.dsw-notice strong').textContent, 'Could not check your platforms from here.');
+    m.unmount();
+    const half = await mountComponent(DotSwitcher, { model: degradedModel, notice: 'From here we cannot check' });
+    assert.match(half.host.querySelector('.dsw-notice').textContent, /^From here we cannot check\. These open through InfoDot/);
+    half.unmount();
+});
+
+test('switcher: a degraded model that includes a non-core current platform marks it "You are here"', async () => {
+    const model = JSON.parse(JSON.stringify(degradedModel));
+    const g = model.groups[0];
+    g.tiles.push({ key: 'sheet', name: 'Dot.Sheet', href: null, current: true, plain: false, via_infodot: true, logo: 'sheet.png' });
+    const m = await mountComponent(DotSwitcher, { model });
+    assert.match(m.host.querySelector('.dsw-bay.is-current').textContent, /Dot\.Sheet/);
+    assert.match(m.host.querySelector('.dsw-bay.is-current').textContent, /You are here/);
+    m.unmount();
+});

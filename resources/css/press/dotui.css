@@ -3,9 +3,8 @@
    small block that maps Press's tokens onto the package's surface tokens, plus the header logo.
    The pill itself is NOT mapped: it is InfoDot's pill, identical in every platform. */
 
-:root,
-:root[data-theme='dark'],
-:root[data-theme='light'] {
+/* A plain :root is enough: the package defaults are all under :where() (zero specificity), so this mapping wins in both themes. */
+:root {
     --dsr-panel: var(--sheet);
     --dsr-hover: color-mix(in srgb, var(--ink) 6%, var(--sheet));
     --dsr-rule: var(--line);

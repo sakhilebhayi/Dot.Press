@@ -161,9 +161,13 @@ class DotSwitcherPropsTest extends AccessTestCase
         $this->assertSame('degraded', $model['state']);
         $this->assertSame('Could not check your platforms just now', $model['notice']);
         $keys = collect($model['groups'])->flatMap(fn ($g) => $g['tiles'])->pluck('key')->all();
-        $this->assertEqualsCanonicalizing(['infodot', 'files', 'docs', 'tasks', 'finance'], $keys);
+        // the core set, plus Press itself (not core) marked as where the person is
+        $this->assertEqualsCanonicalizing(['infodot', 'files', 'docs', 'tasks', 'finance', 'press'], $keys);
+        $press = collect($model['groups'])->flatMap(fn ($g) => $g['tiles'])->firstWhere('key', 'press');
+        $this->assertTrue($press['current']);
+        $this->assertNull($press['href']);
         $this->assertStringNotContainsString('Active', json_encode($model));
-        collect($model['groups'])->flatMap(fn ($g) => $g['tiles'])->each(function ($tile) {
+        collect($model['groups'])->flatMap(fn ($g) => $g['tiles'])->reject(fn ($tile) => $tile['current'])->each(function ($tile) {
             // every core tile goes through InfoDot (which decides again for the person); InfoDot's own goes to its home
             $this->assertStringStartsWith('https://infodot.test/', $tile['href']);
             $this->assertTrue($tile['key'] === 'infodot' || $tile['via_infodot']);

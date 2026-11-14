@@ -2,7 +2,8 @@
 // DotSwitcher: the "Dot Apps" platform switcher. Same markup and classes as blade/switcher.blade.php (.dsw-*).
 // It prints a view model computed on the SERVER (Dot\Ui\PlatformSwitcher) and decides nothing: no access, no URLs of
 // its own, no fetching. A tile is a plain link to InfoDot's /go (a full page navigation, never router-driven).
-// Props mirror the Blade component: model (the view model), companyName, logos (public path of img/platforms), id.
+// Props mirror the Blade component: model (the view model), companyName, logos (public path of img/platforms), id, notice and
+// noticeDetail (override the degraded line; default text unchanged).
 // A logo's printed size comes from `tile.logo_size` ([w, h]) when the host adds it; otherwise the CSS box sizes it.
 // Events: open, close, navigate (the tile the person chose: { key, name, href }).
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
@@ -15,6 +16,8 @@ const props = defineProps({
     logos: { type: String, default: '/dot-ui/img/platforms' },
     id: { type: String, default: 'dsw-panel' },
     mode: { type: String, default: 'header' },
+    notice: { type: String, default: null },
+    noticeDetail: { type: String, default: null },
 });
 const emit = defineEmits(['open', 'close', 'navigate']);
 
@@ -152,7 +155,7 @@ defineExpose({ open: doOpen, close: doClose });
                     </label>
                 </div>
 
-                <p v-if="state === 'degraded'" class="dsw-notice" role="status"><strong>{{ model.notice }}.</strong> <span>These open through InfoDot, which checks what your company has.</span></p>
+                <p v-if="state === 'degraded'" class="dsw-notice" role="status"><strong>{{ notice || model.notice }}.</strong> <span>{{ noticeDetail || 'These open through InfoDot, which checks what your company has.' }}</span></p>
 
                 <p v-if="state === 'personal'" class="dsw-personal">{{ model.message }}</p>
                 <template v-else>
