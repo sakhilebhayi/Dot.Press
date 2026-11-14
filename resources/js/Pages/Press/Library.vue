@@ -5,6 +5,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowR
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import PressLayout from '@/Layouts/PressLayout.vue';
+import DotSearch from '@/dot-ui/DotSearch.vue';
 import DeckTile from '@/press/library/DeckTile.vue';
 import LandingBlock from '@/press/library/LandingBlock.vue';
 import NewDeckSheet from '@/press/library/NewDeckSheet.vue';
@@ -206,12 +207,8 @@ const showNewTile = computed(() => props.canCreate && !archived.value && !q.valu
 <template>
     <PressLayout title="Presentations" :own-heading="showLanding">
         <template #search>
-            <label class="ls">
-                <Ico name="search" size="sm" />
-                <span class="pr-sr">Search presentations</span>
-                <input ref="searchEl" v-model="q" type="search" class="ls-in" placeholder="Search presentations" autocomplete="off" />
-                <kbd class="pr-kbd ls-key" aria-hidden="true">/</kbd>
-            </label>
+            <!-- the shared Dot search pill (dot-ui). The query, the 250ms debounce, the address and the API call below are unchanged. -->
+            <DotSearch ref="searchEl" v-model="q" name="q" placeholder="Search presentations" label="Search presentations" hint="Ctrl K" />
         </template>
         <template #actions>
             <button v-if="canCreate" type="button" class="pr-btn lh-new" aria-label="New presentation" aria-haspopup="dialog" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" /><span>New</span></button>

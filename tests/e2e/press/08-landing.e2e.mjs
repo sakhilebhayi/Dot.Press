@@ -105,10 +105,10 @@ await t.step('search', 'the landing steps aside while a search is typed and come
     t.page = page;
     await page.goto(BASE + '/dashboard');
     await page.waitForSelector('.ld');
-    await page.fill('.ls-in', 'mining');
+    await page.fill('.dsr-input', 'mining');
     await waitUntil(page, () => document.querySelector('.ld') === null);
     eq(await page.locator('h1').count(), 1, 'one h1 while searching');
-    await page.fill('.ls-in', '');
+    await page.fill('.dsr-input', '');
     await page.waitForSelector('.ld');
     await ctx.close();
 });

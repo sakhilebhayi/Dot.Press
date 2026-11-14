@@ -1,0 +1,46 @@
+/* The shared Dot UI (dot-ui: search pill and Dot Apps switcher) inside Press. The package's own CSS is loaded from
+   /dot-ui/css by the page shell (resources/views/app.blade.php, self-hosted for the strict CSP). This file is the one
+   small block that maps Press's tokens onto the package's surface tokens, plus the header logo.
+   The pill itself is NOT mapped: it is InfoDot's pill, identical in every platform. */
+
+:root,
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+    --dsr-panel: var(--sheet);
+    --dsr-hover: color-mix(in srgb, var(--ink) 6%, var(--sheet));
+    --dsr-rule: var(--line);
+    --dsr-rule-strong: var(--line-strong);
+    --dsr-text: var(--ink);
+    --dsr-text-2: var(--ink-2);
+    --dsr-text-3: var(--muted);
+}
+
+/* the Dot Apps button in the bar: Press ink and hairline, Press focus colour */
+.lh .dsw {
+    --dsw-btn-ink: var(--ink);
+    --dsw-btn-border: var(--line-strong);
+    --dsw-btn-bg-hover: color-mix(in srgb, var(--ink) 7%, transparent);
+    --dsw-focus: var(--focus);
+}
+
+/* the original Dot.Press logo file, never redrawn; the light-ground file in light, the dark-ground file in dark */
+.lh-logo { display: block; width: 44px; height: 44px; object-fit: contain; }
+.lh-logo--dark { display: none; }
+:root[data-theme='dark'] .lh-logo--light { display: none; }
+:root[data-theme='dark'] .lh-logo--dark { display: block; }
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .lh-logo--light { display: none; }
+    :root:not([data-theme='light']) .lh-logo--dark { display: block; }
+}
+.lh-mark { padding-right: 4px; }
+
+/* the pill keeps its 44px height and sits centred in the bar */
+.lh-search .dsr { margin: 0 auto; }
+
+/* A phone has no room for the pill between six controls (its text area would be a few pixels wide), so the bar takes a
+   second row: logo and controls on the first, the search across the whole width on the second. */
+@media (max-width: 639px) {
+    .lh { height: auto; min-height: 60px; flex-wrap: wrap; row-gap: 4px; padding-block: 8px; }
+    .lh-search { order: 3; flex: 1 0 100%; padding: 0; }
+    .lh-search .dsr { max-width: none; }
+}

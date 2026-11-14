@@ -40,6 +40,13 @@
         <link rel="preload" href="/fonts/ui/bricolage-300_800-normal.woff2" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="/fonts/ui/instrument-400_700-normal.woff2" as="font" type="font/woff2" crossorigin>
 
+        {{-- The shared Dot UI (search pill, Dot Apps switcher): self hosted under /dot-ui, no other origin. Loaded before the app CSS so Press's token map (css/press/dotui.css) wins. --}}
+        <link rel="stylesheet" href="/dot-ui/css/dot-fonts.css">
+        <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
+        <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
+        <link rel="stylesheet" href="/dot-ui/css/dot-switcher-fonts.css">
+        <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
+
         @if ($isLanding)
         <meta name="description" content="{{ $landingDescription }}">
         <link rel="canonical" href="{{ $home }}">
