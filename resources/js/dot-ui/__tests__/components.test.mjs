@@ -334,7 +334,7 @@ test('search: no hint sets dsr--nohint on the root, a hint does not', async () =
 
 test('switcher: notice and noticeDetail override the degraded line; the default text is unchanged', async () => {
     const plain = await mountComponent(DotSwitcher, { model: degradedModel });
-    assert.equal(plain.host.querySelector('.dsw-notice').textContent.replace(/\s+/g, ' ').trim(), 'Could not check your platforms just now. These open through InfoDot, which checks what your company has.');
+    assert.equal(plain.host.querySelector('.dsw-notice').textContent.replace(/\s+/g, ' ').trim(), 'Could not check your platforms just now. These open through InfoDot, which checks your access.');
     plain.unmount();
     const m = await mountComponent(DotSwitcher, { model: degradedModel, notice: 'Could not check your platforms from here', noticeDetail: 'Dot.Charts has its own sign-in.' });
     assert.equal(m.host.querySelector('.dsw-notice').textContent.replace(/\s+/g, ' ').trim(), 'Could not check your platforms from here. Dot.Charts has its own sign-in.');

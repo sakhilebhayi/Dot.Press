@@ -155,7 +155,7 @@ defineExpose({ open: doOpen, close: doClose });
                     </label>
                 </div>
 
-                <p v-if="state === 'degraded'" class="dsw-notice" role="status"><strong>{{ notice || model.notice }}.</strong> <span>{{ noticeDetail || 'These open through InfoDot, which checks what your company has.' }}</span></p>
+                <p v-if="state === 'degraded'" class="dsw-notice" role="status"><strong>{{ notice || model.notice }}.</strong> <span>{{ noticeDetail || 'These open through InfoDot, which checks your access.' }}</span></p>
 
                 <p v-if="state === 'personal'" class="dsw-personal">{{ model.message }}</p>
                 <template v-else>
