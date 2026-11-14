@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Ecosystem\ProvisionUserFromInfoDot;
 use App\Actions\Ecosystem\SyncTeamsFromInfoDot;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Models\User;
 use App\Services\InfoDot\CompanyEntitlement;
 use App\Services\InfoDot\IdentityClient;
@@ -90,6 +91,7 @@ class EcosystemAuthController extends Controller
         abort_unless(is_string($token) && $token !== '', 403);
 
         $user = $this->userFromLocalToken($token);
+        $personalEntitled = null;
 
         // Production gives each Dot app its own database, so InfoDot's token is not
         // in ours: ask InfoDot to prove it.
@@ -115,6 +117,7 @@ class EcosystemAuthController extends Controller
             }
 
             $user = $identity ? $provision($identity) : null;
+            $personalEntitled = $identity ? SyncTeamsFromInfoDot::personalEntitled($identity) : null;
 
             if ($user && $identity) {
                 $syncTeams($user, $identity);
@@ -125,6 +128,10 @@ class EcosystemAuthController extends Controller
 
         // Auth::login() also regenerates the session id (no fixation).
         Auth::login($user);
+
+        // R-50: what InfoDot said about this person's personal workspace travels with the sign-in, so a local
+        // personal team is not a way round the company check. Nothing said: nothing remembered.
+        EnsureCompanyEntitled::remember($request, $personalEntitled);
 
         return $this->safeRedirect($request->post('redirect')) ?? redirect()->route('dashboard');
     }

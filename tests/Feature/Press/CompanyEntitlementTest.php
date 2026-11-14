@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Press;
 
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Deck;
 use App\Models\Team;
@@ -397,6 +398,79 @@ class CompanyEntitlementTest extends AccessTestCase
         // Signing out works for a refused person.
         $this->browser($this->editor)->post('/logout')->assertRedirect();
 
+        Http::assertNothingSent();
+    }
+
+    private function personal(?bool $entitled): array
+    {
+        return ['id' => 5, 'uuid' => (string) Str::uuid(), 'name' => 'Pat Team', 'personal' => true, 'role' => 'owner', 'role_label' => 'Owner']
+            + ($entitled === null ? [] : ['entitled' => $entitled, 'access' => $entitled ? null : 'no_personal_access']);
+    }
+
+    public function test_a_personal_workspace_infodot_refused_at_sign_in_is_closed_and_the_way_out_is_a_company(): void
+    {
+        // Pat belongs to Globex (holds Dot.Press) and has a personal workspace (does not).
+        $this->signIn('pat@globex.test', [$this->personal(false), $this->company(self::GLOBEX, 'Globex', 'owner', ['entitled' => true, 'access' => null])], self::GLOBEX)
+            ->assertRedirect(route('dashboard'));
+
+        $pat = User::where('email', 'pat@globex.test')->firstOrFail();
+        $globex = Team::where('infodot_team_uuid', self::GLOBEX)->firstOrFail();
+        $own = $pat->personalTeam();
+        $this->assertSame(false, session(EnsureCompanyEntitled::PERSONAL));
+        $this->get('/dashboard')->assertOk();
+
+        // Switching to the local personal team is not a way round the check.
+        $this->put(route('current-team.update'), ['team_id' => $own->id])->assertRedirect();
+        Http::swap(new Factory);
+        Http::fake();
+
+        $this->get('/dashboard')
+            ->assertStatus(403)
+            ->assertSee('Dot.Press needs a company that has switched it on.')
+            ->assertSee('href="https://infodot.test/platforms/press"', false)
+            ->assertSee('name="team_id" value="'.$globex->id.'"', false)
+            ->assertDontSee('data-page', false);
+        $this->withHeaders(['Referer' => 'http://localhost/dashboard'])->getJson('/api/decks')->assertStatus(403)->assertJsonPath('status', 'company_required');
+        $this->get(route('entitlement.show'))->assertStatus(403);
+
+        // A team with no InfoDot company is never asked about, and nothing in the workspace was touched.
+        Http::assertNothingSent();
+        $this->assertNotNull($own->fresh());
+
+        // Back in the company that holds it, the person works again.
+        $this->put(route('current-team.update'), ['team_id' => $globex->id])->assertRedirect();
+        $this->infodotSays(self::GLOBEX, true);
+        $this->get('/dashboard')->assertOk();
+    }
+
+    public function test_a_personal_workspace_infodot_allowed_at_sign_in_carries_on(): void
+    {
+        $this->signIn('pat@globex.test', [$this->personal(true)])->assertRedirect(route('dashboard'));
+        $this->assertSame(true, session(EnsureCompanyEntitled::PERSONAL));
+
+        Http::swap(new Factory);
+        Http::fake();
+        $this->get('/dashboard')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Press/Library'));
+        $this->withHeaders(['Referer' => 'http://localhost/dashboard'])->getJson('/api/decks')->assertOk();
+        Http::assertNothingSent();
+    }
+
+    public function test_a_personal_workspace_infodot_said_nothing_about_carries_on_and_forgets_an_older_answer(): void
+    {
+        $this->signIn('pat@globex.test', [$this->personal(false), $this->company(self::GLOBEX, 'Globex', 'owner', ['entitled' => true, 'access' => null])], self::GLOBEX);
+        $this->assertSame(false, session(EnsureCompanyEntitled::PERSONAL));
+
+        // The next sign-in comes from an InfoDot that does not send the key: nothing is remembered.
+        $this->signIn('pat@globex.test', [$this->personal(null)])->assertRedirect(route('dashboard'));
+        $this->assertFalse(session()->has(EnsureCompanyEntitled::PERSONAL));
+
+        $pat = User::where('email', 'pat@globex.test')->firstOrFail();
+        $pat->switchTeam($pat->personalTeam());
+        auth()->forgetGuards();
+
+        Http::swap(new Factory);
+        Http::fake();
+        $this->get('/dashboard')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Press/Library'));
         Http::assertNothingSent();
     }
 

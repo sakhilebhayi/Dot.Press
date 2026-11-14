@@ -18,19 +18,44 @@ use Symfony\Component\HttpFoundation\Response;
  * It sits on the web and api groups and acts only on a route that needs sign-in, for a person signed in with the
  * browser session whose current team is linked to an InfoDot company. Everything else passes untouched: public and
  * shared presentation links, live presenting, sign-in and sign-out, the InfoDot handoff, health checks, calls that
- * carry a bearer token (machine to machine), switching company, and a personal or local team (InfoDot has nothing
- * to say about those). When InfoDot gives no clear answer the request carries on (see CompanyEntitlement).
+ * carry a bearer token (machine to machine) and switching company. When InfoDot gives no clear answer the request
+ * carries on (see CompanyEntitlement).
+ *
+ * A personal team, or any team with no InfoDot company behind it, is never asked about at InfoDot. What counts
+ * there is what InfoDot said about the person's personal workspace when they signed in, kept in the session:
+ * exactly false closes it (individuals hold the free core only, so Dot.Press needs a company that has switched it
+ * on); true, or nothing remembered (an older InfoDot, or a session from before this rule), carries on.
  */
 class EnsureCompanyEntitled
 {
     /** Routes a refused person still needs: leaving, changing company, and the refusal page itself. */
     private const EXEMPT = ['logout', 'current-team.update', 'entitlement.show'];
 
+    /** Session key: what redeem said about the person's personal workspace for this platform (true or false). */
+    public const PERSONAL = 'press.entitlement.personal';
+
+    /** Keep, or clear, InfoDot's word on the personal workspace alongside the sign-in. */
+    public static function remember(Request $request, ?bool $personalEntitled): void
+    {
+        if ($personalEntitled === null) {
+            $request->session()->forget(self::PERSONAL);
+        } else {
+            $request->session()->put(self::PERSONAL, $personalEntitled);
+        }
+    }
+
+    public static function remembered(Request $request): ?bool
+    {
+        $value = $request->hasSession() ? $request->session()->get(self::PERSONAL) : null;
+
+        return is_bool($value) ? $value : null;
+    }
+
     public function __construct(private CompanyEntitlement $entitlement) {}
 
     public function handle(Request $request, Closure $next): Response
     {
-        $refusal = $this->applies($request) ? self::refusalFor(Auth::guard('web')->user(), $this->entitlement) : null;
+        $refusal = $this->applies($request) ? self::refusalFor(Auth::guard('web')->user(), $this->entitlement, self::remembered($request)) : null;
 
         if ($refusal === null) {
             return $next($request);
@@ -57,9 +82,10 @@ class EnsureCompanyEntitled
     /**
      * What to tell this person, or null when they may carry on.
      *
+     * @param  bool|null  $personalEntitled  what sign-in remembered about the personal workspace, if anything
      * @return array{title: string, message: string, status: string, platforms_url: string}|null
      */
-    public static function refusalFor(mixed $user, CompanyEntitlement $entitlement): ?array
+    public static function refusalFor(mixed $user, CompanyEntitlement $entitlement, ?bool $personalEntitled = null): ?array
     {
         if (! $user instanceof User || ! $entitlement->enabled()) {
             return null;
@@ -69,7 +95,10 @@ class EnsureCompanyEntitled
         $uuid = $team?->infodot_team_uuid;
 
         if (blank($uuid)) {
-            return null;
+            // No InfoDot company behind this team: never asked about, decided by what sign-in remembered.
+            return $personalEntitled === false
+                ? EntitlementNotice::for('company_required') + ['status' => 'company_required', 'platforms_url' => $entitlement->platformsUrl()]
+                : null;
         }
 
         $answer = $entitlement->for((string) $uuid);
@@ -82,13 +111,14 @@ class EnsureCompanyEntitled
     }
 
     /**
-     * @param  array{title: string, message: string, platforms_url: string}  $refusal
+     * @param  array{title: string, message: string, platforms_url: string, status?: string}  $refusal
      */
     public static function page(array $refusal, ?User $user = null): Response
     {
         $user ??= Auth::guard('web')->user();
         $others = $user instanceof User
-            ? $user->allTeams()->reject(fn ($team) => $team->id === $user->current_team_id)->values()
+            // Only companies InfoDot knows: a personal or local team is closed by the same rule that closed this one.
+            ? $user->allTeams()->reject(fn ($team) => $team->id === $user->current_team_id || (($refusal['status'] ?? null) === 'company_required' && blank($team->infodot_team_uuid)))->values()
             : collect();
 
         return response()

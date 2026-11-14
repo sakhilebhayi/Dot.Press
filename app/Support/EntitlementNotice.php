@@ -39,8 +39,8 @@ final class EntitlementNotice
                 'message' => "$who holds Dot.Press for chosen people only, and you are not one of them yet. Ask whoever manages platforms for the company to add you in InfoDot.",
             ],
             'no_personal_access', 'company_required' => [
-                'title' => 'Dot.Press needs a company.',
-                'message' => 'A personal workspace does not include Dot.Press. Open it from a company that holds it, or switch it on for your company in InfoDot.',
+                'title' => 'Dot.Press needs a company that has switched it on.',
+                'message' => 'A personal workspace does not include Dot.Press. Create or join a company in InfoDot and switch Dot.Press on for it. Nothing in your workspace has been changed.',
             ],
             'temporarily_unavailable', 'not_launched' => [
                 'title' => 'Dot.Press is not available right now.',

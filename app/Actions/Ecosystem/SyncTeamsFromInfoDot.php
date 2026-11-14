@@ -66,6 +66,19 @@ class SyncTeamsFromInfoDot
     }
 
     /**
+     * What InfoDot said about the person's personal workspace for this platform: true, false, or null when it said
+     * nothing (no personal workspace listed, or an InfoDot from before R-50).
+     *
+     * @param  array<string, mixed>  $identity
+     */
+    public static function personalEntitled(array $identity): ?bool
+    {
+        $personal = collect($identity['teams'] ?? [])->first(fn ($t) => is_array($t) && ($t['personal'] ?? false) === true);
+
+        return is_array($personal) && is_bool($personal['entitled'] ?? null) ? $personal['entitled'] : null;
+    }
+
+    /**
      * True when InfoDot marked the person's companies and admitted none of them: there is nowhere to sign them in to.
      *
      * @param  array<string, mixed>  $identity

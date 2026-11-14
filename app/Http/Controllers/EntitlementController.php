@@ -16,7 +16,7 @@ class EntitlementController extends Controller
 {
     public function __invoke(Request $request, CompanyEntitlement $entitlement): Response
     {
-        $refusal = EnsureCompanyEntitled::refusalFor($request->user(), $entitlement);
+        $refusal = EnsureCompanyEntitled::refusalFor($request->user(), $entitlement, EnsureCompanyEntitled::remembered($request));
 
         return $refusal === null ? redirect()->route('dashboard') : EnsureCompanyEntitled::page($refusal, $request->user());
     }
