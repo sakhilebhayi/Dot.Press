@@ -101,7 +101,7 @@ const canPresent = computed(() => editor.can.present !== false);
             <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon tb-menu" :aria-expanded="ui.spine.open" aria-controls="ed-spine" aria-label="Show slides" @click="emit('toggle-spine')"><Ico name="menu" /></button>
             <Link :href="route('dashboard')" class="tb-mark" aria-label="Back to the library" data-tip="Library">
                 <svg class="tb-dot" viewBox="0 0 32 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6" stroke="currentColor" stroke-width="1.5" /><circle cx="9" cy="6" r="4.25" fill="var(--amber)" stroke="currentColor" stroke-width="1.5" /></svg>
-                <span class="tb-word">Press</span>
+                <span class="tb-word">Dot.Press</span>
             </Link>
         </div>
 

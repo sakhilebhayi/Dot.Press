@@ -10,7 +10,8 @@ import DropMenu from '@/press/editor/ui/DropMenu.vue';
 import Ico from '@/press/editor/ui/Ico.vue';
 import ThemeToggle from '@/press/editor/ui/ThemeToggle.vue';
 
-defineProps({ title: { type: String, default: 'Presentations' } });
+// ownHeading: the page draws its own visible h1 (the library's landing block), so the layout adds none.
+defineProps({ title: { type: String, default: 'Presentations' }, ownHeading: { type: Boolean, default: false } });
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user || {});
@@ -50,7 +51,7 @@ const userItems = computed(() => [
         <header class="lh">
             <Link :href="route('dashboard')" class="lh-mark" aria-label="Dot.Press library">
                 <svg class="lh-dot" viewBox="0 0 32 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6" stroke="currentColor" stroke-width="1.5" /><circle cx="9" cy="6" r="4.25" fill="var(--amber)" stroke="currentColor" stroke-width="1.5" /></svg>
-                <span class="lh-word">Press</span>
+                <span class="lh-word">Dot.Press</span>
             </Link>
             <DropMenu v-if="current" :items="teamItems" label="Team" :min-width="220">
                 <template #trigger="{ toggle, open }">
@@ -71,7 +72,7 @@ const userItems = computed(() => [
             </div>
         </header>
         <main id="lib-main" class="lm" tabindex="-1">
-            <h1 class="pr-sr">{{ title }}</h1>
+            <h1 v-if="!ownHeading" class="pr-sr">{{ title }}</h1>
             <slot />
         </main>
     </div>

@@ -1,6 +1,6 @@
 /*
- * The library: the Press header, the continue sheet, the wall of sheets (each hanging on a rail) and the New sheet.
- * See DESIGN.md "Layout": the library is a wall of sheets on the same paper ground, with one large continue sheet.
+ * The library: the Dot.Press header, the landing block, the wall of sheets (each hanging on a rail) and the New sheet.
+ * See DESIGN.md "Layout": the library is a wall of sheets on the same paper ground, under the landing block.
  */
 .lib { min-height: 100dvh; background: var(--paper); }
 
@@ -29,20 +29,53 @@
 .lm { outline: none; }
 .lp { width: min(100%, 1360px); margin: 0 auto; padding: clamp(20px, 3vw, 40px) clamp(16px, 3vw, 32px) 96px; }
 
-/* continue ------------------------------------------------------------------------------------------- */
-.cs { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 72px); align-items: center; padding: 8px 0 clamp(36px, 5vw, 64px); }
-.cs-sheet { display: block; transition: transform var(--d-4) var(--spring); }
-.cs-sheet:hover { transform: translateY(-3px); }
-.cs-thumb { position: relative; width: 100%; background: var(--sheet); box-shadow: var(--sheet-shadow); overflow: hidden; outline: 2px solid transparent; }
-.cs-sheet:focus-visible .cs-thumb { outline-color: var(--focus); outline-offset: 3px; }
-.cs-text { min-width: 0; }
-.cs-state { display: flex; align-items: center; gap: 8px; color: var(--muted); }
-.cs-title { margin: 14px 0 12px; font-size: var(--t-2xl); text-wrap: balance; overflow-wrap: anywhere; }
-.cs-facts { color: var(--muted); }
-.cs-actions { margin-top: 28px; display: flex; gap: 8px; }
-.cs-go { --h: 44px; padding: 0 18px; font-size: 0.9375rem; }
-.cs-go .pr-ico { transition: transform var(--d-3) var(--spring); }
-.cs-go:hover .pr-ico { transform: translateX(3px); }
+/* landing: the logo and the way back, then what the product is for with its one primary action, beside the presentation
+   the person was last in. The sheet hangs on a rail with its bead, like every sheet on the wall below. ------------------ */
+.ld { padding: 0 0 clamp(40px, 5vw, 72px); }
+.ld-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.ld-logo { display: block; flex: none; width: clamp(88px, 7vw, 112px); aspect-ratio: 1; margin: -4px 0 0 -4px; }
+.ld-logo-i { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ld-logo-i--dark { display: none; }
+:root[data-theme='dark'] .ld-logo-i--light { display: none; }
+:root[data-theme='dark'] .ld-logo-i--dark { display: block; }
+@media (prefers-color-scheme: dark) {
+    /* "follow the system" removes data-theme, as tokens.css expects */
+    :root:not([data-theme='light']) .ld-logo-i--light { display: none; }
+    :root:not([data-theme='light']) .ld-logo-i--dark { display: block; }
+}
+.ld-back { display: flex; gap: 4px; margin-right: -10px; }
+.ld-back-a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; border-radius: var(--r-2); font-size: var(--t-md); font-weight: 500; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+.ld-back-a:hover { color: var(--ink); text-decoration-color: var(--ink); }
+.ld-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: clamp(32px, 6vw, 96px); align-items: start; margin-top: clamp(20px, 3vw, 36px); }
+.ld-say { min-width: 0; }
+.ld-h { margin: 0; max-width: 18ch; font-size: clamp(2.25rem, 1.2rem + 3.4vw, 4rem); line-height: 0.98; text-wrap: balance; overflow-wrap: break-word; }
+.ld-p { margin: clamp(18px, 2vw, 26px) 0 0; max-width: 50ch; font-size: 1.0625rem; line-height: 1.5; color: var(--ink-2); text-wrap: pretty; }
+.ld-hello { font-weight: 600; color: var(--ink); }
+.ld-act { margin-top: clamp(24px, 2.6vw, 36px); }
+.pr .ld-go { --h: 52px; gap: 10px; padding: 0 22px; font-size: 1.0625rem; font-weight: 600; }
+.ld-go .pr-ico { transition: transform var(--d-3) var(--spring); }
+.ld-go:hover .pr-ico { transform: translateX(2px); }
+.ld-last { min-width: 0; }
+.ld-sheet { display: block; transition: transform var(--d-4) var(--spring); }
+.ld-sheet:hover { transform: translateY(-3px); }
+.ld-thumb { position: relative; width: 100%; background: var(--sheet); box-shadow: var(--sheet-shadow); overflow: hidden; }
+.ld-thumb--blank { aspect-ratio: 16 / 9; background: transparent; box-shadow: none; border: 1.5px dashed var(--line-strong); }
+.ld-blank-s { margin: 8px 0 0; max-width: 44ch; color: var(--ink-2); }
+.ld-rail { position: relative; height: 12px; margin-top: 22px; }
+.ld-rail::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 1.5px; background: var(--line-strong); }
+.ld-rail .pr-bead { position: absolute; left: 0; top: 0; box-shadow: 0 0 0 4px var(--paper); background-color: var(--paper); }
+.ld-rail .pr-bead[data-state='solid'] { background-color: var(--ink); }
+.ld-rail .pr-bead[data-state='issue'] { background-color: var(--warn); }
+.ld-meta { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-top: 14px; }
+.ld-meta-t { min-width: 0; }
+.ld-title { margin: 0; font-family: var(--f-display); font-size: var(--t-xl); font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: anywhere; }
+.ld-facts { margin: 8px 0 0; color: var(--muted); line-height: 1.5; }
+.pr .ld-open { --h: 44px; flex: none; padding: 0 16px; }
+/* the one authored moment: the words and the action settle into place. They are visible without it. */
+@media (prefers-reduced-motion: no-preference) {
+    .ld-say { animation: ld-settle var(--d-4) var(--ease-settle) both; }
+    @keyframes ld-settle { from { opacity: 0; transform: translateY(10px); } }
+}
 
 /* filters: words on a rail. The amber bead marks where you are; it is decoration, the words are the controls ------------ */
 .lw-bar { position: relative; display: flex; align-items: flex-end; gap: 16px; justify-content: space-between; }
@@ -163,7 +196,8 @@
 .ns-tpl-n { font-size: var(--t-md); font-weight: 600; }
 
 @media (max-width: 899px) {
-    .cs { grid-template-columns: 1fr; gap: 24px; }
+    .ld-body { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+    .ld-blank .ld-thumb--blank { display: none; }
 }
 @media (max-width: 639px) {
     /* more specific than .pr .pr-btn, which would keep the team button on a phone and push New off the screen */
@@ -174,6 +208,9 @@
     .lw-filters { background: linear-gradient(var(--line-strong), var(--line-strong)) left bottom 4px / 100% 1.5px no-repeat; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
     .lw-sort { justify-content: flex-end; padding: 14px 0 0; }
     .lw-sort > .pr-small { display: inline; }
+    .pr .ld-go { width: 100%; }
+    .ld-meta { flex-direction: column; }
+    .pr .ld-open { width: 100%; }
     .lh { gap: 6px; padding: 0 10px; }
     .lh-word { display: none; }
     .lh-search { padding: 0 4px; }

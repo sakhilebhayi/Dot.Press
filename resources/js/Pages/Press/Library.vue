@@ -1,11 +1,12 @@
 <script setup>
-// The library: the presentation you were last in, then a wall of sheets. Everything on it comes from GET /api/decks.
+// The library: the landing block (logo, welcome, the one primary action, the presentation you were last in), then a
+// wall of sheets. The landing comes from the `landing` prop; the wall comes from GET /api/decks.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import PressLayout from '@/Layouts/PressLayout.vue';
 import DeckTile from '@/press/library/DeckTile.vue';
-import ContinueSheet from '@/press/library/ContinueSheet.vue';
+import LandingBlock from '@/press/library/LandingBlock.vue';
 import NewDeckSheet from '@/press/library/NewDeckSheet.vue';
 import ConfirmDialog from '@/press/library/ConfirmDialog.vue';
 import ToastView from '@/press/editor/ui/ToastView.vue';
@@ -16,6 +17,7 @@ import { FILTERS, SORTS, emptyCopy, gridMove } from '@/press/library/libraryMode
 
 const props = defineProps({
     canCreate: { type: Boolean, default: false },
+    landing: { type: Object, default: () => ({ firstName: '', company: null, logo: { light: '/images/logo.png', dark: '/images/logo-light.png' }, infodot: { home: 'https://infodot.co.za/home', platforms: 'https://infodot.co.za/platforms' }, featured: null, primary: null }) },
     team: { type: Object, default: null },
     ai: { type: Object, default: () => ({ mode: 'local' }) },
     themes: { type: Array, default: () => [] },
@@ -38,8 +40,10 @@ const items = ref([]);
 const next = ref(null);
 const loading = ref(true);
 const loadError = ref('');
-const continueRow = ref(null);
-const newOpen = ref(false);
+const continueRow = ref(props.landing.featured || null);
+watch(() => props.landing.featured, (row) => { continueRow.value = row || null; });
+// The primary action is a real address (/dashboard?new=1): arriving on it opens the New sheet.
+const newOpen = ref(props.canCreate && params.get('new') === '1');
 const renamingId = ref(null);
 const confirm = ref(null); // {row, busy}
 const focusIndex = ref(0);
@@ -52,7 +56,7 @@ let searchTimer = null;
 function syncUrl() {
     try {
         const u = new URL(window.location.href);
-        for (const [k, v] of [['filter', filter.value], ['sort', sort.value === 'updated' ? null : sort.value], ['q', q.value.trim() || null]]) {
+        for (const [k, v] of [['filter', filter.value], ['sort', sort.value === 'updated' ? null : sort.value], ['q', q.value.trim() || null], ['new', newOpen.value ? '1' : null]]) {
             if (v) u.searchParams.set(k, v); else u.searchParams.delete(k);
         }
         window.history.replaceState(window.history.state, '', u);
@@ -76,12 +80,11 @@ async function load({ more = false } = {}) {
         if (mine === ticket) loading.value = false;
     }
 }
-async function loadContinue() {
-    try {
-        const res = await api.get('/api/decks', { filter: 'recent', per_page: 1 });
-        continueRow.value = res.data[0] || null;
-    } catch { continueRow.value = null; }
+// The presentation the landing shows is chosen by the server (LibraryLanding); ask it again when that one may have changed.
+function loadContinue() {
+    router.reload({ only: ['landing'] });
 }
+watch(newOpen, syncUrl);
 function setFilter(id) {
     if (filter.value === id) return;
     filter.value = id;
@@ -95,7 +98,8 @@ watch(q, () => {
 });
 onBeforeUnmount(() => clearTimeout(searchTimer));
 
-const showContinue = computed(() => continueRow.value && filter.value !== 'archived' && !q.value.trim());
+// The landing steps aside while a search is typed, so the results sit under the search field.
+const showLanding = computed(() => !q.value.trim());
 const archived = computed(() => filter.value === 'archived');
 const empty = computed(() => !loading.value && !loadError.value && !items.value.length);
 
@@ -187,7 +191,6 @@ const sentinel = ref(null);
 let io = null;
 onMounted(() => {
     load();
-    loadContinue();
     window.addEventListener('keydown', onWindowKey);
     if (typeof IntersectionObserver !== 'undefined') {
         io = new IntersectionObserver((entries) => { if (entries.some((x) => x.isIntersecting) && next.value && !loading.value) load({ more: true }); }, { rootMargin: '400px 0px' });
@@ -201,7 +204,7 @@ const showNewTile = computed(() => props.canCreate && !archived.value && !q.valu
 </script>
 
 <template>
-    <PressLayout title="Presentations">
+    <PressLayout title="Presentations" :own-heading="showLanding">
         <template #search>
             <label class="ls">
                 <Ico name="search" size="sm" />
@@ -211,11 +214,11 @@ const showNewTile = computed(() => props.canCreate && !archived.value && !q.valu
             </label>
         </template>
         <template #actions>
-            <button v-if="canCreate" type="button" class="pr-btn pr-btn--primary lh-new" aria-label="New presentation" aria-haspopup="dialog" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" /><span>New</span></button>
+            <button v-if="canCreate" type="button" class="pr-btn lh-new" aria-label="New presentation" aria-haspopup="dialog" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" /><span>New</span></button>
         </template>
 
         <div class="lp">
-            <ContinueSheet v-if="showContinue" :row="continueRow" />
+            <LandingBlock v-if="showLanding" :landing="landing" :row="continueRow" @new="newOpen = true" />
 
             <section class="lw" aria-labelledby="lw-h">
                 <div class="lw-bar">
@@ -238,12 +241,13 @@ const showNewTile = computed(() => props.canCreate && !archived.value && !q.valu
                 </ul>
                 <ul v-else-if="loading" class="lw-grid lw-grid--wait" aria-busy="true" aria-label="Loading presentations"><li v-for="n in 6" :key="n" class="dt-wait" aria-hidden="true"><div class="dt-wait-sheet"></div><div class="dt-wait-line"></div></li></ul>
 
-                <div v-if="empty" class="lw-empty">
+                <!-- with no filter and no search, the landing block above already says the line is empty -->
+                <div v-if="empty && (!showLanding || filter !== null || continueRow)" class="lw-empty">
                     <svg class="lw-empty-rail" viewBox="0 0 24 160" aria-hidden="true"><line x1="12" y1="0" x2="12" y2="160" stroke="var(--line-strong)" stroke-width="1.5" /></svg>
                     <div>
                         <p class="lw-empty-t pr-display">Nothing on this line yet.</p>
                         <p class="lw-empty-s">{{ emptyCopy(filter, q.trim()) }}</p>
-                        <button v-if="canCreate && !archived && !q.trim()" type="button" class="pr-btn pr-btn--primary" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" />New presentation</button>
+                        <button v-if="canCreate && !archived && !q.trim()" type="button" class="pr-btn" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" />New presentation</button>
                     </div>
                 </div>
                 <div v-if="loadError" class="lw-error" role="alert">

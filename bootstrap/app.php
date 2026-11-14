@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CompressResponse;
+use App\Http\Middleware\EnsureCompanyEntitled;
 use App\Http\Middleware\EnsurePlatformOperator;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MemoizeDeckAccess;
@@ -39,10 +40,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         // ...and never depends on the host's .env listing this host (see the middleware).
         $middleware->api(prepend: [OwnHostIsStateful::class]);
+        // R-50: the browser's own calls stop when the current company no longer holds Dot.Press (a bearer token passes).
+        $middleware->api(append: [EnsureCompanyEntitled::class]);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            // R-50: signed-in pages only; public and shared links are untouched (see the middleware).
+            EnsureCompanyEntitled::class,
         ]);
 
         // An empty string is a value in the document: alt="" marks a picture as decorative (spec section 6, and the review

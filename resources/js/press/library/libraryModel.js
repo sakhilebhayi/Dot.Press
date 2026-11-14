@@ -9,6 +9,7 @@
  *   emptyCopy(filter, q)    the sentence under "Nothing on this line yet."
  *   gridMove(rects, i, key) the index the arrow key moves to in a wall of tiles (rects in reading order)
  *   SIZES                   the blank deck sizes of POST /api/decks
+ *   landingCopy(landing)    the words of the landing block: {headline, welcome, support, nothing}
  */
 export const FILTERS = [
   { id: null, label: 'All' },
@@ -159,4 +160,24 @@ export function templateCategories(list, categories = []) {
   const known = (Array.isArray(categories) ? categories : []).filter((c) => counts.has(c.id)).map((c) => ({ id: c.id, name: c.name, count: counts.get(c.id) }));
   for (const [id, count] of counts) if (!known.some((c) => c.id === id)) known.push({ id, name: list.find((t) => t.category === id)?.categoryName || id, count });
   return known;
+}
+
+/**
+ * The words of the landing block. `landing` is the server's prop: {firstName, company, primary, featured}.
+ * The welcome names the person and the support sentence names their company; either may be missing (a person
+ * with no name on file, a person with no team), and the sentence is then written without it.
+ */
+export function landingCopy(landing = {}) {
+  const first = String(landing.firstName || '').trim();
+  const company = String(landing.company || '').trim();
+  const who = company || 'your team';
+  const reads = !landing.primary || landing.primary.kind !== 'new';
+  return {
+    headline: 'Make your case, one claim at a time.',
+    welcome: first ? `Welcome, ${first}.` : 'Welcome.',
+    support: reads
+      ? `Dot.Press holds the presentations ${who} makes. Each slide states a claim, and its dot fills in once the slide shows the evidence. You can open, present and export them.`
+      : `Dot.Press is where ${who} builds its presentations. Each slide states a claim, and its dot fills in once the slide shows the evidence.`,
+    nothing: `Nothing to open yet. When someone at ${who} makes a presentation or shares one with you, it appears here.`,
+  };
 }

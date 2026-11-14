@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FILTERS, SORTS, SIZES, relativeTime, sizeLabel, statusBead, emptyCopy, gridMove, previewDeck, previewSlide, normalizeTemplates, templateCategories } from '../libraryModel.js';
+import { FILTERS, SORTS, SIZES, relativeTime, sizeLabel, statusBead, emptyCopy, gridMove, previewDeck, previewSlide, normalizeTemplates, templateCategories, landingCopy } from '../libraryModel.js';
 
 const NOW = Date.parse('2026-11-07T12:00:00');
 
@@ -86,4 +86,23 @@ test('normalizeTemplates reads the shape GET /api/templates sends (the id is the
   assert.equal(list[1].blurb, '');
   assert.deepEqual(templateCategories(list, res.categories).map((c) => [c.id, c.count]), [['business', 1], ['education', 1]]);
   assert.deepEqual(normalizeTemplates(null), []);
+});
+
+test('landingCopy welcomes the person by name, names their company and says what Dot.Press is for', () => {
+  const c = landingCopy({ firstName: 'Thandi', company: 'Acme Mining', primary: { kind: 'new' } });
+  assert.equal(c.welcome, 'Welcome, Thandi.');
+  assert.match(c.support, /^Dot\.Press is where Acme Mining builds its presentations\./);
+  assert.ok(c.headline.length <= 40, 'the headline stays short enough for two lines on a phone');
+  assert.doesNotMatch(c.headline + c.welcome + c.support + c.nothing, /\d/, 'the words carry no figures');
+});
+
+test('landingCopy tells a reader what they can do, and survives a missing name or company', () => {
+  const reader = landingCopy({ firstName: 'Vera', company: 'Acme Mining', primary: { kind: 'open' } });
+  assert.match(reader.support, /You can open, present and export them\.$/);
+  assert.doesNotMatch(reader.support, /builds/);
+  const bare = landingCopy({ firstName: '  ', company: null, primary: null });
+  assert.equal(bare.welcome, 'Welcome.');
+  assert.match(bare.support, /your team/);
+  assert.match(bare.nothing, /^Nothing to open yet\./);
+  assert.equal(landingCopy().welcome, 'Welcome.');
 });

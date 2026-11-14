@@ -114,7 +114,7 @@ Bricolage 600 for the deck title, empty states and the library's big numbers, se
 
 ## Layout
 
-Editor grid: Spine 288 px, stage fills the rest, inspector 320 px when open. Top bar 52 px (title, save state as a small bead, share, present). Dock 56 px under the stage (insert tools, zoom, guides). Phones: the Spine becomes a drawer, the inspector a bottom sheet, the dock stays. The library is a wall of sheets on the same paper ground, with one large "continue" sheet.
+Editor grid: Spine 288 px, stage fills the rest, inspector 320 px when open. Top bar 52 px (title, save state as a small bead, share, present). Dock 56 px under the stage (insert tools, zoom, guides). Phones: the Spine becomes a drawer, the inspector a bottom sheet, the dock stays. The library is a wall of sheets on the same paper ground. Above the wall sits the landing block, which is what a person sees on arriving from InfoDot: the original logo (`public/images/logo.png`, `logo-light.png` on the dark ground, never redrawn) with the links back to InfoDot and its Platforms page opposite it; then one display headline, a welcome that names the person and their company, and the only filled button on the page (`data-primary-action`: New presentation, or Open the presentation for a person who may only read); beside them the presentation the person was last in, drawn by the slide renderer and hung on a rail with its bead. With nothing to show, that place is a dashed sheet on a rail with no beads and "Nothing on this line yet." Every other button in the library is quiet.
 
 ## Elevation
 
