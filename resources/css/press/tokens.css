@@ -22,6 +22,7 @@
     --focus: #f2a100;
     --selection: #14171a;
     --stage: #e2e5e7;
+    --hover: #e6e9eb;
 
     --f-display: 'Bricolage', 'Instrument', system-ui, sans-serif;
     --f-ui: 'Instrument', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -33,7 +34,15 @@
     --t-lg: 1.125rem;
     --t-xl: clamp(1.5rem, 1.2rem + 1vw, 2rem);
     --t-2xl: clamp(2rem, 1.3rem + 2.4vw, 3.25rem);
+    --t-title: 1.875rem;
+    --t-head: 2.25rem;
     --t-mega: clamp(3rem, 1.2rem + 7vw, 7.5rem);
+
+    /* the library's row module: page bar 44, table head 30, rows 52, foot 36 */
+    --bar: 44px;
+    --row-head: 30px;
+    --row: 52px;
+    --foot: 36px;
 
     --r-1: 4px;
     --r-2: 8px;
@@ -86,6 +95,7 @@
     --warn: #f0b04a;
     --bad: #ff8a80;
     --stage: #0b0c0e;
+    --hover: #262b30;
     --lift: 0 1px 0 rgb(0 0 0 / 0.4), 0 10px 28px -8px rgb(0 0 0 / 0.6);
     --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.2), 0 0 0 7px rgb(255 255 255 / 0.04), 0 18px 44px -12px rgb(0 0 0 / 0.85);
     color-scheme: dark;
@@ -109,6 +119,7 @@
         --warn: #f0b04a;
         --bad: #ff8a80;
         --stage: #0b0c0e;
+    --hover: #262b30;
         --lift: 0 1px 0 rgb(0 0 0 / 0.4), 0 10px 28px -8px rgb(0 0 0 / 0.6);
         --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.2), 0 0 0 7px rgb(255 255 255 / 0.04), 0 18px 44px -12px rgb(0 0 0 / 0.85);
         color-scheme: dark;

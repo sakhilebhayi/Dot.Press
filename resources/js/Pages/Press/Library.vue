@@ -1,20 +1,21 @@
 <script setup>
-// The library: the landing block (logo, welcome, the one primary action, the presentation you were last in), then a
-// wall of sheets. The landing comes from the `landing` prop; the wall comes from GET /api/decks.
+// The library, as a ledger: a page bar (title, filters, sort), the arrival row (logo, where you were last, the one
+// primary action), then the ledger of presentations beside the stage of the selected one, and a foot. The arrival
+// comes from the `landing` prop; the rows come from GET /api/decks.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import PressLayout from '@/Layouts/PressLayout.vue';
 import DotSearch from '@/dot-ui/DotSearch.vue';
-import DeckTile from '@/press/library/DeckTile.vue';
+import LedgerRow from '@/press/library/LedgerRow.vue';
+import LibraryStage from '@/press/library/LibraryStage.vue';
 import LandingBlock from '@/press/library/LandingBlock.vue';
 import NewDeckSheet from '@/press/library/NewDeckSheet.vue';
 import ConfirmDialog from '@/press/library/ConfirmDialog.vue';
 import ToastView from '@/press/editor/ui/ToastView.vue';
-import Ico from '@/press/editor/ui/Ico.vue';
 import { createApi } from '@/press/editor/ui/transport.js';
 import { createToasts } from '@/press/editor/ui/toasts.js';
-import { FILTERS, SORTS, emptyCopy, gridMove } from '@/press/library/libraryModel.js';
+import { FILTERS, SORTS, emptyCopy, footCounts, pickSelection, rowMove } from '@/press/library/libraryModel.js';
 
 const props = defineProps({
     canCreate: { type: Boolean, default: false },
@@ -48,16 +49,20 @@ const newOpen = ref(props.canCreate && params.get('new') === '1');
 const renamingId = ref(null);
 const confirm = ref(null); // {row, busy}
 const focusIndex = ref(0);
-const grid = ref(null);
+const table = ref(null);
+const ledgerEl = ref(null);
 const searchEl = ref(null);
-const tiles = reactive({});
+const rowRefs = reactive({});
+// The selected row: a click or an arrow key, or `?sel=` in the address. It only counts while it is one of the rows loaded.
+const wantedSel = ref(params.get('sel') || null);
+const phone = ref(false);
 let ticket = 0;
 let searchTimer = null;
 
 function syncUrl() {
     try {
         const u = new URL(window.location.href);
-        for (const [k, v] of [['filter', filter.value], ['sort', sort.value === 'updated' ? null : sort.value], ['q', q.value.trim() || null], ['new', newOpen.value ? '1' : null]]) {
+        for (const [k, v] of [['filter', filter.value], ['sort', sort.value === 'updated' ? null : sort.value], ['q', q.value.trim() || null], ['new', newOpen.value ? '1' : null], ['sel', wantedSel.value && selected.value && String(selected.value.id) === String(wantedSel.value) ? wantedSel.value : null]]) {
             if (v) u.searchParams.set(k, v); else u.searchParams.delete(k);
         }
         window.history.replaceState(window.history.state, '', u);
@@ -101,6 +106,15 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
 // The landing steps aside while a search is typed, so the results sit under the search field.
 const showLanding = computed(() => !q.value.trim());
+const selectedId = computed(() => pickSelection(items.value, wantedSel.value, continueRow.value?.id ?? null));
+const selected = computed(() => items.value.find((r) => r.id === selectedId.value) || null);
+function select(row, index) {
+    wantedSel.value = String(row.id);
+    if (Number.isInteger(index)) focusIndex.value = index;
+    syncUrl();
+}
+const counts = computed(() => footCounts(items.value, !!next.value));
+const sortedBy = (id) => sort.value === id;
 const archived = computed(() => filter.value === 'archived');
 const empty = computed(() => !loading.value && !loadError.value && !items.value.length);
 
@@ -120,7 +134,7 @@ async function toggleFavourite(row) {
 async function rename(row, title) {
     renamingId.value = null;
     await nextTick();
-    document.querySelector(`.dt[data-id="${row.id}"] [data-tile]`)?.focus();
+    document.querySelector(`.lr[data-id="${row.id}"] [data-row]`)?.focus();
     if (!title || title === row.title) return;
     const old = row.title;
     row.title = title;
@@ -162,24 +176,25 @@ async function deleteForever() {
 }
 
 // ---- keyboard ---------------------------------------------------------------------------------------
-function tileEls() { return [...(grid.value?.querySelectorAll('[data-tile]') || [])]; }
+function rowEls() { return [...(table.value?.querySelectorAll('[data-row]') || [])]; }
 function onGridKey(e) {
     if (e.target.closest('input')) return;
-    const els = tileEls();
+    const els = rowEls();
     const i = els.indexOf(document.activeElement);
     if (i < 0) return;
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
+    if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
         e.preventDefault();
-        const n = gridMove(els.map((el) => el.getBoundingClientRect()), i, e.key);
+        const n = rowMove(els.length, i, e.key);
         focusIndex.value = n;
-        els[n]?.focus();
+        els[n]?.focus(); // the ledger has scroll-padding for its sticky head, so the row never lands under it
+        if (items.value[n]) select(items.value[n], n);
         return;
     }
     const row = items.value[i];
     if (!row) return;
     if (e.key === 'F2' && !archived.value) { e.preventDefault(); renamingId.value = row.id; }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && !archived.value) { e.preventDefault(); archive(row); }
-    else if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { e.preventDefault(); tiles[row.id]?.openMenu(); }
+    else if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { e.preventDefault(); rowRefs[row.id]?.openMenu(); }
     else if (e.key === 'f' || e.key === 'F') { if (!archived.value && !e.metaKey && !e.ctrlKey) { e.preventDefault(); toggleFavourite(row); } }
 }
 function onWindowKey(e) {
@@ -190,74 +205,107 @@ function onWindowKey(e) {
 // ---- more, as you reach the end ------------------------------------------------------------------------
 const sentinel = ref(null);
 let io = null;
+let mq = null;
+// The ledger scrolls inside the page on a tablet and a desktop; on a phone the page region scrolls, so the observer's root changes.
+function watchEnd() {
+    io?.disconnect();
+    if (typeof IntersectionObserver === 'undefined' || !sentinel.value) return;
+    io = new IntersectionObserver((entries) => { if (entries.some((x) => x.isIntersecting) && next.value && !loading.value) load({ more: true }); }, { root: phone.value ? null : ledgerEl.value, rootMargin: '400px 0px' });
+    io.observe(sentinel.value);
+}
+const onMq = () => { phone.value = !!mq?.matches; watchEnd(); };
 onMounted(() => {
     load();
     window.addEventListener('keydown', onWindowKey);
-    if (typeof IntersectionObserver !== 'undefined') {
-        io = new IntersectionObserver((entries) => { if (entries.some((x) => x.isIntersecting) && next.value && !loading.value) load({ more: true }); }, { rootMargin: '400px 0px' });
-        if (sentinel.value) io.observe(sentinel.value);
-    }
+    mq = window.matchMedia('(max-width: 639px)');
+    phone.value = mq.matches;
+    mq.addEventListener('change', onMq);
+    watchEnd();
 });
-onBeforeUnmount(() => { window.removeEventListener('keydown', onWindowKey); io?.disconnect(); });
+onBeforeUnmount(() => { window.removeEventListener('keydown', onWindowKey); mq?.removeEventListener('change', onMq); io?.disconnect(); });
 const showMore = () => load({ more: true });
-// While the wall is short, its last place is a blank sheet to start from.
-const showNewTile = computed(() => props.canCreate && !archived.value && !q.value.trim() && !next.value && items.value.length > 0 && items.value.length < 8);
+const infodot = computed(() => props.landing.infodot || { home: 'https://infodot.co.za/home', platforms: 'https://infodot.co.za/platforms' });
+// Rows with no first load yet show the dashed placeholder lines; a sentence under the empty ledger needs a reason to say it.
+const emptyText = computed(() => (filter.value !== null || q.value.trim() || props.landing.primary ? emptyCopy(filter.value, q.value.trim()) : ''));
 </script>
 
 <template>
-    <PressLayout title="Presentations" :own-heading="showLanding">
+    <PressLayout title="Presentations" own-heading shell>
         <template #search>
             <!-- the shared Dot search pill (dot-ui). The query, the 250ms debounce, the address and the API call below are unchanged. -->
             <DotSearch ref="searchEl" v-model="q" name="q" placeholder="Search presentations" label="Search presentations" hint="Ctrl K" />
         </template>
-        <template #actions>
-            <button v-if="canCreate" type="button" class="pr-btn lh-new" aria-label="New presentation" aria-haspopup="dialog" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" /><span>New</span></button>
-        </template>
 
         <div class="lp">
+            <div class="bar">
+                <h1 class="bar-h">Presentations</h1>
+                <div class="tabs" role="group" aria-label="Filter presentations">
+                    <button v-for="f in FILTERS" :key="String(f.id)" type="button" class="tab" :aria-pressed="filter === f.id" @click="setFilter(f.id)">{{ f.label }}</button>
+                </div>
+                <label class="sort"><span class="sort-l">Sort</span>
+                    <select v-model="sort" class="pr-field lw-select" aria-label="Sort presentations"><option v-for="s in SORTS" :key="s.id" :value="s.id">{{ s.label }}</option></select>
+                </label>
+            </div>
+
             <LandingBlock v-if="showLanding" :landing="landing" :row="continueRow" @new="newOpen = true" />
 
-            <section class="lw" aria-labelledby="lw-h">
-                <div class="lw-bar">
-                    <h2 id="lw-h" class="pr-sr">Presentations</h2>
-                    <div class="lw-filters" role="group" aria-label="Filter presentations">
-                        <button v-for="f in FILTERS" :key="String(f.id)" type="button" class="lw-f" :class="{ 'is-on': filter === f.id }" :aria-pressed="filter === f.id" @click="setFilter(f.id)">{{ f.label }}</button>
+            <div class="desk" :class="{ 'desk--solo': phone || !selected }">
+                <div ref="ledgerEl" class="ledger">
+                    <table v-if="items.length" ref="table" class="lg" aria-label="Presentations" :aria-busy="loading" @keydown="onGridKey">
+                        <thead>
+                            <tr>
+                                <th scope="col"><button type="button" class="sorth" :aria-pressed="sortedBy('title')" @click="sort = 'title'">Title</button></th>
+                                <th scope="col" class="lr-status">Status</th>
+                                <th scope="col" class="lr-n lr-slides">Slides</th>
+                                <th scope="col" class="lr-size">Size</th>
+                                <th scope="col" class="lr-n lr-edited"><button type="button" class="sorth" :aria-pressed="sortedBy('updated')" @click="sort = 'updated'">{{ archived ? 'Archived' : 'Edited' }}</button></th>
+                                <th scope="col" class="lr-act"><span class="pr-sr">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <LedgerRow
+                                v-for="(row, i) in items" :key="row.id" :ref="(el) => { if (el) rowRefs[row.id] = el; else delete rowRefs[row.id]; }" :row="row" :archived="archived" :focusable="i === focusIndex"
+                                :selected="row.id === selectedId" :renaming="renamingId === row.id" :order="i < 12 ? i : 0"
+                                @select="select(row, i)" @favourite="toggleFavourite(row)" @rename-start="renamingId = row.id" @rename="rename(row, $event)" @rename-cancel="renamingId = null" @duplicate="duplicate(row)"
+                                @archive="archive(row)" @restore="restore(row)" @delete="confirm = { row, busy: false }"
+                            />
+                        </tbody>
+                    </table>
+                    <ul v-else-if="loading" class="lg-wait" aria-busy="true" aria-label="Loading presentations"><li v-for="n in 6" :key="n" aria-hidden="true"><span class="lg-wait-th"></span><span class="lg-wait-ln"></span></li></ul>
+
+                    <div v-if="empty" class="lw-empty">
+                        <svg class="lw-empty-rail" viewBox="0 0 420 12" preserveAspectRatio="none" aria-hidden="true" focusable="false"><line x1="0" y1="6" x2="420" y2="6" stroke="var(--line-strong)" stroke-width="1.5" /></svg>
+                        <h3 v-if="!showLanding || filter !== null" class="lw-empty-t">Nothing on this line yet.</h3>
+                        <p v-if="emptyText" class="lw-empty-s">{{ emptyText }}</p>
                     </div>
-                    <label class="lw-sort"><span class="pr-small pr-muted">Sort</span>
-                        <select v-model="sort" class="pr-field lw-select" aria-label="Sort presentations"><option v-for="s in SORTS" :key="s.id" :value="s.id">{{ s.label }}</option></select>
-                    </label>
-                </div>
+                    <div v-if="loadError" class="lw-error" role="alert">
+                        <p>{{ loadError }}</p>
+                        <button type="button" class="pr-btn pr-btn--sm" @click="load()">Try again</button>
+                    </div>
 
-                <ul v-if="items.length" ref="grid" class="lw-grid" aria-label="Presentations" :aria-busy="loading" @keydown="onGridKey">
-                    <DeckTile
-                        v-for="(row, i) in items" :key="row.id" :ref="(el) => { if (el) tiles[row.id] = el; else delete tiles[row.id]; }" :row="row" :archived="archived" :focusable="i === focusIndex" :renaming="renamingId === row.id"
-                        @favourite="toggleFavourite(row)" @rename-start="renamingId = row.id" @rename="rename(row, $event)" @rename-cancel="renamingId = null" @duplicate="duplicate(row)"
-                        @archive="archive(row)" @restore="restore(row)" @delete="confirm = { row, busy: false }"
-                    />
-                    <li v-if="showNewTile" class="dt dt-new"><button type="button" class="dt-new-b" aria-haspopup="dialog" @click="newOpen = true"><span class="dt-new-plus" aria-hidden="true"><Ico name="plus" size="sm" :stroke="2" /></span>New presentation</button></li>
-                </ul>
-                <ul v-else-if="loading" class="lw-grid lw-grid--wait" aria-busy="true" aria-label="Loading presentations"><li v-for="n in 6" :key="n" class="dt-wait" aria-hidden="true"><div class="dt-wait-sheet"></div><div class="dt-wait-line"></div></li></ul>
-
-                <!-- with no filter and no search, the landing block above already says the line is empty -->
-                <div v-if="empty && (!showLanding || filter !== null || continueRow)" class="lw-empty">
-                    <svg class="lw-empty-rail" viewBox="0 0 24 160" aria-hidden="true"><line x1="12" y1="0" x2="12" y2="160" stroke="var(--line-strong)" stroke-width="1.5" /></svg>
-                    <div>
-                        <p class="lw-empty-t pr-display">Nothing on this line yet.</p>
-                        <p class="lw-empty-s">{{ emptyCopy(filter, q.trim()) }}</p>
-                        <button v-if="canCreate && !archived && !q.trim()" type="button" class="pr-btn" @click="newOpen = true"><Ico name="plus" size="sm" :stroke="2.2" />New presentation</button>
+                    <div ref="sentinel" class="lw-end">
+                        <button v-if="next && !loading" type="button" class="pr-btn" @click="showMore">Show more</button>
+                        <p v-else-if="next && loading" class="pr-small pr-muted">Loading more</p>
                     </div>
                 </div>
-                <div v-if="loadError" class="lw-error" role="alert">
-                    <p>{{ loadError }}</p>
-                    <button type="button" class="pr-btn pr-btn--sm" @click="load()">Try again</button>
-                </div>
 
-                <div ref="sentinel" class="lw-end">
-                    <button v-if="next && !loading" type="button" class="pr-btn" @click="showMore">Show more</button>
-                    <p v-else-if="next && loading" class="pr-small pr-muted">Loading more</p>
-                </div>
-            </section>
+                <aside v-if="!phone && selected" class="stage" aria-label="Selected presentation">
+                    <Transition name="st" mode="out-in">
+                        <LibraryStage
+                            v-if="selected" :key="selected.id" :row="selected" :archived="archived" :can-create="canCreate"
+                            @rename-start="renamingId = selected.id" @duplicate="duplicate(selected)" @archive="archive(selected)" @restore="restore(selected)" @delete="confirm = { row: selected, busy: false }"
+                        />
+                    </Transition>
+                </aside>
+            </div>
         </div>
+
+        <template #foot>
+            <footer class="foot">
+                <p class="foot-n" role="status"><span>{{ counts.lead }}</span><span v-if="counts.detail" class="foot-d">: {{ counts.detail }}</span></p>
+                <nav aria-label="Dot ecosystem"><a :href="infodot.home">InfoDot</a><a :href="infodot.platforms">Platforms</a></nav>
+            </footer>
+        </template>
 
         <NewDeckSheet v-if="newOpen" :themes="themes" :ai="ai" @close="newOpen = false" />
         <ConfirmDialog

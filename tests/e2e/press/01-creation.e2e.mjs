@@ -11,7 +11,7 @@ const spineRows = () => page.locator('.sp-row[data-row="slide"]');
 const titles = async () => spineRows().evaluateAll((els) => els.map((e) => e.querySelector('.sp-title')?.textContent?.trim()));
 async function openNew(tab) {
     await page.goto(BASE + '/dashboard');
-    await page.getByRole('button', { name: /^New/ }).first().click();
+    await page.locator('[data-primary-action]').click(); // the one New of the library
     await page.waitForSelector('.ns[role=dialog]');
     if (tab) await page.getByRole('tab', { name: tab }).click();
 }

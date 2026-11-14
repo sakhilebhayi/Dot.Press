@@ -30,7 +30,7 @@ for (const [name, opts] of Object.entries(VIEWS)) {
     await shot(p, `resp-42-${name}-library`);
     let small = await smallTargets(p);
     expect(small.length === 0, tag('library touch targets are at least 32 px: ' + small.join(' ; ')));
-    await p.getByRole('button', { name: 'New presentation' }).tap();
+    await p.locator('[data-primary-action]').tap();
     await p.getByRole('dialog').waitFor();
     await shot(p, `resp-42-${name}-new-sheet`);
     o = await overflow(p);

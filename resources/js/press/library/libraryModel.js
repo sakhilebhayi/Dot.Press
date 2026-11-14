@@ -7,9 +7,11 @@
  *   sizeLabel(w, h)         "16:9", "4:3", "Portrait", or "1280 x 720"
  *   statusBead(status)      {state, word}  draft = hollow, in_review = a turned square, approved = solid
  *   emptyCopy(filter, q)    the sentence under "Nothing on this line yet."
- *   gridMove(rects, i, key) the index the arrow key moves to in a wall of tiles (rects in reading order)
+ *   rowMove(count, i, key)  the index an arrow key moves to in the ledger
+ *   pickSelection(rows, wanted, featuredId)  the selected row id, validated against the loaded rows
+ *   footCounts(rows, more)  {lead, detail} of the foot line, counted over the rows loaded
  *   SIZES                   the blank deck sizes of POST /api/decks
- *   landingCopy(landing)    the words of the landing block: {headline, welcome, support, nothing}
+ *   landingCopy(landing, row)  the words of the arrival row: {headline, welcome, support, nothing}
  */
 export const FILTERS = [
   { id: null, label: 'All' },
@@ -87,41 +89,44 @@ export function emptyCopy(filter, q = '') {
 }
 
 /**
- * Arrow key navigation across a wall. `rects` are {left, top, right, bottom} in reading order.
- * Left and right step by one, up and down go to the tile whose centre is nearest in the line above or below.
+ * Arrow key navigation down a ledger of `count` rows: Up and Down step by one (and stop at the ends), Home and End
+ * jump to the first and last. Any other key leaves the index where it is. An index outside the list starts at the top.
  */
-export function gridMove(rects, i, key) {
-  const n = rects.length;
-  if (!n) return -1;
-  if (i < 0) return 0;
-  if (key === 'ArrowLeft') return Math.max(0, i - 1);
-  if (key === 'ArrowRight') return Math.min(n - 1, i + 1);
+export function rowMove(count, i, key) {
+  if (!count) return -1;
+  if (i < 0 || i >= count) return 0;
+  if (key === 'ArrowDown') return Math.min(count - 1, i + 1);
+  if (key === 'ArrowUp') return Math.max(0, i - 1);
   if (key === 'Home') return 0;
-  if (key === 'End') return n - 1;
-  if (key !== 'ArrowUp' && key !== 'ArrowDown') return i;
-  const cur = rects[i];
-  const cx = (cur.left + cur.right) / 2;
-  const dir = key === 'ArrowDown' ? 1 : -1;
-  let bestLine = null;
-  for (let k = 0; k < n; k += 1) {
-    const r = rects[k];
-    const below = r.top > cur.top + 4;
-    const above = r.top < cur.top - 4;
-    if ((dir > 0 && below) || (dir < 0 && above)) {
-      const gap = Math.abs(r.top - cur.top);
-      if (bestLine === null || gap < bestLine) bestLine = gap;
-    }
+  if (key === 'End') return count - 1;
+  return i;
+}
+
+/**
+ * The selected row. `wanted` is an id from the address (`?sel=`) or a click: it only counts when that row is among the
+ * rows loaded now, so a stale or forged id never selects anything. Otherwise the presentation the landing features, when
+ * it is in the list, else the first row, else nothing.
+ */
+export function pickSelection(rows, wanted, featuredId = null) {
+  if (!rows.length) return null;
+  const id = (v) => (v === null || v === undefined || v === '' ? null : String(v));
+  for (const candidate of [wanted, featuredId]) {
+    const hit = rows.find((r) => id(candidate) !== null && String(r.id) === id(candidate));
+    if (hit) return hit.id;
   }
-  if (bestLine === null) return i;
-  let best = i;
-  let bestDx = Infinity;
-  for (let k = 0; k < n; k += 1) {
-    const r = rects[k];
-    if (Math.abs(Math.abs(r.top - cur.top) - bestLine) > 4 || (dir > 0 ? r.top <= cur.top + 4 : r.top >= cur.top - 4)) continue;
-    const dx = Math.abs((r.left + r.right) / 2 - cx);
-    if (dx < bestDx) { bestDx = dx; best = k; }
-  }
-  return best;
+  return rows[0].id;
+}
+
+/** The foot line, counted over the rows loaded: "8 shown: 3 approved, 1 in review, 4 draft". Never a total of the library. */
+export function footCounts(rows, more = false) {
+  if (!rows.length) return { lead: 'Nothing shown yet.', detail: '' };
+  const n = { approved: 0, in_review: 0, draft: 0 };
+  for (const r of rows) n[r.status === 'approved' ? 'approved' : r.status === 'in_review' ? 'in_review' : 'draft'] += 1;
+  const parts = [];
+  if (n.approved) parts.push(`${n.approved} approved`);
+  if (n.in_review) parts.push(`${n.in_review} in review`);
+  if (n.draft) parts.push(`${n.draft} draft`);
+  return { lead: `${rows.length} shown${more ? ', more to load' : ''}`, detail: parts.join(', ') };
 }
 
 /** The thumbnail deck for SlideView: the row has w and h and, once the API sends it, the theme. */
@@ -163,21 +168,22 @@ export function templateCategories(list, categories = []) {
 }
 
 /**
- * The words of the landing block. `landing` is the server's prop: {firstName, company, primary, featured}.
- * The welcome names the person and the support sentence names their company; either may be missing (a person
- * with no name on file, a person with no team), and the sentence is then written without it.
+ * The words of the arrival row. `landing` is the server's prop: {firstName, company, primary, featured}; `row` is the
+ * presentation it features. The headline states what is true now: where the person was last, or that there is nothing yet.
+ * The welcome names the person and the support sentence names their company; either may be missing (a person with no
+ * name on file, a person with no team), and the sentence is then written without it.
  */
-export function landingCopy(landing = {}) {
+export function landingCopy(landing = {}, row = null) {
   const first = String(landing.firstName || '').trim();
   const company = String(landing.company || '').trim();
   const who = company || 'your team';
-  const reads = !landing.primary || landing.primary.kind !== 'new';
+  const title = String(row?.title || '').trim();
+  let headline = 'Nothing on this line yet.';
+  if (row) headline = row.last_opened_at ? `You were last in ${title || 'an untitled presentation'}.` : `Newest in the library: ${title || 'an untitled presentation'}.`;
   return {
-    headline: 'Make your case, one claim at a time.',
+    headline,
     welcome: first ? `Welcome, ${first}.` : 'Welcome.',
-    support: reads
-      ? `Dot.Press holds the presentations ${who} makes. Each slide states a claim, and its dot fills in once the slide shows the evidence. You can open, present and export them.`
-      : `Dot.Press is where ${who} builds its presentations. Each slide states a claim, and its dot fills in once the slide shows the evidence.`,
+    support: `These are the presentations ${who} makes.`,
     nothing: `Nothing to open yet. When someone at ${who} makes a presentation or shares one with you, it appears here.`,
   };
 }

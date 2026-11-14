@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FILTERS, SORTS, SIZES, relativeTime, sizeLabel, statusBead, emptyCopy, gridMove, previewDeck, previewSlide, normalizeTemplates, templateCategories, landingCopy } from '../libraryModel.js';
+import { FILTERS, SORTS, SIZES, relativeTime, sizeLabel, statusBead, emptyCopy, rowMove, pickSelection, footCounts, previewDeck, previewSlide, normalizeTemplates, templateCategories, landingCopy } from '../libraryModel.js';
 
 const NOW = Date.parse('2026-11-07T12:00:00');
 
@@ -46,21 +46,36 @@ test('empty copy is specific to the filter and to a search', () => {
   assert.ok(emptyCopy('unknown').length > 0);
 });
 
-test('gridMove: arrows across and between lines of tiles', () => {
-  const t = (c, r) => ({ left: c * 100, right: c * 100 + 90, top: r * 100, bottom: r * 100 + 80 });
-  const rects = [t(0, 0), t(1, 0), t(2, 0), t(0, 1), t(1, 1), t(2, 1), t(0, 2)];
-  assert.equal(gridMove(rects, 1, 'ArrowRight'), 2);
-  assert.equal(gridMove(rects, 0, 'ArrowLeft'), 0);
-  assert.equal(gridMove(rects, 6, 'ArrowRight'), 6);
-  assert.equal(gridMove(rects, 1, 'ArrowDown'), 4);
-  assert.equal(gridMove(rects, 4, 'ArrowUp'), 1);
-  assert.equal(gridMove(rects, 5, 'ArrowDown'), 6); // nearest in the last, shorter line
-  assert.equal(gridMove(rects, 0, 'ArrowUp'), 0);
-  assert.equal(gridMove(rects, 6, 'ArrowDown'), 6);
-  assert.equal(gridMove(rects, 3, 'Home'), 0);
-  assert.equal(gridMove(rects, 3, 'End'), 6);
-  assert.equal(gridMove(rects, -1, 'ArrowDown'), 0);
-  assert.equal(gridMove([], 0, 'ArrowDown'), -1);
+test('rowMove: arrows step down the ledger and stop at its ends', () => {
+  assert.equal(rowMove(5, 1, 'ArrowDown'), 2);
+  assert.equal(rowMove(5, 4, 'ArrowDown'), 4);
+  assert.equal(rowMove(5, 0, 'ArrowUp'), 0);
+  assert.equal(rowMove(5, 3, 'ArrowUp'), 2);
+  assert.equal(rowMove(5, 3, 'Home'), 0);
+  assert.equal(rowMove(5, 1, 'End'), 4);
+  assert.equal(rowMove(5, 2, 'ArrowLeft'), 2);
+  assert.equal(rowMove(5, -1, 'ArrowDown'), 0);
+  assert.equal(rowMove(5, 9, 'ArrowUp'), 0);
+  assert.equal(rowMove(0, 0, 'ArrowDown'), -1);
+});
+
+test('pickSelection only selects rows that are loaded: the address cannot name anything else', () => {
+  const rows = [{ id: 7 }, { id: 9 }, { id: 12 }];
+  assert.equal(pickSelection(rows, '9', 12), 9);
+  assert.equal(pickSelection(rows, 12, null), 12);
+  assert.equal(pickSelection(rows, '404', 12), 12); // not loaded: the featured one
+  assert.equal(pickSelection(rows, '404', 55), 7); // neither loaded: the first row
+  assert.equal(pickSelection(rows, '9abc', null), 7);
+  assert.equal(pickSelection(rows, null, null), 7);
+  assert.equal(pickSelection([], '9', 9), null);
+});
+
+test('footCounts counts the rows loaded, says shown, and never claims a total', () => {
+  assert.deepEqual(footCounts([]), { lead: 'Nothing shown yet.', detail: '' });
+  const rows = [{ status: 'approved' }, { status: 'draft' }, { status: 'in_review' }, { status: 'draft' }, {}];
+  assert.deepEqual(footCounts(rows), { lead: '5 shown', detail: '1 approved, 1 in review, 3 draft' });
+  assert.deepEqual(footCounts(rows, true), { lead: '5 shown, more to load', detail: '1 approved, 1 in review, 3 draft' });
+  assert.deepEqual(footCounts([{ status: 'draft' }]), { lead: '1 shown', detail: '1 draft' });
 });
 
 test('preview helpers fall back sensibly', () => {
@@ -88,21 +103,22 @@ test('normalizeTemplates reads the shape GET /api/templates sends (the id is the
   assert.deepEqual(normalizeTemplates(null), []);
 });
 
-test('landingCopy welcomes the person by name, names their company and says what Dot.Press is for', () => {
-  const c = landingCopy({ firstName: 'Thandi', company: 'Acme Mining', primary: { kind: 'new' } });
+test('landingCopy states where the person was last, welcomes them by name and names their company', () => {
+  const landing = { firstName: 'Thandi', company: 'Acme Mining', primary: { kind: 'new' } };
+  const c = landingCopy(landing, { title: 'Q3 review', last_opened_at: '2026-11-01T10:00:00Z' });
+  assert.equal(c.headline, 'You were last in Q3 review.');
   assert.equal(c.welcome, 'Welcome, Thandi.');
-  assert.match(c.support, /^Dot\.Press is where Acme Mining builds its presentations\./);
-  assert.ok(c.headline.length <= 40, 'the headline stays short enough for two lines on a phone');
-  assert.doesNotMatch(c.headline + c.welcome + c.support + c.nothing, /\d/, 'the words carry no figures');
+  assert.equal(c.support, 'These are the presentations Acme Mining makes.');
+  assert.equal(landingCopy(landing, { title: 'Fresh', last_opened_at: null }).headline, 'Newest in the library: Fresh.');
+  assert.equal(landingCopy(landing, null).headline, 'Nothing on this line yet.');
+  assert.doesNotMatch(c.welcome + c.support + c.nothing, /\d/, 'the fixed words carry no figures');
 });
 
-test('landingCopy tells a reader what they can do, and survives a missing name or company', () => {
-  const reader = landingCopy({ firstName: 'Vera', company: 'Acme Mining', primary: { kind: 'open' } });
-  assert.match(reader.support, /You can open, present and export them\.$/);
-  assert.doesNotMatch(reader.support, /builds/);
+test('landingCopy survives a missing name or company', () => {
   const bare = landingCopy({ firstName: '  ', company: null, primary: null });
   assert.equal(bare.welcome, 'Welcome.');
   assert.match(bare.support, /your team/);
   assert.match(bare.nothing, /^Nothing to open yet\./);
   assert.equal(landingCopy().welcome, 'Welcome.');
+  assert.equal(landingCopy({}, { title: '  ', last_opened_at: 'x' }).headline, 'You were last in an untitled presentation.');
 });
