@@ -172,9 +172,41 @@ class LandingExperienceTest extends AccessTestCase
         $this->assertSame(2, substr_count($block, 'pr-btn--primary'));
         $this->assertStringNotContainsString('data-primary-action', $page.$layout);
         $this->assertStringNotContainsString('pr-btn--primary', $page.$layout);
-        $this->assertStringContainsString('>InfoDot</a>', $block);
-        $this->assertStringContainsString('>Platforms</a>', $block);
         $this->assertStringContainsString('alt="Dot.Press"', $block);
+    }
+
+    public function test_the_header_has_no_second_new_and_the_way_back_to_infodot_is_in_the_foot(): void
+    {
+        $page = (string) file_get_contents(resource_path('js/Pages/Press/Library.vue'));
+        $layout = (string) file_get_contents(resource_path('js/Layouts/PressLayout.vue'));
+        $css = (string) file_get_contents(resource_path('css/press/library.css'));
+
+        // one filled New on the page: the arrival row's. The header's outlined New is gone, with its slot and its styles.
+        $this->assertStringNotContainsString('lh-new', $page.$layout.$css);
+        $this->assertStringNotContainsString('#actions', $page);
+        $this->assertStringContainsString('>InfoDot</a>', $page);
+        $this->assertStringContainsString('>Platforms</a>', $page);
+        $this->assertStringContainsString('<template #foot>', $page);
+        // the ledger replaced the wall of tiles, and the tile file is gone
+        $this->assertFileDoesNotExist(resource_path('js/press/library/DeckTile.vue'));
+        $this->assertStringNotContainsString('lw-grid', $page.$css);
+        // the page bar owns the one h1, so the layout adds none
+        $this->assertMatchesRegularExpression('/<h1 class="bar-h">Presentations<\/h1>/', $page);
+        $this->assertMatchesRegularExpression('/<PressLayout[^>]*own-heading/', $page);
+    }
+
+    public function test_every_motion_rule_of_the_library_sits_under_a_reduced_motion_guard_and_uses_only_cheap_properties(): void
+    {
+        $css = (string) file_get_contents(resource_path('css/press/library.css'));
+
+        // the keyframes of the dashboard are defined only inside the no-preference block, so reduced motion removes all of them
+        $this->assertSame(1, preg_match('/@media \(prefers-reduced-motion: no-preference\) \{(.*?)\n\}\n/s', $css, $m));
+        foreach (['lb-rise', 'lb-draw', 'lb-bead'] as $name) {
+            $this->assertStringContainsString("@keyframes {$name}", $m[1]);
+            $this->assertStringNotContainsString("@keyframes {$name}", str_replace($m[0], '', $css));
+        }
+        $this->assertDoesNotMatchRegularExpression('/@keyframes lb-[a-z]+ \{[^}]*(width|height|top|left|margin)\s*:/', $css);
+        $this->assertStringNotContainsString('transition: all', $css);
     }
 
     public function test_the_platform_list_holds_only_current_platforms(): void

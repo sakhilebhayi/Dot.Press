@@ -12,8 +12,9 @@ import Ico from '@/press/editor/ui/Ico.vue';
 import ThemeToggle from '@/press/editor/ui/ThemeToggle.vue';
 import DotSwitcher from '@/dot-ui/DotSwitcher.vue';
 
-// ownHeading: the page draws its own visible h1 (the library's landing block), so the layout adds none.
-defineProps({ title: { type: String, default: 'Presentations' }, ownHeading: { type: Boolean, default: false } });
+// ownHeading: the page draws its own visible h1 (the library's page bar), so the layout adds none.
+// shell: the library's three-row frame (header, one working region, foot): the page does not scroll, the region does.
+defineProps({ title: { type: String, default: 'Presentations' }, ownHeading: { type: Boolean, default: false }, shell: { type: Boolean, default: false } });
 
 // The Dot Apps model arrives as a deferred prop (the page never waits on InfoDot). A page change drops and re-fetches a
 // deferred prop, so the last model is kept here and the button does not blink between pages.
@@ -52,7 +53,7 @@ const userItems = computed(() => [
 
 <template>
     <Head :title="title" />
-    <div class="pr lib">
+    <div class="pr lib" :class="{ 'lib--shell': shell }">
         <a class="pr-skip" href="#lib-main">Skip to presentations</a>
         <header class="lh">
             <Link :href="route('dashboard')" class="lh-mark" aria-label="Dot.Press library">
@@ -82,5 +83,6 @@ const userItems = computed(() => [
             <h1 v-if="!ownHeading" class="pr-sr">{{ title }}</h1>
             <slot />
         </main>
+        <slot name="foot" />
     </div>
 </template>

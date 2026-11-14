@@ -79,7 +79,7 @@ await t.step('library-phone', 'the library at 390 wide: the New flow opens, the 
     const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     ok(over <= 0, 'library overflows by ' + over);
     await shot(page, '07-library-phone');
-    await page.getByRole('button', { name: /^New/ }).first().click();
+    await page.locator('[data-primary-action]').click(); // the one New of the library
     await page.getByRole('tab', { name: 'Templates' }).click();
     await sleep(800);
     const over2 = await page.evaluate(() => document.querySelector('.ns').scrollWidth - document.querySelector('.ns').clientWidth);

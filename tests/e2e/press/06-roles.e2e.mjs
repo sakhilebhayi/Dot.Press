@@ -107,10 +107,12 @@ await t.step('editor-limits', 'editor: cannot delete the deck, change who may se
 await t.step('viewer-library', 'viewer: the library does not offer to create a presentation', async () => {
     await V.page.goto(BASE + '/dashboard');
     await sleep(800);
-    const newBtn = V.page.getByRole('button', { name: /^New/ });
-    const n = await newBtn.count();
-    const dis = n ? await newBtn.first().isDisabled() : true;
-    ok(n === 0 || dis, 'the New button is hidden or disabled: count ' + n);
+    // the one New is the arrival row's primary action (a link that opens the sheet); a viewer's primary opens the presentation instead
+    const n = await V.page.locator('[data-primary-action][aria-haspopup="dialog"]').count();
+    ok(n === 0, 'no New action is offered: count ' + n);
+    ok(await V.page.locator('.lr').count() > 0, 'the ledger still lists the presentations');
+    eq(await V.page.getByRole('button', { name: /^(Duplicate|Archive|Rename)$/ }).count(), 0, 'the stage offers no Duplicate, Archive or Rename');
+    ok(await V.page.getByRole('link', { name: 'Open', exact: true }).count() > 0, 'the stage offers Open');
     await shot(V.page, 'viewer-library');
 });
 
