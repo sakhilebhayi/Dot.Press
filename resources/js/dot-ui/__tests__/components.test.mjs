@@ -354,3 +354,29 @@ test('switcher: a degraded model that includes a non-core current platform marks
     assert.match(m.host.querySelector('.dsw-bay.is-current').textContent, /You are here/);
     m.unmount();
 });
+
+test('switcher: the trigger has an aria-label (default "Dot Apps", localisable), compact sets data-compact, a plain() model brings its own detail', async () => {
+    const a = await mountComponent(DotSwitcher, { model: degradedModel });
+    assert.equal(a.host.querySelector('[data-dsw-trigger]').getAttribute('aria-label'), 'Dot Apps');
+    assert.equal(a.host.querySelector('[data-dsw]').hasAttribute('data-compact'), false);
+    a.unmount();
+    const b = await mountComponent(DotSwitcher, { model: { ...degradedModel, notice_detail: 'Dot.Mines signs in on its own.' }, buttonLabel: 'Dot-toepassings', compact: true });
+    assert.equal(b.host.querySelector('[data-dsw-trigger]').getAttribute('aria-label'), 'Dot-toepassings');
+    assert.equal(b.host.querySelector('[data-dsw]').hasAttribute('data-compact'), true);
+    assert.match(b.host.querySelector('.dsw-notice').textContent, /Dot\.Mines signs in on its own\./);
+    b.unmount();
+});
+
+test('search: hiddenFields and the extra-hidden slot render inside the form; the filter carries data-dsr-filter', async () => {
+    const m = await mountComponent(DotSearch, { hiddenFields: { status: 'open', tag: ['a', 'b'] }, action: '/s' }, { 'extra-hidden': () => Vue.h('input', { type: 'hidden', name: '_token', value: 't' }) });
+    const form = m.host.querySelector('form');
+    const got = [...form.querySelectorAll('input[type=hidden]')].map((i) => i.getAttribute('name') + '=' + i.getAttribute('value'));
+    assert.deepEqual(got, ['status=open', 'tag[]=a', 'tag[]=b', '_token=t']);
+    m.unmount();
+    const none = await mountComponent(DotSearch, {});
+    assert.equal(none.host.querySelectorAll('input[type=hidden]').length, 0);
+    none.unmount();
+    const f = await mountComponent(DotFilterSearch, {});
+    assert.equal(f.host.querySelector('input').hasAttribute('data-dsr-filter'), true);
+    f.unmount();
+});

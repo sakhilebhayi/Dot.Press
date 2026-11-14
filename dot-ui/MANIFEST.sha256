@@ -1,14 +1,12 @@
-# dot-ui drift manifest. Written by dot-ui/sync.sh, verified by the host's drift test. Not secrets: file hashes.
-# version 734de1cff4cabbaee05c45e725bb90554a09bc78
 ce52b21ec87e4e5ff4a2b9b89d2d9077ed0ec8c8844422b54884ede969b78266  dot-ui/data/categories.json
 ec3a63a26a315609041e6a5319b214258304486fd22bb86d6b5a661bb8529b29  dot-ui/img/platforms/manifest.json
 2f236fbb4c41e21eb871299f5754e70e14792433acbd286c1d599f540fe26a53  dot-ui/src/PlatformLogos.php
-d1068ceff83b6eb95c89e3809551a45de921d0a7628a28854210dea4a2e751c3  dot-ui/src/PlatformSwitcher.php
+3822eb6724c5c9fe452a5fb7a796622cc647fa541d9dfc9385448f6606afeb57  dot-ui/src/PlatformSwitcher.php
 be0465cb8f72e59ff04a96c8dcec244119b84058ca35feb39e8558431c455936  dot-ui/src/SwitcherView.php
 0c8ad1d628e1381879cc11e8c641c520b786b12855a3d7c24f68b5908aff97bd  public/dot-ui/css/dot-fonts.css
-5fdf6382ea6eedffee2020dd0961f36de096a62622a991c13db762e14036320a  public/dot-ui/css/dot-search.css
+b103b78ae4cfb8e68a8128508216359bd255c4da810ec6479428fa14536923a6  public/dot-ui/css/dot-search.css
 caf9fd3556174397bb0e55351f8f111b3166a422fec0f5d0c3792fbba04febfb  public/dot-ui/css/dot-switcher-fonts.css
-ae6046d2d654331bb23c96742ce307e1166a1ea4609ede859191a92a69c957ad  public/dot-ui/css/dot-switcher.css
+81a9ed9155b61022c9a3bf2d4d62bb5dbb08ac45968aee6d34d494b9adaa61b0  public/dot-ui/css/dot-switcher.css
 217173d44765dbca31bc580e7c368a70e2a846fcd32e930b1f91103e9c8b2164  public/dot-ui/css/dot-tokens.css
 ff4f17d21930e36d6d93baba663e624cb767afc3feebf7adaebd82242638de05  public/dot-ui/fonts/archivo-latin-ext-wght-normal.woff2
 8f704806dbedeaaeca334b11ec348bc3ac3a439d6431544b3afb54f534ee4967  public/dot-ui/fonts/archivo-latin-wght-normal.woff2
@@ -38,10 +36,10 @@ f32e7beb244e7ea8e6aeff336664cf8ad582a01c4b62f3d62993254440bf7555  public/dot-ui/
 2b83e9ff66e163519268b2a3e103e8c41aa978f65925181f07297d412f16c5ca  public/dot-ui/img/platforms/tasks.png
 7ed3eaf2b0f94a4553dce088ba5bef14776e2ec02092b5e52bd32bd5662ea031  public/dot-ui/img/platforms/tutor.png
 0af62ad276479dff6f51769c9e6fedfc8ef933415b39515c442c2ce4afb40798  public/dot-ui/switcher-fonts/big-shoulders-stencil-display-latin-wght-normal.woff2
-86893e67e81a3b4bd2c5859bac266562055e9b86732078d95164a46dba12baa3  resources/js/dot-ui/DotFilterSearch.vue
-21f16e00754a78dec1542e843c6cd59513b8287550a6b800be35a93123c9efbb  resources/js/dot-ui/DotSearch.vue
-370f2ad5dd665bc2965a38afca554b6f136448d529a1f0d7bed692cae0d6489a  resources/js/dot-ui/DotSwitcher.vue
+b1589c038a406b49372dc85e2ae9d89ccf4e02d859e955e792182855cd39e455  resources/js/dot-ui/DotFilterSearch.vue
+179465fac0f3dc5c09cf78af7a37f3adc21997b4638b5bd568655e2f487e9e46  resources/js/dot-ui/DotSearch.vue
+2faffde82162dba4c429528696185fc121c3b8e7769845b14982976aad1320f0  resources/js/dot-ui/DotSwitcher.vue
 e357436ed0fe463c49bef80ce33f8bdec170e02746009e7035fd1ffd1743a510  resources/js/dot-ui/__tests__/.gitignore
-4157e6fa4bd64b73cd17e81ae1421f6edea1aeb29d8f72efb4c616cabec98daf  resources/js/dot-ui/__tests__/components.test.mjs
+acdef2947ff4c7e9409bb14b33b9050129108fb6b21baac8af74276939ccc9c3  resources/js/dot-ui/__tests__/components.test.mjs
 016390db6073159aa109a76bca071f570c156b0f4d037c5f0d5ead19e3d9615c  resources/js/dot-ui/__tests__/fixtures.mjs
 b23a4ad6dbfda84399d95c686ad11c3a9df4318e53323a1555e9764fcc36359f  resources/js/dot-ui/__tests__/harness.mjs

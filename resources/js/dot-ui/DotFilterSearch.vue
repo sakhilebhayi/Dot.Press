@@ -20,6 +20,7 @@ defineOptions({ inheritAttrs: false });
         v-bind="$attrs"
         :id="inputId"
         class="dsr-filter"
+        data-dsr-filter
         type="search"
         :name="name"
         :value="modelValue"

@@ -5,7 +5,9 @@
 // focuses the box when a `hint` is given.
 // Props mirror the Blade component: name, placeholder, modelValue (value), action, method, label, hint, id, formAttributes
 // (the Blade's `form-attributes`: an object of attributes for the <form>, the host's values win).
-// Slot `results`: the host's dropdown rows, rendered inside .dsr-panel (when absent there is no panel and no combobox).
+// hiddenFields: { name: value } (a value may be an array: name[]) rendered as hidden inputs inside the form.
+// Slots: `results`, the host's dropdown rows, rendered inside .dsr-panel (when absent there is no panel and no combobox);
+// `extra-hidden`, raw markup rendered inside the form (after the hidden fields).
 import { computed, onBeforeUnmount, onMounted, ref, useSlots } from 'vue';
 
 const props = defineProps({
@@ -18,6 +20,7 @@ const props = defineProps({
     hint: { type: String, default: null },
     id: { type: String, default: null },
     formAttributes: { type: Object, default: () => ({}) },
+    hiddenFields: { type: Object, default: () => ({}) },
 });
 const emit = defineEmits(['update:modelValue', 'submit', 'focus', 'close']);
 
@@ -32,6 +35,7 @@ const closed = ref(false); // Escape was pressed: the panel stays shut until the
 const inputId = computed(() => props.id || `dsr-${String(props.name).replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'search'}`);
 const listId = computed(() => `${inputId.value}-list`);
 const hasResults = computed(() => !!slots.results);
+const hidden = computed(() => Object.entries(props.hiddenFields || {}).flatMap(([n, v]) => (Array.isArray(v) ? v.map((x) => [`${n}[]`, x]) : [[n, v]])));
 
 function onFocus(e) {
     closed.value = false;
@@ -83,6 +87,8 @@ defineExpose({ focus: () => input.value?.focus(), blur: () => input.value?.blur(
     <div ref="root" class="dsr" :class="{ 'is-open': open, 'dsr--nohint': !hint }" data-dsr :data-dsr-shortcut="hint ? '' : null" :data-closed="closed ? '' : null" @keydown="onKeydown" @focusout="onFocusout">
         <label :for="inputId" class="dsr-sr">{{ label }}</label>
         <form role="search" :method="method" :action="action || null" v-bind="formAttributes" @submit="onSubmit">
+            <input v-for="(h, i) in hidden" :key="`${h[0]}-${i}`" type="hidden" :name="h[0]" :value="h[1]" />
+            <slot name="extra-hidden" />
             <input
                 v-bind="$attrs"
                 :id="inputId"

@@ -3,7 +3,9 @@
 // It prints a view model computed on the SERVER (Dot\Ui\PlatformSwitcher) and decides nothing: no access, no URLs of
 // its own, no fetching. A tile is a plain link to InfoDot's /go (a full page navigation, never router-driven).
 // Props mirror the Blade component: model (the view model), companyName, logos (public path of img/platforms), id, notice and
-// noticeDetail (override the degraded line; default text unchanged).
+// noticeDetail (override the degraded line; default text unchanged), buttonLabel (the trigger's aria-label, default "Dot Apps":
+// the visible label is hidden under 640px and in compact mode) and compact (icon-only trigger at any width, data-compact).
+// A model from PlatformSwitcher::plain() may carry notice_detail; it is used when noticeDetail is not given.
 // A logo's printed size comes from `tile.logo_size` ([w, h]) when the host adds it; otherwise the CSS box sizes it.
 // Events: open, close, navigate (the tile the person chose: { key, name, href }).
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
@@ -18,6 +20,8 @@ const props = defineProps({
     mode: { type: String, default: 'header' },
     notice: { type: String, default: null },
     noticeDetail: { type: String, default: null },
+    buttonLabel: { type: String, default: 'Dot Apps' },
+    compact: { type: Boolean, default: false },
 });
 const emit = defineEmits(['open', 'close', 'navigate']);
 
@@ -135,8 +139,8 @@ defineExpose({ open: doOpen, close: doClose });
 </script>
 
 <template>
-    <div v-if="model" ref="root" class="dsw is-ready" :class="`dsw--${mode}`" data-dsw :data-state="state" :data-platform="model.current" :aria-busy="busyKey ? 'true' : null" @keydown="onKeydown">
-        <button ref="trigger" type="button" class="dsw-btn" data-dsw-trigger :aria-expanded="String(open)" :aria-controls="panelId" title="Switch Dot platform" @click="toggle">
+    <div v-if="model" ref="root" class="dsw is-ready" :class="`dsw--${mode}`" data-dsw :data-compact="compact ? '' : null" :data-state="state" :data-platform="model.current" :aria-busy="busyKey ? 'true' : null" @keydown="onKeydown">
+        <button ref="trigger" type="button" class="dsw-btn" data-dsw-trigger :aria-expanded="String(open)" :aria-controls="panelId" title="Switch Dot platform" :aria-label="buttonLabel" @click="toggle">
             <svg class="dsw-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="10" y="4" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="16" y="4" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="4" y="10" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="10" y="10" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="16" y="10" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="4" y="16" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="10" y="16" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /><rect x="16" y="16" width="4" height="4" rx="1.2" fill="currentColor" stroke="none" /></svg>
             <span class="dsw-btn__label">Dot Apps</span>
         </button>
@@ -155,7 +159,7 @@ defineExpose({ open: doOpen, close: doClose });
                     </label>
                 </div>
 
-                <p v-if="state === 'degraded'" class="dsw-notice" role="status"><strong>{{ notice || model.notice }}.</strong> <span>{{ noticeDetail || 'These open through InfoDot, which checks your access.' }}</span></p>
+                <p v-if="state === 'degraded'" class="dsw-notice" role="status"><strong>{{ notice || model.notice }}.</strong> <span>{{ noticeDetail || model.notice_detail || 'These open through InfoDot, which checks your access.' }}</span></p>
 
                 <p v-if="state === 'personal'" class="dsw-personal">{{ model.message }}</p>
                 <template v-else>
