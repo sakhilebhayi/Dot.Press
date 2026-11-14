@@ -273,6 +273,34 @@ class CompanyEntitlementTest extends AccessTestCase
         $this->assertSame('Quarterly deck', $this->deck->fresh()->title);
     }
 
+    public function test_an_inertia_form_post_and_a_patch_or_delete_by_a_refused_company_change_nothing(): void
+    {
+        // It worked while the company held the platform; once the cached answer expires and InfoDot says no, it does not.
+        $this->infodotSays(self::ACME, true);
+        $this->browser($this->owner)->putJson('/api/decks/'.$this->deck->id, ['title' => 'Renamed while allowed'])->assertOk();
+
+        $this->travel(11)->minutes();
+        Http::swap(new Factory);
+        $this->infodotSays(self::ACME, false, 'suspended');
+        $inertia = ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(HttpRequest::create('/'))];
+        $teams = Team::count();
+        $name = $this->team->name;
+
+        // A plain form POST and the browser's own PATCH and DELETE calls.
+        $this->browser($this->owner)->post('/teams', ['name' => 'Made while refused'])->assertStatus(403);
+        $this->browser($this->owner)->patchJson('/api/decks/'.$this->deck->id, ['title' => 'Patched while refused'])->assertStatus(403);
+        $this->browser($this->owner)->deleteJson('/api/decks/'.$this->deck->id)->assertStatus(403);
+        // An Inertia form POST, PUT and DELETE: sent to the refusal page with a full page load.
+        $this->browser($this->owner)->withHeaders($inertia)->post('/teams', ['name' => 'Made while refused'])->assertStatus(409)->assertHeader('X-Inertia-Location');
+        $this->browser($this->owner)->withHeaders($inertia)->put('/teams/'.$this->team->id, ['name' => 'Renamed while refused'])->assertStatus(409);
+        $this->browser($this->owner)->withHeaders($inertia)->delete('/teams/'.$this->team->id)->assertStatus(409);
+
+        $this->assertSame($teams, Team::count());
+        $this->assertSame($name, $this->team->fresh()->name);
+        $this->assertSame('Renamed while allowed', $this->deck->fresh()->title, 'the deck is exactly as the allowed update left it');
+        $this->assertNull($this->deck->fresh()->deleted_at ?? null);
+    }
+
     #[DataProvider('statuses')]
     public function test_the_page_is_worded_from_the_status(string $status, string $heading): void
     {
