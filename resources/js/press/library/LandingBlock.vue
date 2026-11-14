@@ -5,7 +5,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Ico from '../editor/ui/Ico.vue';
-import { emptyCopy, landingCopy } from './libraryModel.js';
+import { landingCopy } from './libraryModel.js';
 
 const props = defineProps({
     landing: { type: Object, required: true },
@@ -26,7 +26,7 @@ const primary = computed(() => props.landing.primary || null);
         <div class="ld-say">
             <h2 id="ld-h" class="ld-h">{{ copy.headline }}</h2>
             <p v-if="row" class="ld-p"><strong class="ld-hello">{{ copy.welcome }}</strong> {{ copy.support }}</p>
-            <p v-else class="ld-p"><strong class="ld-hello">{{ copy.welcome }}</strong> {{ primary ? emptyCopy(null) : copy.nothing }}</p>
+            <p v-else class="ld-p"><strong class="ld-hello">{{ copy.welcome }}</strong> {{ primary ? copy.support : copy.nothing }}</p>
         </div>
         <div v-if="primary" class="ld-act">
             <a v-if="primary.kind === 'new'" :href="primary.href" class="pr-btn pr-btn--primary ld-go" data-primary-action aria-haspopup="dialog" @click.prevent="emit('new')"><Ico name="plus" size="sm" :stroke="2.2" /><span>{{ primary.label }}</span></a>

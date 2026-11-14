@@ -76,7 +76,7 @@ defineExpose({ openMenu: () => menuRef.value?.show() });
     <tr class="lr" :class="{ 'is-archived': archived }" :data-id="row.id" :aria-selected="selected" :style="{ '--i': order }" @click="onRow" @dblclick="onDouble">
         <td class="lr-t">
             <div class="lr-cell">
-                <span class="lr-th" :style="{ '--ar': deck.w / deck.h }" aria-hidden="true"><LazyThumb :slide="slide" :deck="deck" /></span>
+                <span class="lr-thw" aria-hidden="true"><span class="lr-th" :style="{ '--ar': deck.w / deck.h }"><LazyThumb :slide="slide" :deck="deck" /></span></span>
                 <span class="lr-tx">
                     <input v-if="renaming" ref="input" v-model="draft" class="lr-edit" maxlength="255" aria-label="Presentation title" @keydown.enter.prevent="commit" @keydown.esc.prevent="cancel" @blur="commit" />
                     <a v-else :href="href" class="lr-link" :tabindex="focusable ? 0 : -1" :aria-label="label" data-row @click="onLink">{{ row.title }}</a>

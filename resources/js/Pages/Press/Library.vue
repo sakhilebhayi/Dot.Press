@@ -249,7 +249,7 @@ const emptyText = computed(() => (filter.value !== null || q.value.trim() || pro
 
             <LandingBlock v-if="showLanding" :landing="landing" :row="continueRow" @new="newOpen = true" />
 
-            <div class="desk">
+            <div class="desk" :class="{ 'desk--solo': phone || !selected }">
                 <div ref="ledgerEl" class="ledger">
                     <table v-if="items.length" ref="table" class="lg" aria-label="Presentations" :aria-busy="loading" @keydown="onGridKey">
                         <thead>
@@ -289,7 +289,7 @@ const emptyText = computed(() => (filter.value !== null || q.value.trim() || pro
                     </div>
                 </div>
 
-                <aside v-if="!phone" class="stage" aria-label="Selected presentation">
+                <aside v-if="!phone && selected" class="stage" aria-label="Selected presentation">
                     <Transition name="st" mode="out-in">
                         <LibraryStage
                             v-if="selected" :key="selected.id" :row="selected" :archived="archived" :can-create="canCreate"
