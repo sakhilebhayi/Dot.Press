@@ -24,9 +24,12 @@
     --stage: #e2e5e7;
     --hover: #e6e9eb;
 
-    --f-display: 'Bricolage', 'Instrument', system-ui, sans-serif;
-    --f-ui: 'Instrument', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --f-mono: 'PlexMono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    /* R-52: Roboto is the one interface face (dot-ui/css/dot-roboto.css, self hosted). Display, UI and state words are all Roboto;
+       --f-code is the only other family: real monospace for URLs, pasted data and code, where equal-width glyphs are the point. */
+    --f-display: var(--dot-font-sans, 'Roboto', 'Roboto Fallback', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif);
+    --f-ui: var(--f-display);
+    --f-mono: var(--f-display);
+    --f-code: var(--dot-font-mono, ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace);
 
     --t-xs: 0.75rem;
     --t-sm: 0.8125rem;

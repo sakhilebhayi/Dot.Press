@@ -12,7 +12,6 @@
 //  - Under reduced motion the rail fill and the bead states change without travel, and in-page links jump.
 //  - ?og=1 draws the first screen at 1200 by 630 for the share image (scripts/make-icons.mjs --og).
 import '../../css/press/tokens.css';
-import '../../css/press/fonts-ui.css';
 import '../../css/press/base.css';
 import '../../css/press/landing.css';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';

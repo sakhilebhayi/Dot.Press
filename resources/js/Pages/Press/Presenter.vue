@@ -504,6 +504,7 @@ onBeforeUnmount(() => {
 .pr-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin-right: auto; }
 .pr-title strong { font: 600 15px/1.2 var(--pp-font); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pr-title span { font: 400 12px/1.2 var(--pp-font); color: var(--pp-ink-2); }
+.pr-time, .pr-strip-item b { font-variant-numeric: tabular-nums; }
 .pr-time { display: flex; align-items: flex-end; gap: 10px 22px; font: 500 13px var(--pp-mono); color: var(--pp-ink-2); flex-wrap: wrap; }
 .pr-read { display: grid; gap: 4px; }
 .pr-k { font: 500 12px/1 var(--pp-font); color: var(--pp-ink-2); }
@@ -519,7 +520,7 @@ onBeforeUnmount(() => {
 .pr-actions { display: flex; gap: 2px; }
 .pr-note { margin: 0; padding: 10px clamp(12px, 2vw, 24px); font: 400 13px/1.45 var(--pp-font); color: var(--pp-ink-2); background: var(--pp-surface); border-bottom: 1px solid var(--pp-line); }
 .pr-note.is-warn { color: var(--pp-warn); }
-.pr-note code, .pr-link code { font: 500 12px var(--pp-mono); color: var(--pp-ink); overflow-wrap: anywhere; user-select: all; }
+.pr-note code, .pr-link code { font: 500 12px var(--pp-code); color: var(--pp-ink); overflow-wrap: anywhere; user-select: all; }
 .pr-share { padding: 14px clamp(12px, 2vw, 24px) 16px; background: var(--pp-surface); border-bottom: 1px solid var(--pp-line); display: grid; gap: 10px; font: 400 13px/1.5 var(--pp-font); color: var(--pp-ink-2); }
 .pr-share p { margin: 0; max-width: 70ch; }
 .pr-start { width: auto; padding: 0 18px; margin: 0; justify-self: start; }
@@ -566,4 +567,5 @@ onBeforeUnmount(() => {
     .pr-elapsed { font-size: 22px; }
     .pr-strip-item { flex-basis: 110px; }
 }
+@media (max-width: 1024px), (pointer: coarse) { .pr-target input { height: 44px; } }
 </style>

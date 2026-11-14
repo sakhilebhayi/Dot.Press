@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dot-roboto">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,10 +26,10 @@
             })();
         </script>
 
-        {{-- Everything this page needs is inline, so it renders even when the build assets cannot be loaded. --}}
+        {{-- Roboto from the page's own origin (R-52); everything else this page needs is inline, so it renders even when the build assets cannot be loaded. --}}
+        <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
         <style>
             {!! file_get_contents(resource_path('css/press/tokens.css')) !!}
-            {!! file_get_contents(resource_path('css/press/fonts-ui.css')) !!}
             {!! file_get_contents(resource_path('css/press/errors.css')) !!}
         </style>
     </head>

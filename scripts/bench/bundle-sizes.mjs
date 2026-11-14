@@ -102,7 +102,7 @@ function fontSizes(path) {
     if (!existsSync(path)) return [];
     return readdirSync(path, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? fontSizes(join(path, d.name)) : /\.(woff2?|ttf|otf)$/.test(d.name) ? [{ name: d.name, bytes: statSync(join(path, d.name)).size }] : []));
 }
-const ui = fontSizes('public/fonts/ui');
+const ui = fontSizes('public/dot-ui/fonts/roboto');
 const slide = fontSizes('public/fonts').filter((f) => !ui.some((u) => u.name === f.name));
 rec.put('fonts', 'interface_fonts_total_kb', kb(ui.reduce((s, f) => s + f.bytes, 0)));
 rec.put('fonts', 'interface_font_files', ui.length);

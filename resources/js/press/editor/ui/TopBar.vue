@@ -1,11 +1,10 @@
 <script setup>
-// The 52 px top bar: way back, the deck title, the save bead, who else is here, and the deck level actions.
+// The deck bar (under the shared Dot header): the deck title, the save bead, who else is here, and the deck level actions.
+// The way back to the library, search, the Dot Apps switcher, the account menu and the theme live in the header above (PressHeader).
 import { computed, nextTick, ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import { useEditorContext } from '../context.js';
 import DropMenu from './DropMenu.vue';
 import Ico from './Ico.vue';
-import ThemeToggle from './ThemeToggle.vue';
 import ApprovalChip from '../panels/approval/ApprovalChip.vue';
 import { shortcutsFor } from '../core/keys.js';
 
@@ -96,13 +95,9 @@ const canPresent = computed(() => editor.can.present !== false);
 </script>
 
 <template>
-    <header class="tb">
+    <div class="tb" role="toolbar" aria-label="Presentation actions">
         <div class="tb-left">
             <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon tb-menu" :aria-expanded="ui.spine.open" aria-controls="ed-spine" aria-label="Show slides" @click="emit('toggle-spine')"><Ico name="menu" /></button>
-            <Link :href="route('dashboard')" class="tb-mark" aria-label="Back to the library" data-tip="Library">
-                <svg class="tb-dot" viewBox="0 0 32 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6" stroke="currentColor" stroke-width="1.5" /><circle cx="9" cy="6" r="4.25" fill="var(--amber)" stroke="currentColor" stroke-width="1.5" /></svg>
-                <span class="tb-word">Dot.Press</span>
-            </Link>
         </div>
 
         <div class="tb-title">
@@ -142,7 +137,6 @@ const canPresent = computed(() => editor.can.present !== false);
                     <button type="button" class="pr-btn pr-btn--ghost pr-btn--icon tb-overflow" aria-haspopup="menu" :aria-expanded="open" aria-label="More actions" @click="toggle"><Ico name="more" /></button>
                 </template>
             </DropMenu>
-            <ThemeToggle class="tb-theme" />
         </div>
-    </header>
+    </div>
 </template>

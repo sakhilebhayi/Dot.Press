@@ -5,7 +5,7 @@
     $home = url('/');
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dot-roboto">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,16 +36,18 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
         <link rel="manifest" href="/site.webmanifest">
 
-        {{-- The two interface fonts, self hosted. Nothing is requested from another origin. --}}
-        <link rel="preload" href="/fonts/ui/bricolage-300_800-normal.woff2" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="/fonts/ui/instrument-400_700-normal.woff2" as="font" type="font/woff2" crossorigin>
+        {{-- Roboto, the one interface face (R-52), self hosted under /dot-ui. Nothing is requested from another origin. --}}
+        <link rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 
-        {{-- The shared Dot UI (search pill, Dot Apps switcher): self hosted under /dot-ui, no other origin. Loaded before the app CSS so Press's token map (css/press/dotui.css) wins. --}}
-        <link rel="stylesheet" href="/dot-ui/css/dot-fonts.css">
+        {{-- The shared Dot UI (type scale, search pill, Dot Apps switcher, header): self hosted under /dot-ui, no other origin. Loaded before the app CSS so Press's token map (css/press/dotui.css) wins. --}}
+        <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
+        <link rel="stylesheet" href="/dot-ui/css/dot-type.css">
         <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
         <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
-        <link rel="stylesheet" href="/dot-ui/css/dot-switcher-fonts.css">
         <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
+        {{-- Loaded on every page, the full screen ones too: a visit from the player to the library is an in-app navigation, and the root template is not rendered again. --}}
+        <link rel="stylesheet" href="/dot-ui/css/dot-header.css">
+        <script src="/dot-ui/js/dot-nav.js" defer nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}"></script>
 
         @if ($isLanding)
         <meta name="description" content="{{ $landingDescription }}">
@@ -97,7 +99,7 @@
     <body>
         @inertia
         <noscript>
-            <p style="font:16px/1.5 system-ui,sans-serif;max-width:36rem;margin:15vh auto;padding:0 20px;color:#14171a">
+            <p style="font:16px/1.5 Roboto,system-ui,sans-serif;max-width:36rem;margin:15vh auto;padding:0 20px;color:#14171a">
                 Dot.Press is a presentation editor and it needs JavaScript to run. Turn JavaScript on in this browser and reload the page.
             </p>
         </noscript>

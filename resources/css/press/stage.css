@@ -502,5 +502,9 @@
 .es-beadchip-x { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); }
 .es-beadchip-x:hover { background: var(--raised); color: var(--ink); }
 .es-beadchip-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+/* a touch-sized close: 44px to hit, drawn at 28px, laid over the chip's own padding so the chip does not grow */
+@media (max-width: 1023px), (pointer: coarse) {
+    .es-beadchip-x { width: 44px; height: 44px; margin: -8px -6px -8px -4px; }
+}
 @keyframes es-chip-in { from { opacity: 0; translate: 0 -4px; } to { opacity: 1; translate: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .es-beadchip { animation: none; } }

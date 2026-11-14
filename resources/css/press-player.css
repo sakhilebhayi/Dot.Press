@@ -21,8 +21,10 @@
     --pp-calm: #8fd3b6;
     --pp-warn: #f0c36b;
     --pp-over: #ff8a7a;
-    --pp-font: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --pp-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    /* R-52: the player's own chrome (hints, toasts, grid, notes, the presenter and remote consoles) is Roboto, from the page's origin; slides keep their theme fonts. In the offline package Roboto is not embedded, so the chain falls to the device's system face. */
+    --pp-font: var(--dot-font-sans, 'Roboto', 'Roboto Fallback', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif);
+    --pp-mono: var(--pp-font); /* R-52: timers, counts and chips are Roboto with tabular figures; --pp-code is the one real monospace */
+    --pp-code: var(--dot-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
     --pp-ease: cubic-bezier(0.23, 1, 0.32, 1);
     --pp-ease-io: cubic-bezier(0.77, 0, 0.175, 1);
     --pp-fast: 140ms;
@@ -103,7 +105,7 @@
 .pp-notes-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 14px; border-bottom: 1px solid var(--pp-line); font: 500 12px var(--pp-font); color: var(--pp-ink-2); letter-spacing: 0.02em; }
 .pp-notes-body { padding: 12px 16px 16px; overflow: auto; font-size: var(--pp-notes-size, 18px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--pp-ink); }
 .pp-notes-body.is-empty { color: var(--pp-ink-3); }
-.pp-chip { appearance: none; border: 1px solid var(--pp-line); background: transparent; color: var(--pp-ink-2); font: 500 12px var(--pp-mono); height: 28px; min-width: 32px; padding: 0 8px; border-radius: 8px; cursor: pointer; transition: background var(--pp-fast) var(--pp-ease), color var(--pp-fast) var(--pp-ease); }
+.pp-chip { font-variant-numeric: tabular-nums; appearance: none; border: 1px solid var(--pp-line); background: transparent; color: var(--pp-ink-2); font: 500 12px var(--pp-mono); height: 28px; min-width: 32px; padding: 0 8px; border-radius: 8px; cursor: pointer; transition: background var(--pp-fast) var(--pp-ease), color var(--pp-fast) var(--pp-ease); }
 .pp-chip:active { transform: scale(0.96); }
 @media (hover: hover) { .pp-chip:hover { background: var(--pp-surface-2); color: var(--pp-ink); } }
 
@@ -132,4 +134,16 @@
 @media (prefers-reduced-motion: reduce) {
     .pp-root *, .pp-root *::before, .pp-root *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; }
     .pp-seg > i { transition: none; }
+}
+
+/* touch: player and presenter controls are 44px targets up to 1024px and on any touch screen (R-52, brief 4.6) */
+@media (max-width: 1024px), (pointer: coarse) {
+    .pp-root { --pp-hit: 44px; }
+    .pp-chip { height: 44px; min-width: 44px; }
+}
+.pp-bar .pp-btn, .pp-grid-head .pp-btn { flex: none; min-width: var(--pp-hit); min-height: var(--pp-hit); }
+@media (max-width: 480px) {
+    /* six 44px buttons and the count fit a 320px phone */
+    .pp-bar { gap: 0; padding: 2px; max-width: 100vw; }
+    .pp-count { min-width: 36px; padding: 0 2px; }
 }

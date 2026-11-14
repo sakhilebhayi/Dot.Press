@@ -12,6 +12,7 @@
  */
 @import 'tailwindcss' source(none);
 @import './tailwind-v3-palette.css';
+@import '../../dot-ui/tailwind/tailwind-theme.css'; /* dot-ui type scale and font-sans/font-mono (R-52), outside any layer */
 
 @source '../views/**/*.blade.php';
 @source '../js/**/*.vue';
@@ -64,20 +65,13 @@
 }
 
 /*
- * The font utilities, as tailwind.config.js had them (Figtree first, then
- * Tailwind's default sans stack). Declared `inline` and NOT as plain --font-*
- * variables: Welcome.vue and AuthenticationCard.vue define their own --font-mono
- * (Roboto Mono) on a wrapper, which would otherwise replace the `font-mono`
- * utility's stack inside it.
+ * The font utilities are dot-ui's (R-52): font-sans is Roboto, font-mono the shared monospace stack, plus text-dot-* for the
+ * shared type scale. The file is the package's own copy (dot-ui/tailwind), declared `inline` so the scale stays in
+ * public/dot-ui/css/dot-type.css, which the page shell links. The default font of unstyled text (Jetstream forms, tables) follows it.
  */
 @theme inline {
-    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    --default-font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --default-mono-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-        'Courier New', monospace;
+    --default-font-family: var(--dot-font-sans);
+    --default-mono-font-family: var(--dot-font-mono);
 }
 
 /*

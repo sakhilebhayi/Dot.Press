@@ -1,6 +1,6 @@
 /*
  * Dot.Press interface base: the elements every Press page shares (see DESIGN.md "The Spine").
- * Namespace: .pr (root), .pr-* (parts). Tokens come from tokens.css, fonts from fonts-ui.css.
+ * Namespace: .pr (root), .pr-* (parts). Tokens come from tokens.css, type is Roboto (dot-ui/css/dot-roboto.css, linked by the page shell).
  */
 .pr, .pr *, .pr *::before, .pr *::after { box-sizing: border-box; }
 .pr {
@@ -31,8 +31,8 @@
 .pr .pr-skip:focus { top: 8px; }
 
 /* type roles */
-.pr-display { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-size: var(--t-2xl); font-variation-settings: 'opsz' 96; }
-.pr-title { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; font-size: var(--t-xl); font-variation-settings: 'opsz' 48; }
+.pr-display { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.015em; line-height: 1.1; font-size: var(--t-2xl); }
+.pr-title { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; font-size: var(--t-xl); }
 .pr-small { font-size: var(--t-sm); font-weight: 500; line-height: 1.35; }
 .pr-state { font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .pr-muted { color: var(--muted); }

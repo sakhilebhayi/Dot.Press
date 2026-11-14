@@ -2,7 +2,6 @@
 // The guest shell: the mark, one quiet column, the legal links. Used by sign in, password reset, confirmation and the
 // legal pages. The page opens on its own rail: a hairline with the amber dot, which settles into place once.
 import '../../css/press/tokens.css';
-import '../../css/press/fonts-ui.css';
 import '../../css/press/base.css';
 import '../../css/press/account.css';
 import { Link } from '@inertiajs/vue3';
