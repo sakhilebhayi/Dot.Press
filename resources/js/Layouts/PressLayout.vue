@@ -1,19 +1,25 @@
 <script setup>
-// The frame of the library: the Press mark, the team switcher, search, New, the person menu and the theme toggle.
+// The frame of the library: the Press logo, the team switcher, search, the Dot Apps switcher, New, the person menu and the theme toggle.
 import '../../css/press/tokens.css';
 import '../../css/press/fonts-ui.css';
 import '../../css/press/base.css';
 import '../../css/press/library.css';
-import { computed } from 'vue';
+import '../../css/press/dotui.css';
+import { computed, ref, watch } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import DropMenu from '@/press/editor/ui/DropMenu.vue';
 import Ico from '@/press/editor/ui/Ico.vue';
 import ThemeToggle from '@/press/editor/ui/ThemeToggle.vue';
+import DotSwitcher from '@/dot-ui/DotSwitcher.vue';
 
 // ownHeading: the page draws its own visible h1 (the library's landing block), so the layout adds none.
 defineProps({ title: { type: String, default: 'Presentations' }, ownHeading: { type: Boolean, default: false } });
 
+// The Dot Apps model arrives as a deferred prop (the page never waits on InfoDot). A page change drops and re-fetches a
+// deferred prop, so the last model is kept here and the button does not blink between pages.
+const dotModel = ref(null);
 const page = usePage();
+watch(() => page.props.dotSwitcher, (m) => { if (m) dotModel.value = m; }, { immediate: true });
 const user = computed(() => page.props.auth?.user || {});
 const teams = computed(() => user.value.all_teams || []);
 const current = computed(() => user.value.current_team || null);
@@ -50,8 +56,8 @@ const userItems = computed(() => [
         <a class="pr-skip" href="#lib-main">Skip to presentations</a>
         <header class="lh">
             <Link :href="route('dashboard')" class="lh-mark" aria-label="Dot.Press library">
-                <svg class="lh-dot" viewBox="0 0 32 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6" stroke="currentColor" stroke-width="1.5" /><circle cx="9" cy="6" r="4.25" fill="var(--amber)" stroke="currentColor" stroke-width="1.5" /></svg>
-                <span class="lh-word">Dot.Press</span>
+                <img class="lh-logo lh-logo--light" src="/images/logo.png" alt="" width="44" height="44" decoding="async" />
+                <img class="lh-logo lh-logo--dark" src="/images/logo-light.png" alt="" width="44" height="44" decoding="async" />
             </Link>
             <DropMenu v-if="current" :items="teamItems" label="Team" :min-width="220">
                 <template #trigger="{ toggle, open }">
@@ -62,6 +68,7 @@ const userItems = computed(() => [
             </DropMenu>
             <div class="lh-search"><slot name="search" /></div>
             <div class="lh-actions">
+                <DotSwitcher v-if="dotModel" :model="dotModel" :company-name="dotModel.company_name" logos="/dot-ui/img/platforms" />
                 <slot name="actions" />
                 <ThemeToggle />
                 <DropMenu :items="userItems" align="end" label="Account" :min-width="230">

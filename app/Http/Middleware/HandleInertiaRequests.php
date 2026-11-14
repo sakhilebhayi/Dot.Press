@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\InfoDot\DotSwitcherProps;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -37,7 +39,9 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+            // The header's "Dot Apps" switcher (R-51). Deferred: the page renders first and the model follows, so a slow
+            // or dead InfoDot never holds a page up. The package caches the answer and degrades on any failure.
+            'dotSwitcher' => Inertia::defer(fn () => app(DotSwitcherProps::class)->for($request->user()), 'dotui'),
         ];
     }
 }

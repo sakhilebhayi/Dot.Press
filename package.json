@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build && vite build --config vite.standalone.config.js",
         "dev": "vite",
-        "test:press": "node --test 'resources/js/press/**/__tests__/*.test.mjs'"
+        "test:press": "node --test 'resources/js/press/**/__tests__/*.test.mjs' 'resources/js/dot-ui/__tests__/*.test.mjs'"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0",
