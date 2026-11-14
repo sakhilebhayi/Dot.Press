@@ -26,7 +26,11 @@ export async function loadSfc(file) {
     const out = join(here, '.compiled');
     mkdirSync(out, { recursive: true });
     const target = join(out, `${id}.mjs`);
-    writeFileSync(target, script.content);
+    // a component that imports a sibling (DotHeader -> DotDrawer): compile the sibling first and point the import at it
+    let code = script.content;
+    for (const m of code.matchAll(/from ['"]\.\/(\w+)\.vue['"]/g)) await loadSfc(join(dirname(file), `${m[1]}.vue`));
+    code = code.replace(/from (['"])\.\/(\w+)\.vue\1/g, 'from "./$2.mjs"');
+    writeFileSync(target, code);
     return (await import(pathToFileURL(target).href)).default;
 }
 

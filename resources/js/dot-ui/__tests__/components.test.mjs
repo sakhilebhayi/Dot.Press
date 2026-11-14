@@ -380,3 +380,39 @@ test('search: hiddenFields and the extra-hidden slot render inside the form; the
     assert.equal(f.host.querySelector('input').hasAttribute('data-dsr-filter'), true);
     f.unmount();
 });
+
+test('search 0.5.0: loading sets data-dsr-loading and aria-busy, loadingText prints the one dsr-loading row, escapeClears empties the model on Escape; all off by default', async () => {
+    const plain = await mountComponent(DotSearch, { hint: 'Ctrl K', id: 'p1' }, { results: () => Vue.h('a', { class: 'dsr-item', href: '/x', role: 'option' }, 'One') });
+    const root = plain.host.querySelector('.dsr');
+    assert.equal(root.hasAttribute('data-dsr-loading') || root.hasAttribute('data-dsr-escape-clear'), false, 'InfoDot\'s markup is unchanged');
+    assert.equal(plain.host.querySelector('.dsr-loading'), null);
+    plain.unmount();
+    const events = [];
+    const busy = await mountComponent(DotSearch, { modelValue: 'abc', loading: true, escapeClears: true, loadingText: 'Looking in Files and Documents…', id: 'p2', 'onUpdate:modelValue': (v) => events.push(v) });
+    const r = busy.host.querySelector('.dsr');
+    assert.ok(r.hasAttribute('data-dsr-loading') && r.hasAttribute('data-dsr-escape-clear'));
+    assert.equal(busy.host.querySelector('input').getAttribute('aria-busy'), 'true');
+    assert.equal(busy.host.querySelector('p.dsr-foot.dsr-loading').getAttribute('aria-live'), 'polite');
+    assert.equal(busy.host.querySelector('input').getAttribute('role'), 'combobox');
+    key(busy.host.querySelector('input'), 'Escape');
+    assert.deepEqual(events, ['']);
+    busy.unmount();
+});
+
+test('switcher 0.5.0: the phone bottom sheet locks the page scroll (one shared count) and unlocks on close', async () => {
+    const real = window.matchMedia;
+    window.matchMedia = (q) => ({ matches: /max-width: 639px/.test(q), media: q, addEventListener() {}, removeEventListener() {} });
+    delete window.__dotLock;
+    const m = await mountComponent(DotSwitcher, { model: okModel });
+    const html = document.documentElement;
+    m.host.querySelector('[data-dsw-trigger]').click();
+    await tick();
+    assert.equal(html.classList.contains('dot-scroll-locked'), true);
+    assert.equal(window.__dotLock.count(), 1);
+    key(m.host.querySelector('[data-dsw-filter]') || m.host.querySelector('[data-dsw]'), 'Escape');
+    await tick();
+    assert.equal(html.classList.contains('dot-scroll-locked'), false);
+    assert.equal(window.__dotLock.count(), 0);
+    m.unmount();
+    window.matchMedia = real;
+});
