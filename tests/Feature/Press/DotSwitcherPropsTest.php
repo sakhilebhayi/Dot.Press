@@ -230,10 +230,9 @@ class DotSwitcherPropsTest extends AccessTestCase
         $response = $this->actingAs($this->owner)->get('/dashboard')->assertOk();
         $html = $response->getContent();
 
-        foreach (['dot-roboto', 'dot-type', 'dot-tokens', 'dot-search', 'dot-switcher', 'dot-header'] as $css) {
-            $this->assertStringContainsString('href="/dot-ui/css/'.$css.'.css"', $html);
-            $this->assertFileExists(public_path('dot-ui/css/'.$css.'.css'));
-        }
+        // dot-ui 0.6.1: one minified stylesheet carries roboto, type, tokens, search, switcher and header.
+        $this->assertStringContainsString('href="/dot-ui/css/dot-ui.min.css"', $html);
+        $this->assertFileExists(public_path('dot-ui/css/dot-ui.min.css'));
         $policy = (string) $response->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("style-src 'self'", $policy);
         $this->assertStringContainsString("font-src 'self'", $policy);

@@ -20,6 +20,7 @@
 
 /* ---- header -------------------------------------------------------------------------------------------- */
 .lp-top { position: sticky; top: 0; z-index: 40; background: var(--paper); border-bottom: 1px solid var(--line); }
+@media (max-height: 500px) { .lp-top { position: static; } } /* a landscape phone: the bar and the rail are 30% of the screen, so they scroll away */
 .lp-top-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; padding: 0 var(--pad); }
 .lp-home { display: inline-flex; align-items: center; min-height: 44px; border-radius: var(--r-2); }
 .lp-top-end { display: flex; align-items: center; gap: 8px; }

@@ -140,7 +140,7 @@ const statusText = computed(() => ({
 .prt-meta { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--muted); font-size: var(--t-sm); }
 .prt-meta-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prt-act { display: flex; gap: 8px; }
-@media (max-width: 640px) { .prt-bar { position: static; } } /* the bar is taller than a quarter of a phone screen: it scrolls away */
+@media (max-width: 640px), (max-height: 500px) { .prt-bar { position: static; } } /* the bar is taller than a quarter of a phone screen: it scrolls away */
 .prt-hint { grid-column: 1 / -1; margin: 0; font-size: var(--t-sm); color: var(--muted); max-width: 110ch; text-wrap: pretty; }
 .prt-stage { padding: 24px 16px 64px; display: grid; justify-items: center; gap: 28px; }
 .prt-empty { margin: 48px 0; color: var(--muted); max-width: 48ch; text-align: center; }

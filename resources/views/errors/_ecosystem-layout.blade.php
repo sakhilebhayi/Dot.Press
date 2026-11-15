@@ -27,7 +27,7 @@
         </script>
 
         {{-- Roboto from the page's own origin (R-52); everything else this page needs is inline, so it renders even when the build assets cannot be loaded. --}}
-        <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
+        <link rel="stylesheet" href="/dot-ui/css/dot-roboto.min.css">
         <style>
             {!! file_get_contents(resource_path('css/press/tokens.css')) !!}
             {!! file_get_contents(resource_path('css/press/errors.css')) !!}

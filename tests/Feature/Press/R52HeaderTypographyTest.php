@@ -25,11 +25,10 @@ class R52HeaderTypographyTest extends AccessTestCase
         $html = $this->actingAs($this->editor)->get('/dashboard')->assertOk()->getContent();
 
         $this->assertStringContainsString('class="dot-roboto"', $html);
-        foreach (['dot-roboto.css', 'dot-type.css', 'dot-tokens.css', 'dot-search.css', 'dot-switcher.css', 'dot-header.css'] as $css) {
-            $this->assertStringContainsString('href="/dot-ui/css/'.$css.'"', $html);
-        }
-        $this->assertStringContainsString('src="/dot-ui/js/dot-nav.js"', $html);
-        $this->assertStringContainsString('href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2"', $html);
+        // dot-ui 0.6.1: one minified stylesheet (roboto, type, tokens, search, switcher, header).
+        $this->assertStringContainsString('href="/dot-ui/css/dot-ui.min.css"', $html);
+        $this->assertStringContainsString('src="/dot-ui/js/dot-nav.min.js"', $html);
+        $this->assertStringNotContainsString('as="font"', $html, 'no font preload by default (dot-ui PERFORMANCE.md)');
         foreach (['fonts.googleapis.com', 'fonts.gstatic.com', 'dot-fonts.css', 'dot-switcher-fonts.css', 'Archivo'] as $gone) {
             $this->assertStringNotContainsString($gone, $html);
         }
@@ -55,7 +54,7 @@ class R52HeaderTypographyTest extends AccessTestCase
     {
         $html = $this->get('/no-such-page-r52')->assertNotFound()->getContent();
         $this->assertStringContainsString('class="dot-roboto"', $html);
-        $this->assertStringContainsString('href="/dot-ui/css/dot-roboto.css"', $html);
+        $this->assertStringContainsString('href="/dot-ui/css/dot-roboto.min.css"', $html);
         $this->assertStringNotContainsString('fonts.googleapis.com', $html);
     }
 

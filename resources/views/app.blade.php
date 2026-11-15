@@ -36,18 +36,15 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
         <link rel="manifest" href="/site.webmanifest">
 
-        {{-- Roboto, the one interface face (R-52), self hosted under /dot-ui. Nothing is requested from another origin. --}}
+        {{-- The shared Dot UI 0.6.1 (Roboto, type scale, tokens, search pill, Dot Apps switcher, header) as ONE minified stylesheet, self hosted under /dot-ui, no other origin.
+             First stylesheet, before the app CSS, so Press's token map (css/press/dotui.css) wins. Loaded on every page, the full screen ones too: a visit from the player to the library is
+             an in-app navigation, and the root template is not rendered again. No font preload (dot-ui PERFORMANCE.md). --}}
+        <link rel="stylesheet" href="/dot-ui/css/dot-ui.min.css">
+        @if ($isLanding)
+        {{-- The landing page's largest paint is its headline (text), so the latin face is preloaded there only (PERFORMANCE.md). --}}
         <link rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-
-        {{-- The shared Dot UI (type scale, search pill, Dot Apps switcher, header): self hosted under /dot-ui, no other origin. Loaded before the app CSS so Press's token map (css/press/dotui.css) wins. --}}
-        <link rel="stylesheet" href="/dot-ui/css/dot-roboto.css">
-        <link rel="stylesheet" href="/dot-ui/css/dot-type.css">
-        <link rel="stylesheet" href="/dot-ui/css/dot-tokens.css">
-        <link rel="stylesheet" href="/dot-ui/css/dot-search.css">
-        <link rel="stylesheet" href="/dot-ui/css/dot-switcher.css">
-        {{-- Loaded on every page, the full screen ones too: a visit from the player to the library is an in-app navigation, and the root template is not rendered again. --}}
-        <link rel="stylesheet" href="/dot-ui/css/dot-header.css">
-        <script src="/dot-ui/js/dot-nav.js" defer nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}"></script>
+        @endif
+        <script src="/dot-ui/js/dot-nav.min.js" defer nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}"></script>
 
         @if ($isLanding)
         <meta name="description" content="{{ $landingDescription }}">

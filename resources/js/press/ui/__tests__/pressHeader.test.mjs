@@ -36,7 +36,7 @@ let code = compileScript(descriptor, { id: 'PressHeader', inlineTemplate: true }
 code = code.replace("'@/dot-ui/DotHeader.vue'", "'./DotHeader.mjs'").replace("'@/dot-ui/DotSearch.vue'", "'./DotSearch.mjs'").replace("'@/dot-ui/DotSwitcher.vue'", "'./DotSwitcher.mjs'").replace("'@inertiajs/vue3'", "'./inertia.mjs'");
 void [header, search, switcher];
 const uiOut = join(uiDir, '__tests__', '.compiled');
-for (const n of ['DotHeader', 'DotSearch', 'DotSwitcher', 'DotDrawer', 'DotNavMenu', 'DotAccountMenu']) {
+for (const n of ['DotHeader', 'DotSearch', 'DotSwitcher', 'DotDrawer', 'DotNavMenu', 'DotAccountMenu', 'DotMenuItem', 'DotGuest']) {
     writeFileSync(join(out, `${n}.mjs`), readFileSync(join(uiOut, `${n}.mjs`), 'utf8').replace(/from "\.\/(\w+)\.mjs"/g, 'from "./$1.mjs"'));
 }
 writeFileSync(join(out, 'PressHeader.mjs'), code);
