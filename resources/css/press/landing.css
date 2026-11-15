@@ -42,27 +42,27 @@
 .lp-textlink:hover { text-decoration-color: var(--ink); }
 
 /* ---- the page's own spine ------------------------------------------------------------------------------- */
-.lp-rail { position: relative; height: 52px; padding: 0 16px; }
-.lp-rail-track { position: absolute; left: 32px; right: 32px; top: 14px; height: 1.5px; background: var(--line-strong); }
+.lp-rail { position: relative; height: 56px; padding: 0 16px; }
+.lp-rail-track { position: absolute; left: 28px; right: 28px; top: 21px; height: 1.5px; background: var(--line-strong); }
 .lp-rail-fill { position: absolute; inset: 0; background: var(--ink); transform-origin: left; transform: scaleX(var(--fill, 0)); transition: transform var(--d-2) var(--ease-settle); }
-.lp-rail-list { position: absolute; left: 16px; right: 16px; top: 0; display: flex; justify-content: space-between; margin: 0; padding: 0; list-style: none; }
+.lp-rail-list { position: absolute; left: 6px; right: 6px; top: 0; display: flex; justify-content: space-between; margin: 0; padding: 0; list-style: none; }
 .lp-rail-item { position: relative; }
-.lp-rail-link { display: flex; align-items: center; justify-content: center; width: 32px; height: 28px; border-radius: var(--r-1); }
+.lp-rail-link { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--r-1); }
 .lp-rail-link .pr-bead { background: var(--paper); transition: background-color var(--d-2) var(--ease-settle), transform var(--d-4) var(--spring); }
 .lp-rail-link .pr-bead[data-state='solid'] { background: var(--ink); }
 .lp-rail-link .pr-bead[data-state='current'] { background: var(--amber); transform: scale(1.12); }
 .lp-rail-link .pr-bead[data-state='current']::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--ink); }
-.lp-rail-label { position: absolute; left: 50%; top: 29px; transform: translateX(-50%); font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; white-space: nowrap; color: var(--ink); opacity: 0; pointer-events: none; }
+.lp-rail-label { position: absolute; left: 50%; top: 37px; transform: translateX(-50%); font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; white-space: nowrap; color: var(--ink); opacity: 0; pointer-events: none; }
 .lp-rail-item[data-state='current'] .lp-rail-label { opacity: 1; }
 @media (min-width: 768px) and (max-width: 1279px) { .lp-rail-item[data-state='current'] .lp-rail-label { opacity: 0; } }
 
 @media (min-width: 768px) {
     .lp { --rail-w: 72px; }
     .lp-rail { position: fixed; z-index: 30; left: 18px; top: 92px; bottom: 36px; width: 44px; height: auto; padding: 0; }
-    .lp-rail-track { left: 21px; right: auto; top: 14px; bottom: 14px; width: 1.5px; height: auto; }
+    .lp-rail-track { left: 21px; right: auto; top: 22px; bottom: 22px; width: 1.5px; height: auto; }
     .lp-rail-fill { transform-origin: top; transform: scaleY(var(--fill, 0)); }
     .lp-rail-list { left: 0; right: 0; top: 0; bottom: 0; flex-direction: column; }
-    .lp-rail-link { width: 44px; height: 28px; justify-content: flex-start; padding-left: 16px; }
+    .lp-rail-link { width: 44px; height: 44px; justify-content: flex-start; padding-left: 16px; }
     .lp-rail-label { left: 50px; top: 50%; transform: translateY(-50%); padding: 3px 8px; border-radius: var(--r-1); background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
     .lp-rail-item:hover .lp-rail-label, .lp-rail-link:focus-visible .lp-rail-label, .lp-rail-item[data-state='current']:hover .lp-rail-label { opacity: 1; }
 }
