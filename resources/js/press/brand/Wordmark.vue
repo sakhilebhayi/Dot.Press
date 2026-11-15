@@ -17,9 +17,9 @@ defineProps({
 
 <style>
 .pr-wordmark { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); }
-.pr-wordmark-n { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.02em; font-size: var(--t-lg); line-height: 1; font-variation-settings: 'opsz' 28; }
+.pr-wordmark-n { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.01em; font-size: var(--t-lg); line-height: 1.1; }
 .pr-wordmark[data-size='lg'] { gap: 14px; }
-.pr-wordmark[data-size='lg'] .pr-wordmark-n { font-size: var(--t-xl); font-variation-settings: 'opsz' 48; }
+.pr-wordmark[data-size='lg'] .pr-wordmark-n { font-size: var(--t-xl); }
 .pr-wordmark[data-size='sm'] { gap: 8px; }
 .pr-wordmark[data-size='sm'] .pr-wordmark-n { font-size: var(--t-md); }
 </style>

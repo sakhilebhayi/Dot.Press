@@ -4,20 +4,8 @@
  */
 .lib { min-height: 100dvh; background: var(--paper); }
 
-/* header ------------------------------------------------------------------------------------------- */
-.lh { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 clamp(16px, 3vw, 32px); background: var(--paper); border-bottom: 1px solid var(--line); }
-.lh-mark { display: inline-flex; align-items: center; gap: 8px; height: 44px; min-width: 44px; padding: 0 8px 0 0; border-radius: var(--r-2); }
-.lh-team { max-width: 220px; }
-.lh-team-n { overflow: hidden; text-overflow: ellipsis; }
-.lh-search { flex: 1; min-width: 0; display: flex; justify-content: center; padding: 0 12px; }
-.lh-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-.lh-user { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; }
-.lh-user .pr-avatar { --s: 32px; border-color: transparent; }
-.lh-user:hover .pr-avatar { box-shadow: 0 0 0 2px var(--ink); }
-
 /* shell: three rows. The header above, one working region, the foot. Tablet and desktop: the page does not scroll. -------- */
 .lib--shell { height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; }
-.lib--shell .lh { position: static; }
 .lm { outline: none; min-width: 0; min-height: 0; }
 .lp { width: 100%; max-width: 1440px; height: 100%; min-height: 0; margin: 0 auto; padding: 0 clamp(16px, 3vw, 40px); display: flex; flex-direction: column; }
 
@@ -46,7 +34,7 @@
     :root:not([data-theme='light']) .ld-logo-i--dark { display: block; }
 }
 .ld-say { min-width: 0; }
-.ld-h { margin: 0; max-width: 44ch; font-family: var(--f-display); font-weight: 600; font-size: var(--t-head); line-height: 1.05; letter-spacing: -0.03em; font-variation-settings: 'opsz' 72; text-wrap: balance; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ld-h { margin: 0; max-width: 44ch; font-family: var(--f-display); font-weight: 600; font-size: var(--t-head); line-height: 1.05; letter-spacing: -0.015em; text-wrap: balance; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ld-p { margin: var(--s-2) 0 0; color: var(--ink-2); }
 .ld-hello { font-weight: 600; color: var(--ink); }
 .pr .ld-go { --h: 44px; gap: 10px; padding: 0 20px; font-size: var(--t-md); font-weight: 600; white-space: nowrap; }
@@ -105,7 +93,7 @@
 .st-rail .pr-bead { position: absolute; left: 0; top: 0; background-color: var(--paper); box-shadow: 0 0 0 4px var(--paper); }
 .st-rail .pr-bead[data-state='solid'] { background-color: var(--ink); }
 .st-rail .pr-bead[data-state='issue'] { background-color: var(--warn); }
-.st-title { margin: var(--s-3) 0 0; font-family: var(--f-display); font-weight: 600; font-size: var(--t-title); line-height: 1.1; letter-spacing: -0.025em; font-variation-settings: 'opsz' 48; text-wrap: balance; overflow-wrap: anywhere; }
+.st-title { margin: var(--s-3) 0 0; font-family: var(--f-display); font-weight: 600; font-size: var(--t-title); line-height: 1.1; letter-spacing: -0.012em; text-wrap: balance; overflow-wrap: anywhere; }
 .st-title a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .st-acts { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
 .st-push { margin-left: auto; }
@@ -124,7 +112,7 @@
 /* nothing on the line: a bare rail and one sentence ------------------------------------------------------------------ */
 .lw-empty { padding: var(--s-7) var(--s-3); }
 .lw-empty-rail { display: block; width: min(100%, 420px); height: 12px; margin-bottom: var(--s-4); }
-.lw-empty-t { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 2.5rem; line-height: 1; letter-spacing: -0.03em; max-width: 14ch; text-wrap: balance; }
+.lw-empty-t { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 2.5rem; line-height: 1.1; letter-spacing: -0.015em; max-width: 14ch; text-wrap: balance; }
 .lw-empty-s { margin: var(--s-3) 0 0; max-width: 44ch; color: var(--ink-2); }
 .lw-error { display: flex; align-items: center; gap: 12px; padding: var(--s-5) var(--s-3); color: var(--bad); font-weight: 500; }
 .lw-end { display: grid; place-items: center; min-height: 12px; padding: var(--s-4) 0; }
@@ -164,18 +152,23 @@
     .st-acts { display: grid; grid-template-columns: 1fr 1fr; }
     .st-acts .pr-btn { width: 100%; }
     .st-push { margin-left: 0; }
-    .lh-team { max-width: 120px; }
-    .lh-search { padding: 0 4px; }
     .sort-l { display: none; }
 }
 @media (min-width: 640px) and (max-width: 1099px) { .lr-th { display: none; } }
+/* a landscape phone (640 to 760px wide): the ledger gets the whole width, the stage steps aside (its 272px left the title 90px) */
+@media (min-width: 640px) and (max-width: 760px) { .desk { grid-template-columns: minmax(0, 1fr); } .stage { display: none; } }
+
+/* touch: the sort words, the star and the row menu are 44px targets up to 1024px and on any touch screen (brief 4.6) */
+@media (max-width: 1024px), (pointer: coarse) {
+    .lib { --row-head: 44px; }
+    .sorth { min-width: 44px; min-height: 44px; }
+    .foot { min-height: 44px; }
+    .foot nav a { min-height: 44px; display: inline-flex; align-items: center; }
+    .lr-star, .lr-more { width: 44px; }
+}
 
 /* phone: the region is the one scroller, a row is the link, there is no stage ---------------------------------------- */
 @media (max-width: 639px) {
-    /* more specific than .pr .pr-btn, which would keep the team button on a phone and push the controls off the screen */
-    .lib .lh-team { display: none; }
-    .lh { gap: 6px; padding: 0 10px; }
-    .lh-search { padding: 0 4px; }
     .lib--shell .lm { overflow-y: auto; }
     .lp { display: block; height: auto; }
     .bar { display: flex; flex-wrap: wrap; height: auto; gap: 0 12px; padding-top: 4px; justify-content: space-between; border-bottom: 0; }
@@ -211,7 +204,6 @@
 }
 
 @media (pointer: coarse) {
-    .lh-user { width: 44px; height: 44px; }
     .tab { height: 44px; }
     .ns-tab { height: 48px; }
     .ns-size, .ns-theme { min-height: 44px; }

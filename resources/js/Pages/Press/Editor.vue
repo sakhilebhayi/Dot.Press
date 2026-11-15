@@ -1,14 +1,15 @@
 <script setup>
 // The editor: top bar, Spine, stage, dock, inspector. All state lives in the `editor` object built by useEditor().
 import '../../../css/press/tokens.css';
-import '../../../css/press/fonts-ui.css';
 import '../../../css/press/base.css';
 import '../../../css/press/shell.css';
 import '../../../css/press/spine.css';
 import '../../../css/press/controls.css';
+import '../../../css/press/dotui.css';
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { useEditor } from '@/press/editor/ui/useEditor.js';
+import PressHeader from '@/press/ui/PressHeader.vue';
 import TopBar from '@/press/editor/ui/TopBar.vue';
 import Spine from '@/press/editor/ui/Spine.vue';
 import Dock from '@/press/editor/ui/Dock.vue';
@@ -46,7 +47,8 @@ const title = computed(() => editor.deck.value.title || 'Presentation');
 <template>
     <Head :title="title" />
     <div class="pr ed" :data-spine="spineState" :data-inspector="ui.inspector.open ? 'open' : 'closed'" :data-readonly="editor.readOnly ? 'true' : null">
-        <a class="pr-skip" href="#ed-stage">Skip to the slide</a>
+        <!-- the shared Dot header on every width: logo and Library, search, Dot Apps switcher, account menu (and the phone drawer) -->
+        <PressHeader :sticky="false" skip="#ed-stage" :search-hint="null" />
         <TopBar @toggle-spine="toggleSpine" />
 
         <div v-if="editor.recovery.value" class="ed-banner" role="alert">

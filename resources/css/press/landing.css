@@ -1,6 +1,6 @@
 /*
  * The public page. "The Spine" (DESIGN.md) as a page: a rail with one bead per section, filling as you scroll.
- * Type does the work (Bricolage large, Instrument for reading, Plex Mono for state words), the ground is paper, the
+ * Type does the work (Roboto: large and light-tracked for headings, regular for reading, medium for state words), the ground is paper, the
  * slides are real sheets on a pale stage, amber appears only where the reader is. Everything is under .lp.
  */
 /* the type steps of the page, named once (Persuade scale on top of the DESIGN.md ramp) */
@@ -20,6 +20,7 @@
 
 /* ---- header -------------------------------------------------------------------------------------------- */
 .lp-top { position: sticky; top: 0; z-index: 40; background: var(--paper); border-bottom: 1px solid var(--line); }
+@media (max-height: 500px) { .lp-top { position: static; } } /* a landscape phone: the bar and the rail are 30% of the screen, so they scroll away */
 .lp-top-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; padding: 0 var(--pad); }
 .lp-home { display: inline-flex; align-items: center; min-height: 44px; border-radius: var(--r-2); }
 .lp-top-end { display: flex; align-items: center; gap: 8px; }
@@ -77,10 +78,10 @@
 .lp-sec { scroll-margin-top: 112px; padding: clamp(56px, 9vw, 128px) max(var(--pad), calc((100% - var(--wrap)) / 2)) clamp(56px, 9vw, 128px) max(calc(var(--rail-w) + var(--pad) * 0.5), calc((100% - var(--wrap)) / 2)); }
 @media (min-width: 768px) { .lp-sec { scroll-margin-top: 72px; } }
 
-.lp-h1 { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-h1); line-height: 0.96; letter-spacing: -0.04em; font-variation-settings: 'opsz' 96; text-wrap: balance; }
-.lp-h2 { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-h2); line-height: 1.02; letter-spacing: -0.035em; font-variation-settings: 'opsz' 96; text-wrap: balance; max-width: 17em; }
-.lp-h2--big { font-size: var(--lp-t-h2-big); line-height: 0.98; letter-spacing: -0.04em; max-width: 14em; }
-.lp-h3 { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-h3); line-height: 1.15; letter-spacing: -0.02em; font-variation-settings: 'opsz' 48; text-wrap: balance; }
+.lp-h1 { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-h1); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+.lp-h2 { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-h2); line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance; max-width: 17em; }
+.lp-h2--big { font-size: var(--lp-t-h2-big); line-height: 1.08; letter-spacing: -0.02em; max-width: 14em; }
+.lp-h3 { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-h3); line-height: 1.15; letter-spacing: -0.01em; text-wrap: balance; }
 .lp-p { font-size: var(--lp-t-body); line-height: 1.6; color: var(--ink-2); max-width: 36em; text-wrap: pretty; }
 .lp-p + .lp-p { margin-top: 14px; }
 .lp-lede { font-size: var(--lp-t-lede); line-height: 1.55; color: var(--ink-2); max-width: 34em; text-wrap: pretty; }
@@ -154,7 +155,7 @@
 @media (min-width: 760px) { .lp-pre-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(32px, 6vw, 96px); } }
 .lp-pre-fmt { font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; color: var(--muted); }
 .lp-pre-big { margin-top: 6px; font-size: var(--t-lg); line-height: 1.3; }
-.lp-pre-big span { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-stat); line-height: 1; letter-spacing: -0.04em; font-variation-settings: 'opsz' 96; margin-right: 4px; }
+.lp-pre-big span { font-family: var(--f-display); font-weight: 600; font-size: var(--lp-t-stat); line-height: 1.1; letter-spacing: -0.02em; margin-right: 4px; }
 .lp-pre-notes { display: grid; gap: 8px; margin: 14px 0 0; font-size: var(--t-sm); line-height: 1.5; color: var(--ink-2); max-width: 32em; }
 .lp-pre-notes li { padding-left: 16px; position: relative; }
 .lp-pre-notes li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 6px; height: 1.5px; background: var(--muted); }
@@ -183,7 +184,7 @@
     .lp-compat tbody tr { padding: 14px 0; border-top: 1px solid var(--line-strong); }
     .lp-compat tbody tr:last-child { border-bottom: 1px solid var(--line-strong); }
     .lp-compat th, .lp-compat td, .lp-compat tbody th { width: auto; padding: 0; border: 0 !important; }
-    .lp-compat tbody th { margin-bottom: 8px; font-size: var(--t-lg); font-family: var(--f-display); letter-spacing: -0.02em; }
+    .lp-compat tbody th { margin-bottom: 8px; font-size: var(--t-lg); font-family: var(--f-display); letter-spacing: -0.01em; }
     .lp-compat td { padding-top: 8px; }
     .lp-compat td::before { content: attr(data-col); display: block; margin-bottom: 3px; font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; color: var(--muted); }
 }
@@ -253,4 +254,12 @@
 
 @media (prefers-reduced-motion: reduce) {
     .lp-sheet-in { animation: none; }
+}
+
+/* touch: buttons and footer links are 44px targets up to 1024px and on any touch screen (R-52). The rail's seven section anchors
+   stay 32x28 on a phone: seven 44px targets do not fit a 320px row, and each section is also reached by scrolling. */
+@media (max-width: 1024px), (pointer: coarse) {
+    .lp-btn { height: 44px; }
+    .lp-foot nav a { min-height: 44px; min-width: 44px; justify-content: center; }
+    .lp-line-b { min-width: 44px; }
 }

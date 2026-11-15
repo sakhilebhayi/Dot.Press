@@ -22,24 +22,40 @@
     --dsw-focus: var(--focus);
 }
 
+/* The shared header (dot-ui 0.5.0, css/dot-header.css) in Press's own colours: the paper bar and hairline of the library, ink text,
+   the amber that means "here" for the current page, Press's focus ring. Unlayered and plain :root, so it wins in both themes
+   (the package defaults are all under :where()). The tokens are set on .dh and .dh-drawer themselves, not on :root: the package
+   declares its defaults on those elements, and a value set on an element always beats one inherited from :root. */
+.dh, .dh-drawer {
+    --dh-bg: var(--paper);
+    --dh-ink: var(--ink);
+    --dh-ink-2: var(--ink-2);
+    --dh-rule: var(--line);
+    --dh-hover: color-mix(in srgb, var(--ink) 7%, transparent);
+    --dh-accent: var(--amber);
+    --dh-focus: var(--focus);
+    --dh-radius: var(--r-2);
+}
+
 /* the original Dot.Press logo file, never redrawn; the light-ground file in light, the dark-ground file in dark */
-.lh-logo { display: block; width: 44px; height: 44px; object-fit: contain; }
-.lh-logo--dark { display: none; }
-:root[data-theme='dark'] .lh-logo--light { display: none; }
-:root[data-theme='dark'] .lh-logo--dark { display: block; }
+.dh-brand .pr-hdr-logo { width: 32px; height: 32px; object-fit: contain; }
+.dh-brand .pr-hdr-logo--dark { display: none; }
+:root[data-theme='dark'] .dh-brand .pr-hdr-logo--light { display: none; }
+:root[data-theme='dark'] .dh-brand .pr-hdr-logo--dark { display: block; }
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme='light']) .lh-logo--light { display: none; }
-    :root:not([data-theme='light']) .lh-logo--dark { display: block; }
+    /* "follow the system" removes data-theme, as tokens.css expects */
+    :root:not([data-theme='light']) .dh-brand .pr-hdr-logo--light { display: none; }
+    :root:not([data-theme='light']) .dh-brand .pr-hdr-logo--dark { display: block; }
 }
-.lh-mark { padding-right: 4px; }
+.dh-brand .dh-brand__name { font-weight: 600; letter-spacing: -0.01em; }
 
-/* the pill keeps its 44px height and sits centred in the bar */
-.lh-search .dsr { margin: 0 auto; }
-
-/* A phone has no room for the pill between six controls (its text area would be a few pixels wide), so the bar takes a
-   second row: logo and controls on the first, the search across the whole width on the second. */
-@media (max-width: 639px) {
-    .lh { height: auto; min-height: 60px; flex-wrap: wrap; row-gap: 4px; padding-block: 8px; }
-    .lh-search { order: 3; flex: 1 0 100%; padding: 0; }
-    .lh-search .dsr { max-width: none; }
+/* the Dot Apps button in the bar: Press ink and hairline, Press focus colour */
+.dh .dsw {
+    --dsw-btn-ink: var(--ink);
+    --dsw-btn-border: var(--line-strong);
+    --dsw-btn-bg-hover: color-mix(in srgb, var(--ink) 7%, transparent);
+    --dsw-focus: var(--focus);
 }
+
+/* the bar has the library's hairline under it (the library, the account pages and the editor share it) */
+.pr .dh { border-bottom: 1px solid var(--line); }

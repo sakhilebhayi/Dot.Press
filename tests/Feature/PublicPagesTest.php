@@ -24,8 +24,7 @@ class PublicPagesTest extends TestCase
         $this->assertStringContainsString('<meta name="twitter:card" content="summary_large_image">', $html);
         $this->assertStringContainsString('<meta name="theme-color"', $html);
         $this->assertStringContainsString('<link rel="manifest" href="/site.webmanifest">', $html);
-        $this->assertStringContainsString('rel="preload" href="/fonts/ui/bricolage-300_800-normal.woff2"', $html);
-        $this->assertStringContainsString('rel="preload" href="/fonts/ui/instrument-400_700-normal.woff2"', $html);
+        $this->assertStringContainsString('rel="preload" href="/dot-ui/fonts/roboto/roboto-latin-wght-normal.woff2"', $html);
         $this->assertStringContainsString("localStorage.getItem('press:theme')", $html, 'the theme is chosen before first paint');
     }
 

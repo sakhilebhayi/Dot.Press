@@ -67,14 +67,52 @@ function tileTitle(t) {
     return t.via_infodot ? `Open ${t.name} through InfoDot` : `Open ${t.name}`;
 }
 
+// Scroll lock for the phone sheet (css/dot-switcher.css): the same reference-counted window.__dotLock as js/dot-switcher.js and
+// js/dot-nav.js (whichever defines it first). Classes only (html.dot-scroll-locked), no inline style.
+function dotLock() {
+    return window.__dotLock || (window.__dotLock = (() => {
+        let n = 0;
+        return {
+            count: () => n,
+            lock() {
+                if (n++ === 0) {
+                    const de = document.documentElement;
+                    de.classList.add('dot-scroll-locked');
+                    if (window.innerWidth - de.clientWidth > 0) de.classList.add('dot-scroll-locked--gutter');
+                }
+            },
+            unlock() {
+                if (n > 0 && --n === 0) {
+                    const de = document.documentElement;
+                    de.classList.remove('dot-scroll-locked');
+                    de.classList.remove('dot-scroll-locked--gutter');
+                }
+            },
+        };
+    })());
+}
+let pageLocked = false;
+function lockPage() {
+    if (pageLocked || !window.matchMedia || !window.matchMedia('(max-width: 639px)').matches) return;
+    pageLocked = true;
+    dotLock().lock();
+}
+function unlockPage() {
+    if (!pageLocked) return;
+    pageLocked = false;
+    dotLock().unlock();
+}
+
 function doOpen() {
     open.value = true;
+    lockPage();
     emit('open');
     nextTick(() => filterEl.value?.focus());
 }
 function doClose(returnFocus) {
     if (!open.value) return;
     open.value = false;
+    unlockPage();
     emit('close');
     if (returnFocus) trigger.value?.focus();
 }
@@ -102,7 +140,8 @@ function onKeydown(e) {
     targets[next].focus();
 }
 function onDocClick(e) {
-    if (open.value && root.value && !root.value.contains(e.target)) doClose(false);
+    // e.target === root: the tap landed on the phone sheet's scrim (a pseudo-element of the root)
+    if (open.value && root.value && (!root.value.contains(e.target) || e.target === root.value)) doClose(false);
 }
 
 function clearBusy() {
@@ -133,6 +172,7 @@ onBeforeUnmount(() => {
     document.removeEventListener('click', onDocClick);
     window.removeEventListener('pageshow', onPageShow);
     window.clearTimeout(busyTimer);
+    unlockPage();
 });
 
 defineExpose({ open: doOpen, close: doClose });
@@ -171,7 +211,7 @@ defineExpose({ open: doOpen, close: doClose });
                             <ul class="dsw-bays__grid">
                                 <li v-for="tile in group.tiles" :key="tile.key" :data-dsw-name="tile.name.toLowerCase()" :hidden="!tile.shown">
                                     <div v-if="tile.href === null" class="dsw-bay is-current" aria-current="page">
-                                        <span class="dsw-bay__logo"><img v-if="tile.logo" :src="`${logoBase}/${tile.logo}`" :alt="tile.name" :width="size(tile)?.[0]" :height="size(tile)?.[1]" decoding="async" /></span>
+                                        <span class="dsw-bay__logo"><img v-if="tile.logo" :src="`${logoBase}/${tile.logo}`" :alt="tile.name" :width="size(tile)?.[0]" :height="size(tile)?.[1]" loading="lazy" decoding="async" /></span>
                                         <span class="dsw-bay__name">{{ tile.name }}</span>
                                         <span class="dsw-bay__tag dsw-bay__tag--here">You are here</span>
                                     </div>

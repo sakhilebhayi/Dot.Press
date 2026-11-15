@@ -1,5 +1,5 @@
 /*
- * Error pages. These are standalone HTML: tokens.css, fonts-ui.css and this file are inlined into the page, so the page
+ * Error pages. These are standalone HTML: tokens.css and this file are inlined (Roboto is linked from /dot-ui) into the page, so the page
  * renders when the build assets fail to load. Each page draws a state of the spine (404: a line with no beads yet,
  * 500: a broken rail) and says in plain words what happened and where to go.
  */
@@ -12,12 +12,12 @@ a { color: inherit; }
 ::selection { background: var(--amber); color: #14171a; }
 
 .er-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px clamp(16px, 4vw, 40px); }
-.er-home { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; font-family: var(--f-display); font-weight: 600; letter-spacing: -0.02em; font-size: var(--t-lg); }
+.er-home { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; font-family: var(--f-display); font-weight: 600; letter-spacing: -0.01em; font-size: var(--t-lg); }
 .er-home svg { width: 32px; height: 12px; overflow: visible; }
 .er-main { display: grid; align-content: center; justify-items: start; gap: 0; width: min(100%, 72rem); margin: 0 auto; padding: clamp(24px, 6vh, 72px) clamp(16px, 4vw, 40px); }
 .er-rail { width: 100%; height: auto; max-height: 96px; margin-bottom: clamp(24px, 5vh, 56px); overflow: visible; color: var(--ink); }
 .er-code { font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.02em; color: var(--ink-2); }
-.er-title { --er-t-title: clamp(2.5rem, 1rem + 6vw, 6rem); margin: 10px 0 0; max-width: 14em; font-family: var(--f-display); font-weight: 600; font-size: var(--er-t-title); line-height: 0.96; letter-spacing: -0.04em; font-variation-settings: 'opsz' 96; text-wrap: balance; }
+.er-title { --er-t-title: clamp(2.5rem, 1rem + 6vw, 6rem); margin: 10px 0 0; max-width: 14em; font-family: var(--f-display); font-weight: 600; font-size: var(--er-t-title); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
 .er-msg { --er-t-msg: clamp(1rem, 0.95rem + 0.3vw, 1.1875rem); margin: 20px 0 0; max-width: 34em; font-size: var(--er-t-msg); line-height: 1.55; color: var(--ink-2); }
 .er-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 32px; }
 .er-btn { display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 24px 0 20px; border-radius: 8px; background: var(--ink); color: var(--sheet); text-decoration: none; font-weight: 500; font-size: var(--t-lg); transition: background-color 160ms cubic-bezier(0.3, 0, 0.1, 1); }
@@ -45,3 +45,4 @@ a { color: inherit; }
 .er-dash { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 2 7; fill: none; }
 
 @media (prefers-reduced-motion: reduce) { .er-btn, .er-btn i { transition: none; } }
+@media (max-width: 1024px), (pointer: coarse) { .er-foot a { min-height: 44px; min-width: 44px; justify-content: center; } }

@@ -380,3 +380,83 @@ test('search: hiddenFields and the extra-hidden slot render inside the form; the
     assert.equal(f.host.querySelector('input').hasAttribute('data-dsr-filter'), true);
     f.unmount();
 });
+
+test('search 0.5.0: loading sets data-dsr-loading and aria-busy, loadingText prints the one dsr-loading row, escapeClears empties the model on Escape; all off by default', async () => {
+    const plain = await mountComponent(DotSearch, { hint: 'Ctrl K', id: 'p1' }, { results: () => Vue.h('a', { class: 'dsr-item', href: '/x', role: 'option' }, 'One') });
+    const root = plain.host.querySelector('.dsr');
+    assert.equal(root.hasAttribute('data-dsr-loading') || root.hasAttribute('data-dsr-escape-clear'), false, 'InfoDot\'s markup is unchanged');
+    assert.equal(plain.host.querySelector('.dsr-loading'), null);
+    plain.unmount();
+    const events = [];
+    const busy = await mountComponent(DotSearch, { modelValue: 'abc', loading: true, escapeClears: true, loadingText: 'Looking in Files and Documents…', id: 'p2', 'onUpdate:modelValue': (v) => events.push(v) });
+    const r = busy.host.querySelector('.dsr');
+    assert.ok(r.hasAttribute('data-dsr-loading') && r.hasAttribute('data-dsr-escape-clear'));
+    assert.equal(busy.host.querySelector('input').getAttribute('aria-busy'), 'true');
+    assert.equal(busy.host.querySelector('p.dsr-foot.dsr-loading').getAttribute('aria-live'), 'polite');
+    assert.equal(busy.host.querySelector('input').getAttribute('role'), 'combobox');
+    key(busy.host.querySelector('input'), 'Escape');
+    assert.deepEqual(events, ['']);
+    busy.unmount();
+});
+
+test('switcher 0.5.0: the phone bottom sheet locks the page scroll (one shared count) and unlocks on close', async () => {
+    const real = window.matchMedia;
+    window.matchMedia = (q) => ({ matches: /max-width: 639px/.test(q), media: q, addEventListener() {}, removeEventListener() {} });
+    delete window.__dotLock;
+    const m = await mountComponent(DotSwitcher, { model: okModel });
+    const html = document.documentElement;
+    m.host.querySelector('[data-dsw-trigger]').click();
+    await tick();
+    assert.equal(html.classList.contains('dot-scroll-locked'), true);
+    assert.equal(window.__dotLock.count(), 1);
+    key(m.host.querySelector('[data-dsw-filter]') || m.host.querySelector('[data-dsw]'), 'Escape');
+    await tick();
+    assert.equal(html.classList.contains('dot-scroll-locked'), false);
+    assert.equal(window.__dotLock.count(), 0);
+    m.unmount();
+    window.matchMedia = real;
+});
+
+// ------------------------------------------------------------------------------------------------ 0.6.0
+
+test('search 0.6.0: hintKey false prints the hint and binds no key; resultsNav and enterFirst print their attributes; Ctrl K only with a bound hint', async () => {
+    const free = await mountComponent(DotSearch, { hint: '/', hintKey: false, resultsNav: true, enterFirst: true });
+    const root = free.host.querySelector('.dsr');
+    assert.equal(root.querySelector('.dsr-kbd').textContent, '/');
+    assert.equal(root.hasAttribute('data-dsr-shortcut'), false);
+    assert.equal(root.hasAttribute('data-dsr-nav') && root.hasAttribute('data-dsr-enter-first'), true);
+    const input = root.querySelector('.dsr-input');
+    input.blur();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true, cancelable: true }));
+    assert.notEqual(document.activeElement, input, 'Ctrl K does not focus a free hint');
+    free.unmount();
+    const bound = await mountComponent(DotSearch, { hint: 'Ctrl K' });
+    assert.equal(bound.host.querySelector('.dsr').hasAttribute('data-dsr-shortcut'), true);
+    bound.unmount();
+});
+
+test('menu item 0.6.0: a PUT form row carries the token, the spoofed method and the check mark; a button row takes onClick; a heading; the signed-out pair', async () => {
+    const DotMenuItem = await loadSfc(join(dir, 'DotMenuItem.vue'));
+    const DotGuest = await loadSfc(join(dir, 'DotGuest.vue'));
+    const form = await mountComponent(DotMenuItem, { csrf: 'tok', item: { label: 'Acme', current: true, form: { action: '/team', method: 'put', fields: { team_id: 7 } } } });
+    const f = form.host.querySelector('form.dh-menu__form');
+    assert.equal(f.getAttribute('method'), 'post');
+    assert.equal(f.querySelector('[name=_method]').value, 'PUT');
+    assert.equal(f.querySelector('[name=_token]').value, 'tok');
+    assert.equal(f.querySelector('[name=team_id]').value, '7');
+    assert.equal(f.querySelector('button').getAttribute('aria-current'), 'true');
+    assert.ok(f.querySelector('.dh-menu__mark'));
+    form.unmount();
+    let clicked = 0;
+    const btn = await mountComponent(DotMenuItem, { item: { label: 'Mark all read', button: true, attrs: { onClick: () => { clicked += 1; } } } });
+    btn.host.querySelector('button.dh-menu__item').click();
+    assert.equal(clicked, 1);
+    btn.unmount();
+    const head = await mountComponent(DotMenuItem, { item: { heading: 'Switch team' } });
+    assert.equal(head.host.querySelector('p.dh-menu__head').textContent, 'Switch team');
+    head.unmount();
+    const guest = await mountComponent(DotGuest, { login: { href: '/login' }, register: { label: 'Join', href: '/register' }, inline: true });
+    assert.equal(guest.host.querySelector('.dh-dguest .dh-guest__link').textContent, 'Log in');
+    assert.equal(guest.host.querySelector('.dh-guest__link--primary').textContent, 'Join');
+    guest.unmount();
+});

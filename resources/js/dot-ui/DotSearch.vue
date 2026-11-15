@@ -18,9 +18,18 @@ const props = defineProps({
     method: { type: String, default: 'get' },
     label: { type: String, default: 'Search' },
     hint: { type: String, default: null },
+    // 0.6.0: a hint also binds Ctrl/Cmd+K unless hintKey is false (a platform that owns the key itself)
+    hintKey: { type: Boolean, default: true },
+    // 0.6.0: the rows are driven from the keyboard by js/dot-search-results.js (the Blade's `results-nav` / `enter-first`)
+    resultsNav: { type: Boolean, default: false },
+    enterFirst: { type: Boolean, default: false },
     id: { type: String, default: null },
     formAttributes: { type: Object, default: () => ({}) },
     hiddenFields: { type: Object, default: () => ({}) },
+    // 0.5.0, as the Blade's `loading`, `loading-text`, `escape-clears` (docs/SEARCH.md "Loading")
+    loading: { type: Boolean, default: false },
+    loadingText: { type: String, default: null },
+    escapeClears: { type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue', 'submit', 'focus', 'close']);
 
@@ -34,7 +43,7 @@ const closed = ref(false); // Escape was pressed: the panel stays shut until the
 // "dsr-<name>", as in the Blade: the same on every render. Pass `id` when two searches with one name share a page.
 const inputId = computed(() => props.id || `dsr-${String(props.name).replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'search'}`);
 const listId = computed(() => `${inputId.value}-list`);
-const hasResults = computed(() => !!slots.results);
+const hasResults = computed(() => !!slots.results || !!props.loadingText);
 const hidden = computed(() => Object.entries(props.hiddenFields || {}).flatMap(([n, v]) => (Array.isArray(v) ? v.map((x) => [`${n}[]`, x]) : [[n, v]])));
 
 function onFocus(e) {
@@ -48,6 +57,8 @@ function close() {
 }
 function onKeydown(e) {
     if (e.key === 'Escape') {
+        // InfoDot: Escape also empties the box (opt in with `escapeClears`)
+        if (props.escapeClears && input.value && input.value.value !== '') emit('update:modelValue', '');
         closed.value = true;
         close();
         input.value?.blur();
@@ -60,7 +71,7 @@ function onDocClick(e) {
     if (root.value && !root.value.contains(e.target)) close();
 }
 function onWindowKey(e) {
-    if (props.hint && (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
+    if (props.hint && props.hintKey && (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         input.value?.focus();
     }
@@ -84,7 +95,7 @@ defineExpose({ focus: () => input.value?.focus(), blur: () => input.value?.blur(
 </script>
 
 <template>
-    <div ref="root" class="dsr" :class="{ 'is-open': open, 'dsr--nohint': !hint }" data-dsr :data-dsr-shortcut="hint ? '' : null" :data-closed="closed ? '' : null" @keydown="onKeydown" @focusout="onFocusout">
+    <div ref="root" class="dsr" :class="{ 'is-open': open, 'dsr--nohint': !hint }" data-dsr :data-dsr-shortcut="hint && hintKey ? '' : null" :data-dsr-nav="resultsNav ? '' : null" :data-dsr-enter-first="resultsNav && enterFirst ? '' : null" :data-dsr-loading="loading ? '' : null" :data-dsr-escape-clear="escapeClears ? '' : null" :data-closed="closed ? '' : null" @keydown="onKeydown" @focusout="onFocusout">
         <label :for="inputId" class="dsr-sr">{{ label }}</label>
         <form role="search" :method="method" :action="action || null" v-bind="formAttributes" @submit="onSubmit">
             <input v-for="(h, i) in hidden" :key="`${h[0]}-${i}`" type="hidden" :name="h[0]" :value="h[1]" />
@@ -103,12 +114,13 @@ defineExpose({ focus: () => input.value?.focus(), blur: () => input.value?.blur(
                 :aria-autocomplete="hasResults ? 'list' : null"
                 :aria-controls="hasResults ? listId : null"
                 :aria-expanded="hasResults ? String(open && !closed) : null"
+                :aria-busy="loading ? 'true' : null"
                 @input="emit('update:modelValue', $event.target.value)"
                 @focus="onFocus"
             />
             <kbd v-if="hint" class="dsr-kbd" aria-hidden="true">{{ hint }}</kbd>
             <button type="submit" class="dsr-go" :aria-label="label"><span class="dsr-arrow" aria-hidden="true"></span></button>
         </form>
-        <div v-if="hasResults" :id="listId" class="dsr-panel" role="listbox" aria-label="Suggestions" tabindex="-1"><slot name="results" /></div>
+        <div v-if="hasResults" :id="listId" class="dsr-panel" role="listbox" aria-label="Suggestions" tabindex="-1"><slot name="results" /><p v-if="loadingText" class="dsr-foot dsr-loading" aria-live="polite">{{ loadingText }}</p></div>
     </div>
 </template>

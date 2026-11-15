@@ -2,7 +2,6 @@
 // A page for a deck too big to write into the HTML (see App\Services\Press\DeferredPage). The server sends the name of
 // the real page, its own props and a streaming URL; this fetches the data while the real page's code loads, then mounts it.
 import '../../../css/press/tokens.css';
-import '../../../css/press/fonts-ui.css';
 import '../../../css/press/base.css';
 import { computed, defineAsyncComponent, ref, shallowRef } from 'vue';
 

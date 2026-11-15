@@ -3,7 +3,6 @@
 // editor so the browser's "Save as PDF" gives selectable text and the exact fonts. The toolbar is for the screen only
 // and disappears in print. Printing starts from a button, never by itself.
 import '../../../css/press/tokens.css';
-import '../../../css/press/fonts-ui.css';
 import '../../../css/press/base.css';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head } from '@inertiajs/vue3';
@@ -137,10 +136,11 @@ const statusText = computed(() => ({
 .prt { min-height: 100vh; background: var(--paper); color: var(--ink); font-family: var(--f-ui); }
 .prt-bar { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 10px 16px; background: var(--sheet); border-bottom: 1px solid var(--line); }
 .prt-id { min-width: 0; }
-.prt-title { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prt-title { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prt-meta { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--muted); font-size: var(--t-sm); }
 .prt-meta-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prt-act { display: flex; gap: 8px; }
+@media (max-width: 640px), (max-height: 500px) { .prt-bar { position: static; } } /* the bar is taller than a quarter of a phone screen: it scrolls away */
 .prt-hint { grid-column: 1 / -1; margin: 0; font-size: var(--t-sm); color: var(--muted); max-width: 110ch; text-wrap: pretty; }
 .prt-stage { padding: 24px 16px 64px; display: grid; justify-items: center; gap: 28px; }
 .prt-empty { margin: 48px 0; color: var(--muted); max-width: 48ch; text-align: center; }

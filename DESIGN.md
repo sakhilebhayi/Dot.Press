@@ -17,29 +17,29 @@ colors:
   bad: "#B3261E"
 typography:
   display:
-    fontFamily: Bricolage
+    fontFamily: Roboto
     fontSize: 3.25rem
     fontWeight: 600
-    lineHeight: 1
-    letterSpacing: -0.03em
+    lineHeight: 1.1
+    letterSpacing: -0.015em
   title:
-    fontFamily: Bricolage
+    fontFamily: Roboto
     fontSize: 1.5rem
     fontWeight: 600
     lineHeight: 1.15
-    letterSpacing: -0.02em
+    letterSpacing: -0.01em
   ui:
-    fontFamily: Instrument
+    fontFamily: Roboto
     fontSize: 0.9375rem
     fontWeight: 400
     lineHeight: 1.45
   small:
-    fontFamily: Instrument
+    fontFamily: Roboto
     fontSize: 0.8125rem
     fontWeight: 500
     lineHeight: 1.35
   state:
-    fontFamily: PlexMono
+    fontFamily: Roboto
     fontSize: 0.75rem
     fontWeight: 500
     lineHeight: 1.2
@@ -99,7 +99,7 @@ components:
 | Layout | A left rail (the Spine, 288 px) carries navigation and structure. The stage is the centre. Contextual tools appear beside the selection, never in a fixed ribbon. An inspector drawer on the right shows what the selection or the deck needs. |
 | States | Hollow ring: claim without evidence. Solid dot: with evidence. Amber: current. A square dot marks a slide with an open review issue. Colour is never the only carrier: the shape and a mono state word carry it too. |
 | Motion | Beads and slide cards move along the rail with a short spring. Lines draw rather than fade. Panels slide from their own edge. Under reduced motion everything is an instant state change. |
-| Type | Bricolage (display, optical size, used large and rarely), Instrument (all interface text), IBM Plex Mono (state words and numbers only, never for decoration). |
+| Type | Roboto everywhere (R-52: one face for display, interface text and state words, from `/dot-ui/fonts/roboto`). Hierarchy comes from size and weight, not from a second family. Real monospace (`--f-code`) only for URLs, pasted data and code. |
 | Colour | Ink is the identity. Amber is rare and always means "here". Paper is a cool grey, not cream. |
 | Copy | Plain verbs. Slide, claim, evidence. No "magic", no "supercharge". Sentence case. |
 | 404 and empty states | A spine with no beads: "Nothing on this line yet." |
@@ -110,7 +110,7 @@ Paper `#EEF0F1` is the ground and the stage is slightly darker, `#E2E5E7`, so a 
 
 ## Typography
 
-Bricolage 600 for the deck title, empty states and the library's big numbers, set tight (letter spacing -0.02 to -0.03em). Instrument for everything else at 13 to 15 px. Plex Mono 12 px for bead states (`hollow`, `solid`, `here`), slide numbers, timers and sizes, with tabular figures. Slide content has its own font list and never uses interface fonts unless the user picks them.
+Roboto 600 for the deck title, empty states and the library's big numbers, set a little tight (letter spacing -0.01 to -0.02em, line height 1.1). Roboto 400 and 500 for everything else at 13 to 15 px; state words (`hollow`, `solid`, `here`), slide numbers, timers and sizes are Roboto 500 12 px with tabular figures. Slide content has its own font list and never uses interface fonts unless the user picks them.
 
 ## Layout
 

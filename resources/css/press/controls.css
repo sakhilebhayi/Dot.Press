@@ -179,14 +179,14 @@
 /* empty, progress, notice */
 .c-empty { display: flex; gap: 18px; align-items: flex-start; padding: 28px 8px; }
 .c-empty-rail { flex: none; width: 20px; height: 80px; }
-.c-empty-h { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; font-size: var(--t-xl); font-variation-settings: 'opsz' 48; margin: 0; text-wrap: balance; }
+.c-empty-h { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; font-size: var(--t-xl); margin: 0; text-wrap: balance; }
 .c-empty-b { margin: 8px 0 0; color: var(--ink-2); font-size: var(--t-sm); max-width: 36ch; }
 .c-empty-a { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
 .c-empty.is-compact { padding: 16px 4px; gap: 12px; }
 .c-empty.is-compact .c-empty-rail { height: 56px; }
 .c-empty.is-compact { gap: 10px; padding: 14px 8px 18px; }
 /* inside a panel the empty state is a quiet line under its section heading, never louder than the heading */
-.c-empty.is-compact .c-empty-h { font-family: var(--f-ui); font-size: var(--t-md); font-weight: 600; letter-spacing: 0; font-variation-settings: normal; color: var(--ink-2); }
+.c-empty.is-compact .c-empty-h { font-family: var(--f-ui); font-size: var(--t-md); font-weight: 600; letter-spacing: 0; color: var(--ink-2); }
 .c-empty.is-compact .c-empty-b { margin-top: 4px; color: var(--muted); max-width: 40ch; }
 .c-empty.is-compact .c-empty-rail { height: 40px; width: 16px; }
 .c-prog { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 20px; }

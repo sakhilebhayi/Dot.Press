@@ -202,7 +202,7 @@ const initials = (n) => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2
 .apv-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 18px 16px 16px; border-bottom: 1px solid var(--line); }
 .apv-bead { --b: 16px; margin-top: 4px; }
 .apv-label { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.apv-name { font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.02em; line-height: 1.2; }
+.apv-name { font-family: var(--f-display); font-weight: 600; font-size: var(--t-lg); letter-spacing: -0.01em; line-height: 1.2; }
 .apv-word { color: var(--muted); }
 .apv-sentence { margin: 4px 0 0; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.4; }
 .apv-when { margin: 6px 0 0; color: var(--muted); }
