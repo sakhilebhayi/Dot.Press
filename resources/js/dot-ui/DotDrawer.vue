@@ -3,9 +3,10 @@
 // alone for a custom shell. Behaviour is js/dot-nav.js: scrim (the root's own inset:0 layer), focus trap, Escape, link click
 // closes, scroll lock. Closed state is [hidden] (static: js owns it, Vue never re-patches it).
 // Props: id, nav [{label, href, current, badge} | {label, items:[...], open}], title, side ('right'|'left'), context, closeLabel,
-// account (props of DotAccountMenu). Slots: default (replaces the nav sections), before, after.
+// account (props of DotAccountMenu), guest (0.6.0: { login, register }, two full-width rows at the TOP of the drawer). Slots: default (replaces the nav sections), before, after, guest.
 import { computed } from 'vue';
 import DotAccountMenu from './DotAccountMenu.vue';
+import DotGuest from './DotGuest.vue';
 
 const props = defineProps({
     id: { type: String, default: 'dh-drawer' },
@@ -15,9 +16,11 @@ const props = defineProps({
     context: { type: String, default: null },
     closeLabel: { type: String, default: 'Close menu' },
     account: { type: Object, default: null },
+    guest: { type: Object, default: null },
 });
 
 // group ids count groups only (dh-drawer-g1, -g2), as the Blade's do
+const hasNav = computed(() => props.nav.some((item) => (item.items && item.items.length) || item.href));
 const groups = computed(() => {
     let g = 0;
     return props.nav.map((item) => (item.items && item.items.length ? { ...item, gid: `${props.id}-g${++g}`, open: !!item.open || item.items.some((s) => s && s.current) } : item));
@@ -34,9 +37,10 @@ const groups = computed(() => {
             </div>
             <div class="dh-drawer__body">
                 <p v-if="context" class="dh-drawer__context">{{ context }}</p>
+                <slot name="guest"><DotGuest v-if="guest" inline v-bind="guest" /></slot>
                 <slot name="before" />
                 <slot>
-                    <nav class="dh-dnav" :aria-label="title">
+                    <nav v-if="hasNav" class="dh-dnav" :aria-label="title">
                         <ul>
                             <template v-for="(item, i) in groups" :key="i">
                                 <li v-if="item.items && item.items.length" class="dh-dgroup">

@@ -211,7 +211,7 @@ defineExpose({ open: doOpen, close: doClose });
                             <ul class="dsw-bays__grid">
                                 <li v-for="tile in group.tiles" :key="tile.key" :data-dsw-name="tile.name.toLowerCase()" :hidden="!tile.shown">
                                     <div v-if="tile.href === null" class="dsw-bay is-current" aria-current="page">
-                                        <span class="dsw-bay__logo"><img v-if="tile.logo" :src="`${logoBase}/${tile.logo}`" :alt="tile.name" :width="size(tile)?.[0]" :height="size(tile)?.[1]" decoding="async" /></span>
+                                        <span class="dsw-bay__logo"><img v-if="tile.logo" :src="`${logoBase}/${tile.logo}`" :alt="tile.name" :width="size(tile)?.[0]" :height="size(tile)?.[1]" loading="lazy" decoding="async" /></span>
                                         <span class="dsw-bay__name">{{ tile.name }}</span>
                                         <span class="dsw-bay__tag dsw-bay__tag--here">You are here</span>
                                     </div>

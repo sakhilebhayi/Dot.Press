@@ -18,6 +18,11 @@ const props = defineProps({
     method: { type: String, default: 'get' },
     label: { type: String, default: 'Search' },
     hint: { type: String, default: null },
+    // 0.6.0: a hint also binds Ctrl/Cmd+K unless hintKey is false (a platform that owns the key itself)
+    hintKey: { type: Boolean, default: true },
+    // 0.6.0: the rows are driven from the keyboard by js/dot-search-results.js (the Blade's `results-nav` / `enter-first`)
+    resultsNav: { type: Boolean, default: false },
+    enterFirst: { type: Boolean, default: false },
     id: { type: String, default: null },
     formAttributes: { type: Object, default: () => ({}) },
     hiddenFields: { type: Object, default: () => ({}) },
@@ -66,7 +71,7 @@ function onDocClick(e) {
     if (root.value && !root.value.contains(e.target)) close();
 }
 function onWindowKey(e) {
-    if (props.hint && (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
+    if (props.hint && props.hintKey && (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         input.value?.focus();
     }
@@ -90,7 +95,7 @@ defineExpose({ focus: () => input.value?.focus(), blur: () => input.value?.blur(
 </script>
 
 <template>
-    <div ref="root" class="dsr" :class="{ 'is-open': open, 'dsr--nohint': !hint }" data-dsr :data-dsr-shortcut="hint ? '' : null" :data-dsr-loading="loading ? '' : null" :data-dsr-escape-clear="escapeClears ? '' : null" :data-closed="closed ? '' : null" @keydown="onKeydown" @focusout="onFocusout">
+    <div ref="root" class="dsr" :class="{ 'is-open': open, 'dsr--nohint': !hint }" data-dsr :data-dsr-shortcut="hint && hintKey ? '' : null" :data-dsr-nav="resultsNav ? '' : null" :data-dsr-enter-first="resultsNav && enterFirst ? '' : null" :data-dsr-loading="loading ? '' : null" :data-dsr-escape-clear="escapeClears ? '' : null" :data-closed="closed ? '' : null" @keydown="onKeydown" @focusout="onFocusout">
         <label :for="inputId" class="dsr-sr">{{ label }}</label>
         <form role="search" :method="method" :action="action || null" v-bind="formAttributes" @submit="onSubmit">
             <input v-for="(h, i) in hidden" :key="`${h[0]}-${i}`" type="hidden" :name="h[0]" :value="h[1]" />

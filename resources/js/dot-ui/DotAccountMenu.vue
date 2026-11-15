@@ -1,9 +1,10 @@
 <script setup>
 // DotAccountMenu: the avatar button and its menu, or (inline) the expanded list for the drawer. Same markup and classes as
 // blade/account-menu.blade.php; behaviour is js/dot-nav.js (open, Escape, arrows, outside click, theme buttons).
-// Props: name, email, team, initials, avatar, links [{label, href, badge, current, rule}], signOut {action, method, label},
+// Props: name, email, team, initials, avatar, links [{label, href, badge, current, rule} | {label, form: {action, method, fields}} | {label, button, attrs} | {heading}], signOut {action, method, label},
 // csrf (a token string: an Inertia host passes the page's), theme (Light / Dark / System buttons), inline, id, label.
 import { computed } from 'vue';
+import DotMenuItem from './DotMenuItem.vue';
 
 const props = defineProps({
     name: { type: String, default: '' },
@@ -37,10 +38,7 @@ const outMethod = computed(() => (out.value && String(out.value.method).toLowerC
                 <span v-if="team" class="dh-menu__sub" :title="team">{{ team }}</span>
             </div>
             <div class="dh-menu__rule" role="separator"></div>
-            <template v-for="(link, i) in links" :key="i">
-                <div v-if="link.rule" class="dh-menu__rule" role="separator"></div>
-                <a v-else class="dh-menu__item" :href="link.href || '#'" :aria-current="link.current ? 'page' : null" v-bind="link.attrs || {}"><span class="dh-menu__label">{{ link.label }}</span><span v-if="link.badge !== undefined && link.badge !== null && link.badge !== ''" class="dh-count">{{ link.badge }}</span></a>
-            </template>
+            <DotMenuItem v-for="(link, i) in links" :key="i" :item="link" :csrf="csrf" />
             <template v-if="theme">
                 <div class="dh-menu__rule" role="separator"></div>
                 <div class="dh-theme" role="group" aria-label="Theme">
@@ -67,10 +65,7 @@ const outMethod = computed(() => (out.value && String(out.value.method).toLowerC
                 <span v-if="team" class="dh-menu__sub" :title="team">{{ team }}</span>
             </span>
         </div>
-        <template v-for="(link, i) in links" :key="i">
-            <div v-if="link.rule" class="dh-menu__rule" role="separator"></div>
-            <a v-else class="dh-menu__item" :href="link.href || '#'" :aria-current="link.current ? 'page' : null" v-bind="link.attrs || {}"><span class="dh-menu__label">{{ link.label }}</span><span v-if="link.badge !== undefined && link.badge !== null && link.badge !== ''" class="dh-count">{{ link.badge }}</span></a>
-        </template>
+        <DotMenuItem v-for="(link, i) in links" :key="i" :item="link" :csrf="csrf" />
         <div v-if="theme" class="dh-theme" role="group" aria-label="Theme">
             <button type="button" class="dh-theme__btn" data-dh-theme-set="light" aria-pressed="false">Light</button>
             <button type="button" class="dh-theme__btn" data-dh-theme-set="dark" aria-pressed="false">Dark</button>
