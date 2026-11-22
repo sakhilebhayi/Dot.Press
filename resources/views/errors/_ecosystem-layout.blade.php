@@ -7,7 +7,7 @@
         <meta name="theme-color" content="#eef0f1" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#101214" media="(prefers-color-scheme: dark)">
         <meta name="robots" content="noindex">
-        <title>{{ $code }}: @yield('title') · Dot.Press</title>
+        <title>@hasSection('doctitle')@yield('doctitle')@else{{ $code }}: @yield('title')@endif · Dot.Press</title>
 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -41,14 +41,15 @@
             </a>
         </header>
 
-        <main class="er-main" id="main">
+        <main class="er-main @yield('mainclass')" id="main">
             @yield('rail')
-            <p class="er-code">error {{ $code }}</p>
+            <p class="er-code">@hasSection('kicker')@yield('kicker')@else error {{ $code }}@endif</p>
             <h1 class="er-title">@yield('title')</h1>
             <p class="er-msg">@yield('message')</p>
             <div class="er-actions">
                 @yield('actions')
             </div>
+            @yield('body')
         </main>
 
         <footer class="er-foot">

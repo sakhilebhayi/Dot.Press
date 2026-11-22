@@ -27,17 +27,22 @@ import ThemeToggle from '@/press/editor/ui/ThemeToggle.vue';
 import { SAMPLE_DECK, SAMPLE_PREFLIGHT, SAMPLE_REVIEW } from '@/press/brand/sampleDeck.js';
 import { SECTIONS, currentSection, railFill, sampleBeads, withTextScale } from '@/press/brand/landingModel.js';
 
-defineProps({
+const props = defineProps({
     canLogin: { type: Boolean },
     canRegister: { type: Boolean },
+    // R-54: set only while central sign-in is on. Plain links (not Inertia visits): /sso/login leaves for InfoDot.
+    ssoLogin: { type: String, default: null },
+    ssoRegister: { type: String, default: null },
 });
 
 const page = usePage();
 const signedIn = computed(() => !!page.props.auth?.user);
 const has = (name) => { try { return route().has(name); } catch { return false; } };
-const loginHref = computed(() => (has('login') ? route('login') : '/login'));
+const loginHref = computed(() => props.ssoLogin || (has('login') ? route('login') : '/login'));
 const libraryHref = computed(() => (has('dashboard') ? route('dashboard') : '/dashboard'));
 const ctaHref = computed(() => (signedIn.value ? libraryHref.value : loginHref.value));
+// With central sign-in on, the target is /sso/login, which leaves for InfoDot: a plain link, never an Inertia visit.
+const CtaLink = computed(() => (signedIn.value || !props.ssoLogin ? Link : 'a'));
 const ctaLabel = computed(() => (signedIn.value ? 'Open your library' : 'Sign in to start a deck'));
 
 const deck = SAMPLE_DECK.deck;
@@ -123,7 +128,7 @@ onBeforeUnmount(() => {
                 </Link>
                 <div class="lp-top-end">
                     <ThemeToggle />
-                    <Link :href="ctaHref" class="lp-btn lp-btn--solid">{{ signedIn ? 'Library' : 'Sign in' }}</Link>
+                    <component :is="CtaLink" :href="ctaHref" class="lp-btn lp-btn--solid">{{ signedIn ? 'Library' : 'Sign in' }}</component>
                 </div>
             </div>
             <LandingRail :sections="SECTIONS" :current="current" :fill="fill" />
@@ -140,7 +145,7 @@ onBeforeUnmount(() => {
                         A bead stays hollow until its slide holds a chart, a table, a picture or a figure, and a title that says something.
                     </p>
                     <div class="lp-actions">
-                        <Link :href="ctaHref" class="lp-cta"><i class="lp-cta-bead" aria-hidden="true" />{{ ctaLabel }}</Link>
+                        <component :is="CtaLink" :href="ctaHref" class="lp-cta"><i class="lp-cta-bead" aria-hidden="true" />{{ ctaLabel }}</component>
                         <a href="#spine" class="lp-textlink">See how a bead fills</a>
                     </div>
                     <p class="lp-fine">Accounts come from InfoDot sign-in. There is no separate sign-up.</p>
@@ -310,7 +315,8 @@ onBeforeUnmount(() => {
                 <h2 id="h-signin" class="lp-h2 lp-h2--big">Start with one claim.</h2>
                 <p class="lp-lede">Dot.Press accounts come from InfoDot. Sign in the way you do for the rest of the Dot ecosystem.</p>
                 <div class="lp-actions">
-                    <Link :href="ctaHref" class="lp-cta"><i class="lp-cta-bead" aria-hidden="true" />{{ ctaLabel }}</Link>
+                    <component :is="CtaLink" :href="ctaHref" class="lp-cta"><i class="lp-cta-bead" aria-hidden="true" />{{ ctaLabel }}</component>
+                    <a v-if="!signedIn && ssoRegister" :href="ssoRegister" class="lp-btn">Create an account</a>
                 </div>
                 <div class="lp-end" aria-hidden="true"><i /></div>
             </section>

@@ -62,7 +62,8 @@ class ResponseAndStorageTest extends TestCase
 
     public function test_the_indexes_migration_can_be_undone_and_run_again(): void
     {
-        $this->artisan('migrate:rollback', ['--step' => 2])->assertSuccessful();
+        // R-54: the two newest migrations are now the package's dotsso tables and users.infodot_user_uuid, so the step is 4.
+        $this->artisan('migrate:rollback', ['--step' => 4])->assertSuccessful();
         $this->assertFalse(Schema::hasIndex('slides', 'slides_deck_order_index'));
         $this->assertFalse(Schema::hasColumn('decks', 'content_hash'));
         $this->artisan('migrate')->assertSuccessful();

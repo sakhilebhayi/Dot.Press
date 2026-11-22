@@ -12,6 +12,7 @@ use App\Http\Controllers\SchedulerProbeController;
 use App\Http\Controllers\SharedDeckController;
 use App\Http\Middleware\AuthenticateGuardian;
 use App\Http\Middleware\PrivateShareResponse;
+use App\Support\CentralSignIn;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -37,7 +38,11 @@ Route::get('/auth/ecosystem', [EcosystemAuthController::class, 'legacy']);
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
+        'canRegister' => Features::enabled(Features::registration()),
+        // R-54: with central sign-in on, the landing's entry points go straight to /sso/login (register: screen=register).
+        // Null when it is off, so the page behaves exactly as before.
+        'ssoLogin' => CentralSignIn::active() ? CentralSignIn::login() : null,
+        'ssoRegister' => CentralSignIn::active() ? CentralSignIn::register('') : null,
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);

@@ -46,3 +46,20 @@ a { color: inherit; }
 
 @media (prefers-reduced-motion: reduce) { .er-btn, .er-btn i { transition: none; } }
 @media (max-width: 1024px), (pointer: coarse) { .er-foot a { min-height: 44px; min-width: 44px; justify-content: center; } }
+
+/* R-54: the confirm-it-is-you page and the sign-in failure page (shared package views, restyled in the Spine). */
+.er-main--form .er-title { --er-t-title: clamp(2rem, 1.3rem + 2.4vw, 3.25rem); max-width: 16em; }
+.er-form { width: min(100%, 26rem); margin-top: 28px; padding: 20px; border-radius: 14px; background: var(--sheet); border: 1px solid var(--line); display: grid; gap: 8px; }
+.er-label { font-weight: 500; font-size: var(--t-md); }
+.er-input { width: 100%; min-height: 52px; padding: 0 14px; border-radius: 8px; border: 1.5px solid var(--line-strong); background: var(--raised); color: var(--ink); font: 500 1.5rem/1 var(--f-code); letter-spacing: 0.35em; }
+.er-input[aria-invalid="true"] { border-color: var(--bad); }
+.er-help { margin: 0; color: var(--ink-2); font-size: var(--t-sm); }
+.er-error { margin: 0; min-height: 1.25em; color: var(--bad); font-size: var(--t-sm); font-weight: 500; }
+.er-status { margin: 0; color: var(--good); font-weight: 500; font-size: var(--t-sm); }
+.er-form .er-btn { border: 0; cursor: pointer; font-family: inherit; justify-content: center; width: 100%; }
+.er-aside { display: flex; flex-wrap: wrap; gap: 0 24px; margin-top: 8px; }
+.er-aside form { margin: 0; }
+.er-quiet { min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 500; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 5px; text-decoration-color: var(--line-strong); cursor: pointer; }
+.er-quiet:hover { text-decoration-color: var(--ink); }
+.er-ref { margin: 20px 0 0; font-family: var(--f-code); font-size: var(--t-xs); color: var(--muted); }
+.er-actions:empty { display: none; }

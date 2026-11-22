@@ -8,10 +8,14 @@ use App\Http\Middleware\MemoizeDeckAccess;
 use App\Http\Middleware\OwnHostIsStateful;
 use App\Http\Middleware\SecurityHeaders;
 use App\Services\Guardian\ErrorCounter;
+use App\Support\CentralSignIn;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -67,6 +71,21 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // R-54: with central sign-in on, a signed-out visit made inside the app (an Inertia link, the session having
+        // expired) must leave the page for /sso/login as a full page load: a redirect that an XHR follows would cross
+        // origin to InfoDot and fail. The intended URL is kept (GET only) so the person comes back to the same page.
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->header('X-Inertia') && CentralSignIn::active()) {
+                if ($request->isMethod('GET') && $request->hasSession()) {
+                    $request->session()->put('url.intended', $request->fullUrl());
+                }
+
+                return Inertia::location(route('dotsso.login'));
+            }
+
+            return null;
+        });
+
         // Feeds the guardian's hourly error counter (ErrorRateCheck). The
         // counter swallows its own failures, so this cannot break reporting.
         $exceptions->report(function (Throwable $e): void {
