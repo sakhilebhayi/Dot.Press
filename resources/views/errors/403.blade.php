@@ -18,7 +18,7 @@
     <a href="{{ route('dashboard') }}" class="er-link">Open your library</a>
     @else
         @if (Route::has('login'))
-    <a href="{{ route('login') }}" class="er-link">Sign in</a>
+    <a href="{{ \App\Support\CentralSignIn::login() }}" class="er-link">Sign in</a>
         @endif
     @endauth
 @endsection

@@ -33,7 +33,7 @@ const submit = () => {
 
         <h1 class="gs-title">Create an account</h1>
         <p class="gs-lead">
-            Most accounts are created by signing in through InfoDot. Use this form only if you were told to.
+            Dot.Press accounts are made on InfoDot and appear here the first time you sign in. This form is only for an account you were given directly.
         </p>
 
         <form class="gs-form" @submit.prevent="submit">
