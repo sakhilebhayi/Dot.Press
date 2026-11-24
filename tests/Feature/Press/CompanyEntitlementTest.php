@@ -371,8 +371,8 @@ class CompanyEntitlementTest extends AccessTestCase
 
         Http::assertSentCount(1);
 
-        // Ten minutes for an answer: gone after that, and asked again.
-        $this->travel(11)->minutes();
+        // R-61: a minute for an answer: gone after that, and asked again.
+        $this->travel(61)->seconds();
         $this->browser($this->editor)->get('/dashboard')->assertOk();
         Http::assertSentCount(2);
     }
@@ -537,5 +537,93 @@ class CompanyEntitlementTest extends AccessTestCase
 
         // And Acme's data was left exactly as it was.
         $this->assertSame('Quarterly deck', $this->deck->fresh()->title);
+    }
+
+    // ---- R-61 availability contract ------------------------------------------------------------------------------
+
+    private function availability(bool $available, ?string $message = null, bool $entitled = true): void
+    {
+        Http::swap(new Factory);
+        $body = self::holds(self::ACME, $entitled, 'active');
+        $body['platforms'] = array_map(fn ($p) => $p['key'] === 'press' ? $p + ['available' => $available] + ($message === null ? [] : ['message' => $message]) : $p, $body['platforms']);
+
+        Http::fake([self::platformsUrl(self::ACME) => Http::response($body)]);
+    }
+
+    public function test_r61_a_platform_switched_off_answers_503_with_the_message_and_changes_nothing(): void
+    {
+        $this->availability(false, 'Back at 18:00.');
+
+        $page = $this->browser($this->editor)->get('/dashboard');
+        $page->assertStatus(503)->assertSee('Back at 18:00.')->assertDontSee('Quarterly deck')->assertDontSee('data-page', false);
+        $this->assertSame('60', $page->headers->get('Retry-After'));
+        $this->assertStringContainsString('no-store', (string) $page->headers->get('Cache-Control'));
+
+        $json = $this->browser($this->editor)->getJson('/api/decks');
+        $json->assertStatus(503)->assertJson(['reason' => 'platform_unavailable', 'message' => 'Back at 18:00.']);
+        $this->assertSame('60', $json->headers->get('Retry-After'));
+
+        // An Inertia visit gets the 503 too, never a redirect or a page object.
+        $this->browser($this->editor)->withHeaders(['X-Inertia' => 'true'])->get('/dashboard')->assertStatus(503);
+
+        // Nothing deleted, nobody signed out.
+        $this->assertNotNull($this->deck->fresh());
+        $this->assertAuthenticated();
+    }
+
+    public function test_r61_switched_off_comes_before_the_entitlement_refusal(): void
+    {
+        $this->availability(false, null, false);
+
+        $this->browser($this->editor)->get('/dashboard')->assertStatus(503)->assertSee('Dot.Press is temporarily unavailable.');
+    }
+
+    public function test_r61_the_switch_back_on_takes_effect_within_a_minute(): void
+    {
+        $this->availability(false);
+        $this->browser($this->editor)->get('/dashboard')->assertStatus(503);
+
+        $this->availability(true);
+        $this->travel(61)->seconds();
+        $this->browser($this->editor)->get('/dashboard')->assertOk();
+    }
+
+    public function test_r61_an_older_infodot_without_the_fields_is_not_a_switch_off(): void
+    {
+        $this->infodotSays(self::ACME, true);
+        $this->browser($this->editor)->get('/dashboard')->assertOk();
+
+        $this->availability(true);
+        Cache::flush();
+        $this->browser($this->editor)->get('/dashboard')->assertOk();
+    }
+
+    public function test_r61_an_outage_keeps_the_last_answer_for_six_hours_then_carries_on(): void
+    {
+        $this->availability(false, 'Maintenance.');
+        $this->browser($this->editor)->get('/dashboard')->assertStatus(503);
+
+        Http::swap(new Factory);
+        Http::fake([self::platformsUrl(self::ACME) => Http::response('', 500)]);
+        $this->travel(2)->minutes();
+        $this->browser($this->editor)->get('/dashboard')->assertStatus(503)->assertSee('Maintenance.');
+
+        $this->travel(6)->hours();
+        $this->browser($this->editor)->get('/dashboard')->assertOk();
+    }
+
+    public function test_r61_a_shared_link_and_live_pages_stay_open_while_switched_off(): void
+    {
+        $this->availability(false);
+        $token = Str::random(40);
+        $this->deck->forceFill(['visibility' => 'link', 'share_token' => $token])->save();
+
+        foreach ([fn () => $this, fn () => $this->browser($this->editor)] as $as) {
+            $as()->get('/s/'.$token)->assertOk();
+            $as()->get('/s/'.$token.'/document')->assertOk();
+            $as()->get('/')->assertOk();
+            $as()->get('/up')->assertOk();
+        }
+        $this->browser($this->editor)->post('/logout')->assertRedirect();
     }
 }

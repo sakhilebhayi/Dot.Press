@@ -21,6 +21,10 @@ use Symfony\Component\HttpFoundation\Response;
  * carry a bearer token (machine to machine) and switching company. When InfoDot gives no clear answer the request
  * carries on (see CompanyEntitlement).
  *
+ * R-61: when InfoDot has switched Dot.Press off (maintenance, unavailable) those same signed-in requests get a 503 with
+ * InfoDot's message, ahead of the company check, whatever the company holds. Nothing is read, changed, deleted or signed out.
+ * The exemptions are unchanged, so public and shared links, live presenting and machine (bearer) calls stay open.
+ *
  * A personal team, or any team with no InfoDot company behind it, is never asked about at InfoDot. What counts
  * there is what InfoDot said about the person's personal workspace when they signed in, kept in the session:
  * exactly false closes it (individuals hold the free core only, so Dot.Press needs a company that has switched it
@@ -55,6 +59,14 @@ class EnsureCompanyEntitled
 
     public function handle(Request $request, Closure $next): Response
     {
+        if ($this->applies($request)) {
+            $answer = $this->availability(Auth::guard('web')->user());
+
+            if ($answer !== null) {
+                return $this->unavailable($request, $answer['message']);
+            }
+        }
+
         $refusal = $this->applies($request) ? self::refusalFor(Auth::guard('web')->user(), $this->entitlement, self::remembered($request)) : null;
 
         if ($refusal === null) {
@@ -77,6 +89,36 @@ class EnsureCompanyEntitled
         }
 
         return self::page($refusal);
+    }
+
+    /**
+     * InfoDot's answer when it has switched this platform off for the person's current company, else null (carry on).
+     *
+     * @return array{message: string|null}|null
+     */
+    private function availability(mixed $user): ?array
+    {
+        if (! $user instanceof User || ! $this->entitlement->enabled() || blank($user->currentTeam?->infodot_team_uuid)) {
+            return null;
+        }
+
+        $answer = $this->entitlement->for((string) $user->currentTeam->infodot_team_uuid);
+
+        return $answer !== null && ($answer['available'] ?? true) === false ? ['message' => $answer['message'] ?? null] : null;
+    }
+
+    /** 503 with the message and nothing else: Retry-After 60, never cached, nobody signed out. */
+    private function unavailable(Request $request, ?string $message): Response
+    {
+        $message ??= 'Dot.Press is temporarily unavailable.';
+
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json(['message' => $message, 'reason' => 'platform_unavailable'], 503)
+                ->header('Retry-After', '60')->header('Cache-Control', 'no-store, private');
+        }
+
+        return response()->view('errors.platform-unavailable', ['message' => $message], 503)
+            ->header('Retry-After', '60')->header('Cache-Control', 'no-store, private');
     }
 
     /**
