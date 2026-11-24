@@ -10,16 +10,23 @@ use Throwable;
 /**
  * Asks InfoDot whether a company still holds this platform (R-50), for a person who is already signed in.
  *
- * The answer is kept per company for ten minutes. Anything other than a clear answer (InfoDot unreachable or
- * erroring, the secret wrong or not set, a body this app cannot read, this platform's own row missing) is "unknown":
- * the caller carries on as before, the failure is logged once and remembered for sixty seconds. An outage or a
- * misconfiguration at InfoDot never locks a paying company out, and "unknown" is never shown to anyone as "active".
+ * The answer is kept per company for sixty seconds, so a switch made at InfoDot (a platform put in maintenance, R-61)
+ * takes effect within about a minute. It also says whether InfoDot has the platform switched on (`available`, `message`);
+ * a row without `available` (an older InfoDot) is never read as a switch-off. Every clear answer is also remembered
+ * for six hours. Anything other than a clear answer (InfoDot unreachable or erroring, the secret wrong or not set, a
+ * body this app cannot read, this platform's own row missing) uses the last clear answer under six hours old, so a
+ * platform last told "unavailable" stays unavailable. With none it is "unknown": the caller carries on as before, the
+ * failure is logged once and remembered for sixty seconds. An outage or a misconfiguration at InfoDot never locks a
+ * paying company out, and "unknown" is never shown to anyone as "active". Only the company's uuid leaves this app.
  */
 class CompanyEntitlement
 {
-    public const KNOWN_FOR = 600;
+    public const KNOWN_FOR = 60;
 
     public const UNKNOWN_FOR = 60;
+
+    /** How long the last clear answer is used when InfoDot gives no clear answer. */
+    public const LAST_KNOWN_FOR = 21600;
 
     public function enabled(): bool
     {
@@ -38,7 +45,7 @@ class CompanyEntitlement
     }
 
     /**
-     * @return array{entitled: bool, status: string}|null null when InfoDot gave no clear answer
+     * @return array{entitled: bool, status: string, available: bool, message: string|null}|null null when InfoDot gave no clear answer
      */
     public function for(string $teamUuid): ?array
     {
@@ -51,9 +58,17 @@ class CompanyEntitlement
 
         [$answer, $why] = $this->ask($teamUuid);
 
-        if ($answer === null) {
-            // Once per window: the next request inside it reads the remembered "unknown" and stays quiet.
+        if ($answer !== null) {
+            Cache::put($key.':last', ['answer' => $answer, 'at' => time()], self::LAST_KNOWN_FOR);
+        } else {
+            // Once per window: the next request inside it reads the remembered answer and stays quiet.
             Log::warning('Could not confirm the company still holds this platform; carrying on.', ['platform' => $this->platform(), 'reason' => $why]);
+
+            $last = Cache::get($key.':last');
+
+            if (is_array($last) && is_array($last['answer'] ?? null) && time() - (int) ($last['at'] ?? 0) < self::LAST_KNOWN_FOR) {
+                $answer = $last['answer'];
+            }
         }
 
         Cache::put($key, ['answer' => $answer], $answer === null ? self::UNKNOWN_FOR : self::KNOWN_FOR);
@@ -62,7 +77,7 @@ class CompanyEntitlement
     }
 
     /**
-     * @return array{0: array{entitled: bool, status: string}|null, 1: string}
+     * @return array{0: array{entitled: bool, status: string, available: bool, message: string|null}|null, 1: string}
      */
     private function ask(string $teamUuid): array
     {
@@ -100,7 +115,13 @@ class CompanyEntitlement
                     return [null, 'unreadable answer'];
                 }
 
-                return [['entitled' => $row['entitled'], 'status' => is_string($row['status'] ?? null) ? $row['status'] : ''], 'answered'];
+                return [[
+                    'entitled' => $row['entitled'],
+                    'status' => is_string($row['status'] ?? null) ? $row['status'] : '',
+                    // R-61: an InfoDot from before contract 2 gives no `available`, which is not a switch-off.
+                    'available' => ($row['available'] ?? true) !== false,
+                    'message' => is_string($row['message'] ?? null) && $row['message'] !== '' ? mb_substr($row['message'], 0, 400) : null,
+                ], 'answered'];
             }
         }
 
