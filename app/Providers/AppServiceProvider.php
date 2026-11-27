@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\EssentialCron;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -23,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        EssentialCron::listen();
+
         // Every link the app writes into mail (password reset, verification, invitations, deck links) and every redirect
         // comes from APP_URL, never from the Host header of the request, so a request sent with a Host of someone
         // else's choosing cannot put their address into a message from this platform.
